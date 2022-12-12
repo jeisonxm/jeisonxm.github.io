@@ -206,7 +206,7 @@ input,textarea{
   border-radius: 10px;
 }
 .input-style{
-  width: 150px;
+  width: 42vw;
 }
 input::placeholder, textarea::placeholder{
   color: rgba(255, 255, 255, 0.87);

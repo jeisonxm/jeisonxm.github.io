@@ -83,3 +83,56 @@
 #about{
   padding-bottom: 35vh;
 }
+
+.subtitle-style{
+  font-size: 3.5rem;
+}
+.desktopcontainer{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.medias-container{
+  display: flex;
+  flex-direction: column;
+}
+.socialMedia-container{
+  margin-left: 10vh;
+}
+#form-container{
+  width: 50vw;
+}
+.medias-container:hover > :not(:hover){
+  opacity: 0.2;
+  font-size: 2rem;
+}
+.medias-container a{
+  transition: all 500ms;
+}
+.send-buton{
+  cursor: pointer;
+  transition: all 500ms;
+}
+.send-buton:hover{
+  width: 30vw;
+}
+#message-input{
+  height: 90px;
+}
+.header-logo{
+  transition: all 500ms;
+}
+.header-logo:hover{
+  text-shadow: 3px 3px 20px #ffffff,
+    -2px 1px 30px #ffffff;
+}
+.header-list:hover > :not(:hover){
+  opacity: 0.2;
+  font-size: 1.2%;
+}
+.header-list a{
+  transition: all 500ms;
+}
+.header-list a:hover{
+  font-size: 1.8rem;
+}
