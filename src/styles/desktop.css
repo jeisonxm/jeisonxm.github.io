@@ -38,10 +38,48 @@
 .presentation-saludo .contact-button {
   width: 35vw;
 }
+.curriculum{
+  width: 40vw;
+  transition: 500ms;
+}
+.about-botones:hover > :not(:hover){
+  opacity: 0;
+  /* display: none; */
+}
+.about-botones{
+  transition: all 500ms;
+  overflow: hidden;
+  justify-content: center;
+  width: fit-content;
+  align-self: center;
+}
+.about-botones .contact-button{
+  width: 40vw;
+}
+.contact-button{
+  transition: all 500ms;
+}
 .contact-button:hover{
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.755);
   border: 1px solid var(--black);
   color: black;
-  transition-duration: 300ms;
-  
+  width: 60%;
+}
+.about-botones .contact-button:hover{
+  width: 50vw;
+}
+.curriculum:hover{
+  background-color: var(--black);
+  color: white;
+  width: 50vw;
+}
+
+.title-style{
+  font-size: 6rem;
+}
+.texto-container .parrafo-style{
+  font-size: 1.6rem;
+}
+#about{
+  padding-bottom: 35vh;
 }
