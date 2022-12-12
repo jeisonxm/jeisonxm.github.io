@@ -53,7 +53,7 @@ a{
   height: calc(100vh - 70px);
   flex-direction: column;
   flex-wrap: wrap;
-  overflow: scroll;
+  overflow-y: hidden;
   overflow-x: scroll;
   overscroll-behavior-x: contain; 
   scroll-snap-type: x mandatory;
@@ -78,7 +78,6 @@ a{
   display: flex;
   flex-direction: column;
   padding: 30px;
-  overflow: hidden;
 }
 .presentation-saludo{
   display: flex;
@@ -115,7 +114,6 @@ a{
   bottom: 0;
   left: 0;
   width: 100%;
-  overflow: hidden;
   line-height: 0;
   transform: rotate(180deg);
   z-index: 1;

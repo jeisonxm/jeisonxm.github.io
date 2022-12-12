@@ -1,0 +1,14 @@
+body .body-container{
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  overflow-x: scroll;
+  /* overflow-y: scroll; */
+  flex-shrink: 0
+}
+::-webkit-scrollbar{
+  width: 1em;
+}
+.sections-containers{
+  width: 100vw;
+}
