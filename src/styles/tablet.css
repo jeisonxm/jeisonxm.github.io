@@ -1,0 +1,17 @@
+.presentation-saludo{
+  margin-bottom: 50%;
+}
+.presentation-saludo h1{
+  /* font-size: ; */
+}
+.telefono{
+  display: none;
+}
+.oculto{
+  display: inline;
+}
+#presentacion{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
