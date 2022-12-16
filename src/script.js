@@ -12,6 +12,15 @@ function horizontalScroll(size) {
     }
   })
 }
+function changeSizeBackgournd() {
+  if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    if (window.innerWidth < 900){
+      imagen.style.height = '69px';
+    }
+    else{
+      imagen.style.height = '163px'
+    }}
+}
 
 if (screenWidth <= 999) {
   horizontalScroll(750)
@@ -29,14 +38,7 @@ window.addEventListener("resize", function() {
   else{
     horizontalScroll(1500)
   };
-  
-  if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-    if (window.innerWidth < 900){
-      imagen.style.height = '69px';
-    }
-    else{
-      imagen.style.height = '163px'
-    }
-}; 
+  changeSizeBackgournd(); 
 });
+changeSizeBackgournd();
 
