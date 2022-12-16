@@ -55,8 +55,8 @@
   width: 40%;
   height: 60px;
 }
-.subtitle-style{
-  font-size: 4rem;
+body .subtitle-style{
+  font-size: 3rem;
 }
 input, textarea{
   padding: 15px;

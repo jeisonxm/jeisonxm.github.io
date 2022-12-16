@@ -1,15 +1,42 @@
+let imagen = document.getElementById('imagen-abajo');
 const container = document.getElementById("container");
+let body = document.getElementsByTagName('body')
+let screenWidth = window.innerWidth;
 
-container.addEventListener('wheel',(e)=>{
-  if (e.deltaY > 0){
-    container.scrollLeft -=1500;
-  }else if(e.deltaY < 0) {
-    container.scrollLeft +=1500;
-  }
-})
-// if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-//   if (window.innerWidth < 1000){
-//     document.body.style.zoom = "70%";
-//     document.getElementsByClassName('sections-containers').style.width = '130vw';
-//   }
-// } 
+function horizontalScroll(size) {
+  container.addEventListener('wheel',(e)=>{
+    if (e.deltaY > 0){
+      container.scrollLeft -=size;
+    }else if(e.deltaY < 0) {
+      container.scrollLeft +=size;
+    }
+  })
+}
+
+if (screenWidth <= 999) {
+  horizontalScroll(750)
+}  
+else{
+  horizontalScroll(1500)
+}
+
+
+window.addEventListener("resize", function() {
+  screenWidth = window.innerWidth
+  if (screenWidth <= 999) {
+    horizontalScroll(750)
+  }  
+  else{
+    horizontalScroll(1500)
+  };
+  
+  if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    if (window.innerWidth < 900){
+      imagen.style.height = '69px';
+    }
+    else{
+      imagen.style.height = '163px'
+    }
+}; 
+});
+
