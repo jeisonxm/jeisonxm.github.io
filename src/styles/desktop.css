@@ -5,7 +5,9 @@ body .body-container{
 .custom-shape-divider-bottom-1670009055 svg {
   height: 176px;
 }
-
+h1,h2,p{
+  cursor: default;
+}
 .header-container a {
   font-size: 1.5rem;
 }
