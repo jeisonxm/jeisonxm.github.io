@@ -1,12 +1,10 @@
-/* body .body-container{
-  display: flex;
-  margin: 0 auto;
-  min-width: 100vw;
-  overflow-x: scroll;
-  flex-wrap: wrap;
-  flex-shrink: 0
+body .body-container{
+  overflow-y: hidden;
 }
-::-webkit-scrollbar{
+*::-webkit-scrollbar{
+  background-color: var(--black);
+}
+/* ::-webkit-scrollbar{
   width: 1em;
 }
 .sections-containers{
@@ -79,9 +77,6 @@
 }
 .texto-container .parrafo-style{
   font-size: 1.6rem;
-}
-#about{
-  padding-bottom: 35vh;
 }
 
 .subtitle-style{

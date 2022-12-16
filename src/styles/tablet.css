@@ -4,9 +4,6 @@
 .header-list{
   gap: 50px;
 }
-.body-container{
-  height: calc(100vh - 90px);
-}
 .header-container a{
   font-size: 2.2rem;
 }
