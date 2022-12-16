@@ -60,6 +60,9 @@ a{
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
 }
+*::-webkit-scrollbar{
+  display: none;
+}
 .design{
   display: flex;
   flex-direction: column;
