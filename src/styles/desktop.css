@@ -8,6 +8,9 @@ body .body-container{
 h1,h2,p{
   cursor: default;
 }
+.texto-container{
+  padding: 45px 100px;
+}
 .header-container a {
   font-size: 1.5rem;
 }
