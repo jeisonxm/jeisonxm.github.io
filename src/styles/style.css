@@ -76,6 +76,10 @@ a{
 }
 
 /*! Home */
+#presentacion{
+  scroll-snap-align: center;
+  scroll-snap-type: x mandatory;
+}
 .presentation-container{
   background-color: var(--bg-color);
   display: flex;

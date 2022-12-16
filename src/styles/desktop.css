@@ -1,9 +1,8 @@
 body .body-container{
   overflow-y: hidden;
+  overflow-x: scroll;
 }
-*::-webkit-scrollbar{
-  background-color: var(--black);
-}
+
 /* ::-webkit-scrollbar{
   width: 1em;
 }
@@ -121,10 +120,10 @@ body .body-container{
   text-shadow: 3px 3px 20px #ffffff,
     -2px 1px 30px #ffffff;
 }
-.header-list:hover > :not(:hover){
+/* .header-list:hover > :not(:hover){
   opacity: 0.2;
   font-size: 1.2%;
-}
+} */
 .header-list a{
   transition: all 500ms;
 }
