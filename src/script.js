@@ -70,5 +70,13 @@ right.addEventListener('click',()=>{serviceContainer.scrollLeft += 500});
 left.addEventListener('click',()=>{serviceContainer.scrollLeft -= 500});
 
 ingenieriaInd.addEventListener('click',(e)=>{
-  console.log('ouch me tocaste');
+  
+  ingenieriaInd.style.transition = 'all 500ms ease-in-out';
+  ingenieriaInd.style.width = '90vw';
+  ingenieriaInd.style.height = '80vh';
+  ingenieriaInd.style.position = 'absolute';
+  ingenieriaInd.style.justifyContent = 'flex-start';
+  ingenieriaInd.style.top = '5vh';
+  ingenieriaInd.style.left = '-15vw';
+
 })

@@ -329,3 +329,29 @@ input::placeholder, textarea::placeholder{
 .service-title{
   padding-top: 24px;
 }
+/* ! Para javascript */
+.dominios-container{
+  padding-top: 20px;
+}
+.dominios-container h3{
+  font-weight: 600;
+}
+
+.services-container .oculto-style{
+  /* position: absolute;
+  justify-content: flex-start;  
+  top: 5vh;
+  left: -15vw; */
+  /* width: 90vw;
+  height: 80vh; */
+}
+.dominios-icon{
+  font-size: 3rem;
+}
+.dominios-container li{
+  font-size: 1.6rem;
+  font-weight: 300;
+}
+.ocultar{
+  display: none;
+}
