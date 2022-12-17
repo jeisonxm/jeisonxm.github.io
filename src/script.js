@@ -2,6 +2,9 @@ let imagen = document.getElementById('imagen-abajo');
 const container = document.getElementById("container");
 let body = document.getElementsByTagName('body')
 let screenWidth = window.innerWidth;
+const right = document.getElementById('right')
+const left = document.getElementById('left')
+const serviceContainer = document.getElementById('services-container')
 
 function palpitaMensaje(id) {
   setInterval(function() {
@@ -58,3 +61,7 @@ changeSizeBackgournd();
 
 palpitaMensaje('mensaje-pc')
 palpitaMensaje('mensaje-tel')
+
+right.addEventListener('click',()=>{serviceContainer.scrollLeft += 500});
+
+left.addEventListener('click',()=>{serviceContainer.scrollLeft -= 500});

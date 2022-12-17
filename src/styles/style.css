@@ -318,3 +318,10 @@ input::placeholder, textarea::placeholder{
   font-weight: 600;
   opacity: 0.6;
 }
+.arrow-style{
+  transition-duration: 350ms;
+}
+.arrow-style:hover{
+  cursor: pointer;
+  font-size: 5rem;
+}
