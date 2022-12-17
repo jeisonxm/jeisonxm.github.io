@@ -325,3 +325,7 @@ input::placeholder, textarea::placeholder{
   cursor: pointer;
   font-size: 5rem;
 }
+
+.service-title{
+  padding-top: 24px;
+}
