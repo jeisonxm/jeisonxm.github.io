@@ -38,8 +38,7 @@
 #about{
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding-bottom: 20vh;
+  justify-content: flex-start;
 }
 .title-style{
   font-size: 8rem;

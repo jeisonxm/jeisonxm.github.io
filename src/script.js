@@ -3,6 +3,18 @@ const container = document.getElementById("container");
 let body = document.getElementsByTagName('body')
 let screenWidth = window.innerWidth;
 
+function palpitaMensaje(id) {
+  setInterval(function() {
+    if (document.getElementById(id).style.opacity == "1") {
+      document.getElementById(id).style.opacity = "0.3";
+    }
+  
+    else {
+      document.getElementById(id).style.opacity = "1";
+    }
+  }, 1000);
+}
+
 function horizontalScroll(size) {
   container.addEventListener('wheel',(e)=>{
     if (e.deltaY > 0){
@@ -12,6 +24,7 @@ function horizontalScroll(size) {
     }
   })
 }
+
 function changeSizeBackgournd() {
   if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
     if (window.innerWidth < 900){
@@ -42,3 +55,6 @@ window.addEventListener("resize", function() {
 });
 changeSizeBackgournd();
 
+
+palpitaMensaje('mensaje-pc')
+palpitaMensaje('mensaje-tel')

@@ -23,7 +23,7 @@ h1,h2,p{
 }
 .presentation-saludo{
   padding-left: 10vw;
-  padding-top: 6vh;
+  padding-top: 15vh;
 }
 .presentation-saludo .title-style{
   font-size: 6rem;
@@ -128,4 +128,24 @@ h1,h2,p{
 }
 .sections-containers{
   max-height: 94vh;
+}
+.deslizame-mensaje{
+  position: relative;
+  display: flex;
+  transition-duration: 800ms;
+  flex-direction: row;
+  align-items: center;
+  /* height: 10vh; */
+  top: 2vh;
+  left: 0;
+}
+#raton{
+  margin-top: 10px;
+  opacity: 0.2;
+  height: 33px;
+  width: 33px;
+}
+.deslizame-mensaje p{
+  font-weight: 400;
+  opacity: 0.5;
 }

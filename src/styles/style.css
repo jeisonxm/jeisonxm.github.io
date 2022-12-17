@@ -254,3 +254,8 @@ input::placeholder, textarea::placeholder{
   margin-right: 10px;
   font-size: 2.5rem;
 }
+#mensaje-tel{
+  transition-duration: 700ms;
+  font-weight: 300;
+}
+
