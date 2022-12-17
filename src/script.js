@@ -5,6 +5,9 @@ let screenWidth = window.innerWidth;
 const right = document.getElementById('right')
 const left = document.getElementById('left')
 const serviceContainer = document.getElementById('services-container')
+const dataScience = document.querySelector('.services-ds')
+const ingenieriaInd = document.querySelector('.services-id')
+const webDev = document.querySelector('.services-wd')
 
 function palpitaMensaje(id) {
   setInterval(function() {
@@ -65,3 +68,7 @@ palpitaMensaje('mensaje-tel')
 right.addEventListener('click',()=>{serviceContainer.scrollLeft += 500});
 
 left.addEventListener('click',()=>{serviceContainer.scrollLeft -= 500});
+
+ingenieriaInd.addEventListener('click',(e)=>{
+  console.log('ouch me tocaste');
+})
