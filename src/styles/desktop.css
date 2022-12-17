@@ -126,3 +126,6 @@ h1,h2,p{
 .header-list a:hover{
   font-size: 1.8rem;
 }
+.sections-containers{
+  max-height: 94vh;
+}

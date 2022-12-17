@@ -51,7 +51,7 @@ a{
 .body-container{
   display: flex;
   padding-top: 70px;
-  min-height: 100vh;
+  min-height: calc(100vh - 70px);
   flex-direction: row;
   flex-wrap: nowrap;
   overflow-y: scroll;
@@ -85,7 +85,7 @@ a{
   display: flex;
   flex-direction: column;
   padding: 30px;
-  /* height: calc(100vh - 70px); */
+  height: calc(100vh - 70px);
   overflow-y: none;
 }
 .presentation-saludo{
