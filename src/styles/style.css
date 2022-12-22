@@ -286,6 +286,7 @@ input::placeholder, textarea::placeholder{
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
   background-color: #212529;
   min-width: 60vw;
   min-height: 20vh;
@@ -338,13 +339,16 @@ input::placeholder, textarea::placeholder{
 }
 
 .services-container .oculto-style{
-  /* position: absolute;
+  position: absolute;
+  cursor: default;
   justify-content: flex-start;  
   top: 5vh;
-  left: -15vw; */
-  /* width: 90vw;
-  height: 80vh; */
+  left: -15vw; 
+  width: 90vw;
+  height: 80vh;
+  transition: all 500ms ease-in-out;
 }
+
 .dominios-icon{
   font-size: 3rem;
 }
@@ -354,4 +358,14 @@ input::placeholder, textarea::placeholder{
 }
 .ocultar{
   display: none;
+}
+
+.fa-circle-xmark{
+  position: absolute;
+  top: 2vh;
+  left: 2vw;
+  color: rgb(255, 118, 118);
+  cursor: pointer;
+  /* opacity: 0.8; */
+  font-size: 3.5rem;
 }

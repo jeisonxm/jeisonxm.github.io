@@ -8,6 +8,8 @@ const serviceContainer = document.getElementById('services-container')
 const dataScience = document.querySelector('.services-ds')
 const ingenieriaInd = document.querySelector('.services-id')
 const webDev = document.querySelector('.services-wd')
+const dominiosID = document.querySelector('#dominios-id')
+const botonCerrar = document.querySelectorAll('.fa-circle-xmark')
 
 function palpitaMensaje(id) {
   setInterval(function() {
@@ -69,14 +71,22 @@ right.addEventListener('click',()=>{serviceContainer.scrollLeft += 500});
 
 left.addEventListener('click',()=>{serviceContainer.scrollLeft -= 500});
 
-ingenieriaInd.addEventListener('click',(e)=>{
-  
-  ingenieriaInd.style.transition = 'all 500ms ease-in-out';
-  ingenieriaInd.style.width = '90vw';
-  ingenieriaInd.style.height = '80vh';
-  ingenieriaInd.style.position = 'absolute';
-  ingenieriaInd.style.justifyContent = 'flex-start';
-  ingenieriaInd.style.top = '5vh';
-  ingenieriaInd.style.left = '-15vw';
 
+ingenieriaInd.addEventListener('click',(e)=>{  
+  if (ingenieriaInd.classList.contains('oculto-style')){
+    ingenieriaInd.classList.remove('oculto-style')
+    dominiosID.classList.add('ocultar')
+  }else{
+    ingenieriaInd.classList.add('oculto-style')
+    dominiosID.classList.remove('ocultar')
+  }
 })
+
+for (let i = 0; i < botonCerrar.length; i++) {
+  const element = botonCerrar[i];
+  element.addEventListener('click',(e)=>{
+    console.log(e)
+    ingenieriaInd.classList.remove('oculto-style')
+    dominiosID.classList.add('ocultar')
+  })
+}
