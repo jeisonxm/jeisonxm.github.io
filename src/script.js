@@ -82,11 +82,12 @@ ingenieriaInd.addEventListener('click',(e)=>{
   }
 })
 
-for (let i = 0; i < botonCerrar.length; i++) {
-  const element = botonCerrar[i];
-  element.addEventListener('click',(e)=>{
-    console.log(e)
-    ingenieriaInd.classList.remove('oculto-style')
-    dominiosID.classList.add('ocultar')
-  })
-}
+// for (let i = 0; i < botonCerrar.length; i++) {
+//   const element = botonCerrar[i];
+//   element.addEventListener('click',(e)=>{
+//     console.log('si me tocaste');
+//     ingenieriaInd.classList.remove('oculto-style')
+//     dominiosID.classList.add('ocultar')
+//   })
+// }
+
