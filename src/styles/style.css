@@ -394,6 +394,8 @@ input::placeholder, textarea::placeholder{
 .list-container{
   list-style: circle;
   margin-top: 10px;
+  margin-left: 20vw;
+  text-align: justify;
 }
 .microsoft , .python{
   font-size: 1.4rem;

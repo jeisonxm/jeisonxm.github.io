@@ -9,6 +9,8 @@ const dataScience = document.querySelector('.services-ds')
 const ingenieriaInd = document.querySelector('.services-id')
 const webDev = document.querySelector('.services-wd')
 const dominiosID = document.querySelector('#dominios-id')
+const dominiosDS = document.querySelector('#dominios-ds')
+const dominiosWD = document.querySelector('#dominios-wd')
 const botonCerrar = document.querySelectorAll('.fa-circle-xmark')
 
 function palpitaMensaje(id) {
@@ -72,16 +74,23 @@ right.addEventListener('click',()=>{serviceContainer.scrollLeft += 500});
 left.addEventListener('click',()=>{serviceContainer.scrollLeft -= 500});
 
 
-ingenieriaInd.addEventListener('click',(e)=>{  
-  if (ingenieriaInd.classList.contains('oculto-style')){
-    ingenieriaInd.classList.remove('oculto-style')
-    dominiosID.classList.add('ocultar')
-  }else{
-    ingenieriaInd.classList.add('oculto-style')
-    dominiosID.classList.remove('ocultar')
-  }
-})
 
+
+function abrirHabilidades(container,dominios) {
+  container.addEventListener('click', (e) => {
+    if (container.classList.contains('oculto-style')) {
+      container.classList.remove('oculto-style');
+      dominios.classList.add('ocultar');
+    } else {
+      container.classList.add('oculto-style');
+      dominios.classList.remove('ocultar');
+    }
+  });
+}
+
+abrirHabilidades(ingenieriaInd,dominiosID);
+abrirHabilidades(dataScience,dominiosDS);
+abrirHabilidades(webDev,dominiosWD);
 // for (let i = 0; i < botonCerrar.length; i++) {
 //   const element = botonCerrar[i];
 //   element.addEventListener('click',(e)=>{
