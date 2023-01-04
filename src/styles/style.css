@@ -413,3 +413,14 @@ input::placeholder, textarea::placeholder{
 background: linear-gradient(81deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7461024498886415) 50%, rgba(255,255,255,0) 100%);
 opacity: 0.45;
 }
+.tech-icon-title{
+  font-size: 1.4rem;
+}
+
+.oculto-style .services-title-container{
+  margin-top: 45px;
+}
+
+.dominio-title{
+  font-size: 2.5rem;
+}
