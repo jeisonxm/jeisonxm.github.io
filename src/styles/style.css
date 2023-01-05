@@ -446,7 +446,7 @@ margin-bottom: 6px;
 }
 
 .dominios-container{
-  background-color: var(--bg-color);
+  background-color: rgba(255, 255, 255, 0.8);
   color: black;
 }
 img {
