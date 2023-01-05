@@ -149,3 +149,43 @@ h1,h2,p{
   font-weight: 400;
   opacity: 0.5;
 }
+.services-container{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100vw;
+  height: 40vh;
+}
+.services-styles{
+  min-width: 25vw;
+  max-width: 26vw;
+  margin: 0;
+}
+.arrows-container{
+  display: none;
+}
+.services-container .oculto-style{
+  max-width: 65vw;
+  left: 17vw;
+  top: 11vh;
+  max-height: 68vh;
+}
+.services-styles{
+  transition: all 300ms ease-in-out;
+}
+.services-styles:hover{
+  background-color: var(--bg-color);
+  color: var(--black);
+}
+.oculto-style:hover{
+  background-color: var(--black);
+  color: var(--bg-color);
+}
+.tecnologias-grid{
+  width: 55vw;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-auto-rows: 80px;
+}
+.services-id .tecnologias-grid{
+  grid-template-columns: 1fr 1fr 1fr;
+}

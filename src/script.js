@@ -12,6 +12,7 @@ const dominiosID = document.querySelector('#dominios-id')
 const dominiosDS = document.querySelector('#dominios-ds')
 const dominiosWD = document.querySelector('#dominios-wd')
 const botonCerrar = document.querySelectorAll('.fa-circle-xmark')
+const servicesStyles = document.querySelector('.services-styles')
 
 function palpitaMensaje(id) {
   setInterval(function() {
@@ -24,7 +25,6 @@ function palpitaMensaje(id) {
     }
   }, 1000);
 }
-
 function horizontalScroll(size) {
   container.addEventListener('wheel',(e)=>{
     if (e.deltaY > 0){
@@ -34,7 +34,6 @@ function horizontalScroll(size) {
     }
   })
 }
-
 function changeSizeBackgournd() {
   if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
     if (window.innerWidth < 900){
@@ -45,24 +44,28 @@ function changeSizeBackgournd() {
     }}
 }
 
-if (screenWidth <= 999) {
-  horizontalScroll(750)
-}  
-else{
-  horizontalScroll(1500)
-}
-
-
-window.addEventListener("resize", function() {
-  screenWidth = window.innerWidth
+function movilidadDePagina() {
   if (screenWidth <= 999) {
     horizontalScroll(750)
   }  
   else{
     horizontalScroll(1500)
-  };
-  changeSizeBackgournd(); 
-});
+  }
+  
+  
+  window.addEventListener("resize", function() {
+    screenWidth = window.innerWidth
+    if (screenWidth <= 999) {
+      horizontalScroll(750)
+    }  
+    else{
+      horizontalScroll(1500)
+    };
+    changeSizeBackgournd(); 
+  });
+}
+
+movilidadDePagina();
 changeSizeBackgournd();
 
 
@@ -81,11 +84,19 @@ function abrirHabilidades(container,dominios) {
     if (container.classList.contains('oculto-style')) {
       container.classList.remove('oculto-style');
       dominios.classList.add('ocultar');
+      movilidadDePagina();
     } else {
+      horizontalScroll(0);
       container.classList.add('oculto-style');
       dominios.classList.remove('ocultar');
     }
   });
+}
+
+function movilidadConWheel(container){
+  if (!container.classList.contains('oculto-style')){
+    
+  }
 }
 
 abrirHabilidades(ingenieriaInd,dominiosID);
