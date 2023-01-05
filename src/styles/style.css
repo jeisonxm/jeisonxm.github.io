@@ -316,7 +316,7 @@ input::placeholder, textarea::placeholder{
   padding: 15px 4vw 0 4vw;
   text-align: justify;
   font-size: 1.4rem;
-  font-weight: 600;
+  font-weight: 400;
   opacity: 0.6;
 }
 .arrow-style{
@@ -332,6 +332,11 @@ input::placeholder, textarea::placeholder{
 }
 /* ! Para javascript */
 .dominios-container{
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll ;
+  min-width: 100%;
+  max-height: 50vh;
   padding-top: 30px;
 }
 .dominios-container h3{
@@ -345,9 +350,10 @@ input::placeholder, textarea::placeholder{
   top: 5vh;
   left: -15vw; 
   width: 90vw;
+  padding: 0;
   /* max-height: 100vh; */
   transition: all 500ms ease-in-out;
-  overflow-y: scroll;
+  overflow: hidden;
 }
 .oculto-style .service-title{
   font-size: 3rem;
@@ -378,23 +384,28 @@ input::placeholder, textarea::placeholder{
 }
 
 .tecnologias-container{
-  margin-top: 30px;
+  margin: 30px 0;
 }
 .fa-microsoft{
   font-size: 4rem;
 }
 .tecnologias-grid{
-  width: 100vw;
-  display: flex;
-  justify-content: center;
+  width: 100%;
+  /* display: flex; */
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: repeat(auto-fill, 60px);
+  place-items: center;
+  gap: 30px;
+  /* justify-content: center;
   flex-direction: row;
-  gap: 50px;
+  gap: 50px; */
   margin-top: 10px;
 }
 .list-container{
   list-style: circle;
   margin-top: 10px;
-  margin-left: 20vw;
+  margin-left: 10vw;
   text-align: justify;
 }
 .microsoft , .python{
@@ -414,15 +425,26 @@ input::placeholder, textarea::placeholder{
   background: rgb(255,255,255);
 background: linear-gradient(81deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7461024498886415) 50%, rgba(255,255,255,0) 100%);
 opacity: 0.45;
+margin-bottom: 6px;
 }
 .tech-icon-title{
   font-size: 1.4rem;
 }
 
 .oculto-style .services-title-container{
-  margin-top: 45px;
+  padding-top: 45px;
+  background-color: var(--black);
+  width: 115%;
+  height: 100%;
 }
-
+.oculto-style{
+  background: var(--bg-color)
+}
 .dominio-title{
   font-size: 2.5rem;
+}
+
+.dominios-container{
+  background-color: var(--bg-color);
+  color: black;
 }
