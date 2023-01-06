@@ -467,6 +467,6 @@ img {
 .numpy-img{
   height: 110%;
 }
-.react-img{
+.react-img, .tableau-img{
   height: 80%;
 }

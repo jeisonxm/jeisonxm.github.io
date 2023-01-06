@@ -2,17 +2,19 @@ let imagen = document.getElementById('imagen-abajo');
 const container = document.getElementById("container");
 let body = document.getElementsByTagName('body')
 let screenWidth = window.innerWidth;
+
 const right = document.getElementById('right')
 const left = document.getElementById('left')
+
 const serviceContainer = document.getElementById('services-container')
+
 const dataScience = document.querySelector('.services-ds')
 const ingenieriaInd = document.querySelector('.services-id')
 const webDev = document.querySelector('.services-wd')
+
 const dominiosID = document.querySelector('#dominios-id')
 const dominiosDS = document.querySelector('#dominios-ds')
 const dominiosWD = document.querySelector('#dominios-wd')
-const botonCerrar = document.querySelectorAll('.fa-circle-xmark')
-const servicesStyles = document.querySelector('.services-styles')
 
 function palpitaMensaje(id) {
   setInterval(function() {
