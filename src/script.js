@@ -32,7 +32,7 @@ function horizontalScroll(size) {
     }else if(e.deltaY < 0) {
       container.scrollLeft +=size;
     }
-  })
+  },{passive: true})
 }
 function changeSizeBackgournd() {
   if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
@@ -62,7 +62,7 @@ function movilidadDePagina() {
       horizontalScroll(1500)
     };
     changeSizeBackgournd(); 
-  });
+  },{passive: true});
 }
 
 movilidadDePagina();
