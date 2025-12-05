@@ -1,87 +1,109 @@
-.header-list{
+.header-list {
   gap: 50px;
 }
-.header-container a{
+
+.header-container a {
   font-size: 2.2rem;
 }
-.header-container .header-logo{
+
+.header-container .header-logo {
   font-size: 4rem;
 }
-.presentation-saludo{
+
+.presentation-saludo {
   margin-bottom: 40vh;
   padding: 0 10%;
 }
-.presentation-saludo h1{
+
+.presentation-saludo h1 {
   font-size: 7rem;
 }
-.presentation-saludo p{
+
+.presentation-saludo p {
   font-size: 2.2rem;
 }
-.presentation-saludo .contact-button{
+
+.presentation-saludo .contact-button {
   font-size: 2.2rem;
   margin-top: 30px;
   width: auto;
   height: 60px;
 }
 
-.telefono{
+.telefono {
   display: none;
 }
-.oculto{
+
+.oculto {
   display: inline;
 }
-#presentacion{
+
+#presentacion {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-#about{
+
+#about {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
-.title-style{
+
+.title-style {
   font-size: 8rem;
 }
-.texto-container{
+
+.texto-container {
   padding: 45px;
 }
-.texto-container .parrafo-style{
+
+.texto-container .parrafo-style {
   font-size: 2.2rem;
 }
-.contact-button, .curriculum{
+
+.contact-button, .curriculum {
   font-size: 2.2rem;
   width: 40%;
   height: 60px;
 }
-body .subtitle-style{
+
+body .subtitle-style {
   font-size: 3rem;
 }
-input, textarea{
+
+input, textarea {
   padding: 15px;
   font-size: 2rem;
 }
-.input-style{
+
+.input-style {
   width: 45%;
 }
-form{
+
+form {
   margin-top: 20px;
 }
-.send-buton{
+
+.send-buton {
   font-size: 2.5rem;
 }
-.medias-container{
+
+.medias-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);  
   grid-auto-rows: minmax(50px, auto); 
   gap: 10px;
 }
-.medias-container i{
+
+.medias-container i {
   font-size: 4rem;
 }
-.socialMedia-container{
+
+.socialMedia-container {
   margin-top: 30px;
 }
+
 .socialMedia-container a {
   font-size: 2.5rem;
 }
