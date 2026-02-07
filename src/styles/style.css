@@ -184,8 +184,9 @@ ul { list-style: none; }
   z-index: 0;
   object-fit: contain;
   transition: opacity 2s ease-in-out;
-  filter: brightness(0.85) contrast(1.05) saturate(0.8);
-  opacity: 0.15;
+  filter: brightness(0.7) contrast(1.1) saturate(0.5);
+  opacity: 0.18;
+  mix-blend-mode: multiply;
 }
 
 /* Hero statues */
