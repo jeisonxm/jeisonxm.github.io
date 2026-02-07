@@ -5,19 +5,22 @@
    ===================================================== */
 
 :root {
-  --bg: #0F172A;
-  --bg-alt: #131C31;
-  --surface: #1E293B;
-  --surface-hover: #273548;
-  --white: #F8FAFC;
-  --gray: #94A3B8;
-  --gray-light: #CBD5E1;
-  --gray-dark: #64748B;
-  --accent: #2563EB;
-  --accent-light: #3B82F6;
-  --border: rgba(148, 163, 184, 0.1);
-  --border-hover: rgba(148, 163, 184, 0.2);
-  --radius: 8px;
+  --bg: #0A0A0A;
+  --bg-alt: #111111;
+  --surface: #1A1A1A;
+  --surface-hover: #222222;
+  --white: #E8E8E8;
+  --gray: #888888;
+  --gray-light: #AAAAAA;
+  --gray-dark: #555555;
+  --accent: #999999;
+  --accent-light: #BBBBBB;
+  --stone: #2A2A2A;
+  --stone-light: #333333;
+  --stone-texture: #1E1E1E;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --radius: 4px;
   --transition: 300ms ease;
   --font-display: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -59,7 +62,7 @@ ul { list-style: none; }
   justify-content: space-between;
   align-items: center;
   padding: 0 5%;
-  background: rgba(10, 10, 10, 0.85);
+  background: rgba(10, 10, 10, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
@@ -74,7 +77,7 @@ ul { list-style: none; }
   letter-spacing: -0.5px;
 }
 
-.logo-dot { color: var(--accent); }
+.logo-dot { color: var(--gray); }
 
 .header-nav {
   display: flex;
@@ -137,25 +140,34 @@ ul { list-style: none; }
 }
 
 .btn-solid {
-  background: var(--accent);
+  background: var(--stone);
   color: var(--white);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 1.2rem;
 }
 
 .btn-solid:hover {
-  background: var(--accent-light);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(37, 99, 235, 0.25);
+  background: var(--stone-light);
+  border-color: rgba(255,255,255,0.15);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 12px rgba(0,0,0,0.5);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--white);
-  border: 1px solid var(--border);
+  color: var(--gray);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 1.2rem;
 }
 
 .btn-ghost:hover {
-  border-color: var(--border-hover);
-  transform: translateY(-2px);
+  background: var(--stone-texture);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--white);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 /* ===== MARBLE STATUES ===== */
@@ -222,10 +234,10 @@ ul { list-style: none; }
 .hero-label {
   display: inline-block;
   padding: 5px 14px;
-  border: 1px solid rgba(37, 99, 235, 0.3);
-  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 100px;
-  color: var(--accent-light);
+  color: var(--gray);
   font-size: 1.2rem;
   font-weight: 600;
   letter-spacing: 1.5px;
