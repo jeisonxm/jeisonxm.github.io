@@ -1,97 +1,99 @@
-// ===== Jeison Wu Portfolio — Script =====
+// ===== Jeison Wu — Horizontal Scroll Portfolio =====
 
-// Utility
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
-// ===== Mobile Menu =====
-const menuToggle = $('#menuToggle');
-const mobileNav = $('#mobileNav');
+// ===== Horizontal Scroll via Mouse Wheel =====
+const container = $('#container');
+let scrollStep = window.innerWidth;
 
-if (menuToggle && mobileNav) {
-  menuToggle.addEventListener('click', () => {
-    mobileNav.classList.toggle('active');
-    menuToggle.classList.toggle('open');
-  });
-
-  // Close on link click
-  mobileNav.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      mobileNav.classList.remove('active');
-      menuToggle.classList.remove('open');
-    });
-  });
+function handleWheel(e) {
+  if (!container) return;
+  e.preventDefault();
+  const direction = e.deltaY > 0 ? 1 : -1;
+  container.scrollLeft += scrollStep * direction;
 }
 
-// ===== Scroll Reveal (Intersection Observer) =====
-const revealElements = $$('.reveal');
+if (container) {
+  container.addEventListener('wheel', handleWheel, { passive: false });
+}
 
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
-  });
-}, {
-  threshold: 0.1,
-  rootMargin: '0px 0px -50px 0px'
-});
-
-revealElements.forEach(el => revealObserver.observe(el));
-
-// ===== Header scroll effect =====
-const header = $('#header');
-let lastScroll = 0;
-
-window.addEventListener('scroll', () => {
-  const currentScroll = window.scrollY;
-  
-  if (currentScroll > 100) {
-    header.style.background = 'rgba(10, 14, 26, 0.95)';
-  } else {
-    header.style.background = 'rgba(10, 14, 26, 0.8)';
-  }
-  
-  lastScroll = currentScroll;
+window.addEventListener('resize', () => {
+  scrollStep = window.innerWidth;
 }, { passive: true });
 
-// ===== Active nav link =====
-const sections = $$('section[id]');
+// ===== Active nav link on scroll =====
+const panels = $$('.panel[id]');
 const navLinks = $$('.header-nav a');
 
-const navObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const id = entry.target.getAttribute('id');
+function updateActiveNav() {
+  if (!container) return;
+  const scrollPos = container.scrollLeft;
+  const panelWidth = window.innerWidth;
+
+  panels.forEach((panel, i) => {
+    const panelStart = i * panelWidth;
+    const panelEnd = panelStart + panelWidth;
+
+    if (scrollPos >= panelStart - panelWidth * 0.3 && scrollPos < panelEnd - panelWidth * 0.3) {
+      const id = panel.getAttribute('id');
       navLinks.forEach(link => {
         link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
       });
     }
   });
-}, {
-  threshold: 0.3
-});
+}
 
-sections.forEach(section => navObserver.observe(section));
+if (container) {
+  container.addEventListener('scroll', updateActiveNav, { passive: true });
+}
+
+// ===== Statue parallax on scroll =====
+const statues = $$('.statue');
+
+function updateStatueParallax() {
+  if (!container || !statues.length) return;
+  const scrollPos = container.scrollLeft;
+
+  statues.forEach(statue => {
+    const panel = statue.closest('.panel');
+    if (!panel) return;
+    const panelLeft = panel.offsetLeft;
+    const offset = (scrollPos - panelLeft) * 0.05;
+    statue.style.transform = `translateX(${offset}px) ${statue.classList.contains('statue-bg-center') ? `translateX(calc(-50% + ${offset}px))` : ''}`;
+  });
+}
+
+if (container) {
+  container.addEventListener('scroll', updateStatueParallax, { passive: true });
+}
+
+// ===== Scroll hint fade out =====
+const scrollHint = $('#scrollHint');
+
+function handleScrollHint() {
+  if (!container || !scrollHint) return;
+  if (container.scrollLeft > window.innerWidth * 0.3) {
+    scrollHint.style.opacity = '0';
+  } else {
+    scrollHint.style.opacity = '';
+  }
+}
+
+if (container) {
+  container.addEventListener('scroll', handleScrollHint, { passive: true });
+}
 
 // ===== Footer year =====
 const yearEl = document.getElementById('anio');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-// ===== Smooth entrance for stats (count up) =====
-const statNumbers = $$('.stat-number');
-let statsAnimated = false;
-
-function animateStats() {
-  if (statsAnimated) return;
-  statsAnimated = true;
-  // Stats are text-based, no count-up needed for now
-}
-
-const statsSection = $('.hero-stats');
-if (statsSection) {
-  const statsObserver = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) animateStats();
-  }, { threshold: 0.5 });
-  statsObserver.observe(statsSection);
-}
+// ===== Keyboard navigation =====
+document.addEventListener('keydown', (e) => {
+  if (!container) return;
+  if (e.key === 'ArrowRight') {
+    container.scrollLeft += scrollStep;
+  } else if (e.key === 'ArrowLeft') {
+    container.scrollLeft -= scrollStep;
+  }
+});
