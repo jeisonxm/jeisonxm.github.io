@@ -1,173 +1,198 @@
 // ===== Jeison Wu — Horizontal Scroll Portfolio =====
+// Full JS control — no CSS scroll-snap dependency
 
-const container = document.getElementById('container');
-const panels = document.querySelectorAll('.panel[id]');
-const navLinks = document.querySelectorAll('.header-nav a');
-const scrollHint = document.getElementById('scrollHint');
+(function () {
+  'use strict';
 
-// ===== Dynamic scroll step =====
-let scrollStep = window.innerWidth;
-window.addEventListener('resize', () => { scrollStep = window.innerWidth; }, { passive: true });
-
-// ===== Core: scroll to panel by index =====
-let isAnimating = false;
-
-function goToPanel(index) {
-  if (!container || isAnimating) return;
-  const target = Math.max(0, Math.min(panels.length - 1, index));
-  const targetLeft = target * scrollStep;
-
-  // Temporarily disable snap so smooth scroll works
-  container.style.scrollSnapType = 'none';
-  isAnimating = true;
-
-  container.scrollTo({ left: targetLeft, behavior: 'smooth' });
-
-  // Re-enable snap after animation
-  setTimeout(() => {
-    container.style.scrollSnapType = 'x mandatory';
-    isAnimating = false;
-  }, 500);
-}
-
-function getCurrentPanel() {
-  if (!container) return 0;
-  return Math.round(container.scrollLeft / scrollStep);
-}
-
-// ===== Mouse wheel → one panel per scroll =====
-function handleWheel(e) {
+  const container = document.getElementById('container');
   if (!container) return;
-  e.preventDefault();
-  if (isAnimating) return;
 
-  const direction = e.deltaY > 0 ? 1 : -1;
-  goToPanel(getCurrentPanel() + direction);
-}
+  const panels = Array.from(document.querySelectorAll('.panel[id]'));
+  const navLinks = document.querySelectorAll('.header-nav a');
+  const scrollHint = document.getElementById('scrollHint');
 
-if (container) {
-  container.addEventListener('wheel', handleWheel, { passive: false });
-}
+  // --- State ---
+  let currentIndex = 0;
+  let isAnimating = false;
 
-// ===== Touch swipe =====
-let touchStartX = 0;
-let touchStartScrollLeft = 0;
+  // --- Smooth scroll animation (requestAnimationFrame) ---
+  function smoothScrollTo(targetLeft, duration) {
+    if (isAnimating) return;
+    isAnimating = true;
 
-function handleTouchStart(e) {
-  touchStartX = e.touches[0].clientX;
-  touchStartScrollLeft = container ? container.scrollLeft : 0;
-}
+    const startLeft = container.scrollLeft;
+    const distance = targetLeft - startLeft;
+    if (Math.abs(distance) < 2) { isAnimating = false; return; }
 
-function handleTouchEnd(e) {
-  if (!container) return;
-  const deltaX = touchStartX - (e.changedTouches[0]?.clientX ?? touchStartX);
-  const threshold = scrollStep * 0.15;
+    const startTime = performance.now();
 
-  if (Math.abs(deltaX) > threshold) {
-    const direction = deltaX > 0 ? 1 : -1;
-    const startPanel = Math.round(touchStartScrollLeft / scrollStep);
-    goToPanel(startPanel + direction);
-  } else {
-    // Snap back
-    goToPanel(getCurrentPanel());
-  }
-}
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
 
-if (container) {
-  container.addEventListener('touchstart', handleTouchStart, { passive: true });
-  container.addEventListener('touchend', handleTouchEnd, { passive: true });
-}
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeInOutCubic(progress);
 
-// ===== All anchor links (#about, #contact, etc.) =====
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', (e) => {
-    const targetId = anchor.getAttribute('href').replace('#', '');
-    const targetEl = document.getElementById(targetId);
-    if (targetEl && container) {
-      e.preventDefault();
-      // Find panel index
-      const panelArray = Array.from(panels);
-      const index = panelArray.indexOf(targetEl);
-      if (index !== -1) {
-        goToPanel(index);
+      container.scrollLeft = startLeft + distance * eased;
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        container.scrollLeft = targetLeft; // exact position
+        isAnimating = false;
+        updateActiveNav();
       }
     }
-  });
-});
 
-// ===== Active nav highlight =====
-function updateActiveNav() {
-  if (!container) return;
-  const current = getCurrentPanel();
-  panels.forEach((panel, i) => {
-    const id = panel.getAttribute('id');
-    navLinks.forEach(link => {
-      if (link.getAttribute('href') === `#${id}`) {
-        link.classList.toggle('active', i === current);
+    requestAnimationFrame(step);
+  }
+
+  // --- Navigate to panel by index ---
+  function goToPanel(index) {
+    if (isAnimating) return;
+    const target = Math.max(0, Math.min(panels.length - 1, index));
+    if (target === currentIndex && Math.abs(container.scrollLeft - target * window.innerWidth) < 5) return;
+
+    currentIndex = target;
+    smoothScrollTo(currentIndex * window.innerWidth, 500);
+  }
+
+  // --- Navigate to panel by ID ---
+  function goToPanelById(id) {
+    const index = panels.findIndex(p => p.id === id);
+    if (index !== -1) goToPanel(index);
+  }
+
+  // ===== MOUSE WHEEL =====
+  // One wheel gesture = one panel. Block until animation finishes.
+  container.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    if (isAnimating) return;
+
+    if (e.deltaY > 0) {
+      goToPanel(currentIndex + 1);
+    } else if (e.deltaY < 0) {
+      goToPanel(currentIndex - 1);
+    }
+  }, { passive: false });
+
+  // ===== TOUCH SWIPE =====
+  let touchStartX = 0;
+
+  container.addEventListener('touchstart', function (e) {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  container.addEventListener('touchend', function (e) {
+    if (isAnimating) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchStartX - touchEndX;
+    const threshold = 50; // px minimum swipe
+
+    if (deltaX > threshold) {
+      // Swiped left → next panel
+      goToPanel(currentIndex + 1);
+    } else if (deltaX < -threshold) {
+      // Swiped right → previous panel
+      goToPanel(currentIndex - 1);
+    }
+  }, { passive: true });
+
+  // Prevent default horizontal scroll on touch (we handle it)
+  container.addEventListener('touchmove', function (e) {
+    // Allow vertical scroll inside panel content (about, skills, etc.)
+    // but prevent horizontal drag
+  }, { passive: true });
+
+  // ===== NAV LINKS =====
+  navLinks.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      const id = this.getAttribute('href').replace('#', '');
+      goToPanelById(id);
+    });
+  });
+
+  // ===== ALL ANCHOR LINKS (#about, #contact, etc.) =====
+  document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+    anchor.addEventListener('click', function (e) {
+      const id = this.getAttribute('href').replace('#', '');
+      const el = document.getElementById(id);
+      if (el && panels.includes(el)) {
+        e.preventDefault();
+        goToPanelById(id);
       }
     });
   });
-}
 
-if (container) {
-  container.addEventListener('scroll', updateActiveNav, { passive: true });
-}
-
-// ===== Keyboard navigation =====
-document.addEventListener('keydown', (e) => {
-  if (!container) return;
-  if (e.key === 'ArrowRight') { goToPanel(getCurrentPanel() + 1); }
-  else if (e.key === 'ArrowLeft') { goToPanel(getCurrentPanel() - 1); }
-});
-
-// ===== Statue parallax =====
-const statues = document.querySelectorAll('.statue');
-
-function updateStatueParallax() {
-  if (!container || !statues.length) return;
-  const scrollPos = container.scrollLeft;
-  statues.forEach(statue => {
-    const panel = statue.closest('.panel');
-    if (!panel) return;
-    const offset = (scrollPos - panel.offsetLeft) * 0.04;
-    if (statue.classList.contains('statue-bg-center')) {
-      statue.style.transform = `translateX(calc(-50% + ${offset}px))`;
-    } else {
-      statue.style.transform = `translateX(${offset}px)`;
-    }
+  // ===== KEYBOARD =====
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') goToPanel(currentIndex + 1);
+    else if (e.key === 'ArrowLeft') goToPanel(currentIndex - 1);
   });
-}
 
-if (container) {
-  container.addEventListener('scroll', updateStatueParallax, { passive: true });
-}
+  // ===== ACTIVE NAV HIGHLIGHT =====
+  function updateActiveNav() {
+    navLinks.forEach(function (link) {
+      const id = link.getAttribute('href').replace('#', '');
+      link.classList.toggle('active', panels[currentIndex] && panels[currentIndex].id === id);
+    });
+  }
+  updateActiveNav();
 
-// ===== Statue breathing =====
-function animateStatue(selector, min, max, duration, delay) {
-  const el = document.querySelector(selector);
-  if (!el) return;
-  el.style.transition = `opacity ${duration}ms ease-in-out`;
-  setTimeout(() => {
-    setInterval(() => {
-      const cur = parseFloat(getComputedStyle(el).opacity);
-      el.style.opacity = Math.abs(cur - max) < 0.05 ? min : max;
-    }, duration);
-  }, delay);
-}
+  // ===== STATUE PARALLAX =====
+  const statues = document.querySelectorAll('.statue');
 
-animateStatue('#statue-gym', 0.10, 0.20, 3000, 1200);
-animateStatue('#statue-run', 0.06, 0.14, 3000, 600);
-animateStatue('#statue-code', 0.05, 0.12, 3000, 0);
-animateStatue('#statue-strength', 0.06, 0.12, 3000, 900);
-animateStatue('#statue-finish', 0.06, 0.12, 3000, 300);
+  container.addEventListener('scroll', function () {
+    const scrollPos = container.scrollLeft;
 
-// ===== Scroll hint =====
-if (container && scrollHint) {
-  container.addEventListener('scroll', () => {
-    scrollHint.style.opacity = container.scrollLeft > scrollStep * 0.3 ? '0' : '';
+    // Parallax
+    statues.forEach(function (statue) {
+      const panel = statue.closest('.panel');
+      if (!panel) return;
+      const offset = (scrollPos - panel.offsetLeft) * 0.04;
+      if (statue.classList.contains('statue-bg-center')) {
+        statue.style.transform = 'translateX(calc(-50% + ' + offset + 'px))';
+      } else {
+        statue.style.transform = 'translateX(' + offset + 'px)';
+      }
+    });
+
+    // Scroll hint
+    if (scrollHint) {
+      scrollHint.style.opacity = scrollPos > window.innerWidth * 0.3 ? '0' : '';
+    }
   }, { passive: true });
-}
 
-// ===== Footer year =====
-const yearEl = document.getElementById('anio');
-if (yearEl) yearEl.textContent = new Date().getFullYear();
+  // ===== STATUE BREATHING =====
+  function animateStatue(selector, min, max, duration, delay) {
+    var el = document.querySelector(selector);
+    if (!el) return;
+    el.style.transition = 'opacity ' + duration + 'ms ease-in-out';
+    setTimeout(function () {
+      setInterval(function () {
+        var cur = parseFloat(getComputedStyle(el).opacity);
+        el.style.opacity = Math.abs(cur - max) < 0.05 ? min : max;
+      }, duration);
+    }, delay);
+  }
+
+  animateStatue('#statue-gym', 0.10, 0.20, 3000, 1200);
+  animateStatue('#statue-run', 0.06, 0.14, 3000, 600);
+  animateStatue('#statue-code', 0.05, 0.12, 3000, 0);
+  animateStatue('#statue-strength', 0.06, 0.12, 3000, 900);
+  animateStatue('#statue-finish', 0.06, 0.12, 3000, 300);
+
+  // ===== FOOTER YEAR =====
+  var yearEl = document.getElementById('anio');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  // ===== RESIZE: recalculate position =====
+  window.addEventListener('resize', function () {
+    // Snap to current panel on resize/zoom
+    container.scrollLeft = currentIndex * window.innerWidth;
+  }, { passive: true });
+
+})();

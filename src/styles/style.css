@@ -121,7 +121,6 @@ ul { list-style: none; }
   padding-top: 64px;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x mandatory;
   overscroll-behavior-x: contain;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -134,7 +133,7 @@ ul { list-style: none; }
 .panel {
   min-width: 100vw;
   height: calc(100vh - 64px);
-  scroll-snap-align: center;
+  /* no snap — JS controls all navigation */
   position: relative;
   display: flex;
   align-items: center;
@@ -186,9 +185,9 @@ ul { list-style: none; }
   filter: brightness(0.7) contrast(1.1) saturate(0.5);
   opacity: 0.18;
   mix-blend-mode: multiply;
-  /* Fade edges so statues dissolve into background */
-  -webkit-mask-image: radial-gradient(ellipse 70% 65% at center 55%, black 30%, transparent 70%);
-  mask-image: radial-gradient(ellipse 70% 65% at center 55%, black 30%, transparent 70%);
+  /* Fade left/right edges — statues dissolve horizontally into background */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
 }
 
 /* Hero statues */
