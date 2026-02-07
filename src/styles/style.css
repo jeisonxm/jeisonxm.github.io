@@ -124,6 +124,12 @@ ul { list-style: none; }
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   overscroll-behavior-x: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none;
 }
 
 .panel {
@@ -416,7 +422,6 @@ ul { list-style: none; }
 
 .info-card:hover {
   background: var(--surface-hover);
-  border-color: rgba(196, 185, 168, 0.15);
 }
 
 .info-card i {
@@ -465,7 +470,7 @@ ul { list-style: none; }
 }
 
 .skill-block:hover {
-  border-color: var(--border-hover);
+  background: var(--surface-hover);
 }
 
 .skill-block h3 {
@@ -531,26 +536,14 @@ ul { list-style: none; }
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
-.blog-entry::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 3px;
-  height: 100%;
-  background: var(--marble-warm);
-  opacity: 0;
-  transition: opacity var(--transition);
-}
+/* Blog accent line — uses border-left instead of ::after (::after used for stone crack) */
 
 .blog-entry:hover {
   background: var(--surface-hover);
-  border-color: var(--border-hover);
-  transform: translateX(6px);
 }
 
-.blog-entry:hover::after {
-  opacity: 0.4;
+.blog-entry:hover {
+  border-left: 3px solid var(--marble-warm);
 }
 
 .blog-tag {
@@ -668,9 +661,8 @@ ul { list-style: none; }
 }
 
 .social-list a:hover {
-  border-color: rgba(196, 185, 168, 0.2);
   color: var(--white);
-  transform: translateX(6px);
+  background: var(--surface-hover);
 }
 
 .social-list a i {
@@ -679,16 +671,24 @@ ul { list-style: none; }
   text-align: center;
 }
 
-/* ===== STONE CRACK — Button Hover Effect ===== */
-.btn {
+/* ===== STONE CRACK — Shared Hover Effect ===== */
+/* Applied to: buttons, info-cards, skill-blocks, blog-entries, social-links */
+
+.btn,
+.info-card,
+.skill-block,
+.blog-entry,
+.social-list a {
   position: relative;
   overflow: hidden;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
 }
 
 /* Crack veins — diagonal fracture lines */
-.btn::before {
+.btn::before,
+.info-card::before,
+.skill-block::before,
+.blog-entry::before,
+.social-list a::before {
   content: '';
   position: absolute;
   top: 0;
@@ -698,6 +698,7 @@ ul { list-style: none; }
   opacity: 0;
   transition: opacity 0.5s ease;
   pointer-events: none;
+  z-index: 1;
   background:
     linear-gradient(42deg, transparent 30%, rgba(196,185,168,0.07) 31%, rgba(74,70,64,0.12) 31.5%, transparent 32%),
     linear-gradient(138deg, transparent 48%, rgba(196,185,168,0.05) 49%, rgba(74,70,64,0.1) 49.5%, transparent 50%),
@@ -707,12 +708,19 @@ ul { list-style: none; }
     linear-gradient(165deg, transparent 40%, rgba(196,185,168,0.05) 41%, rgba(74,70,64,0.06) 41.5%, transparent 42%);
 }
 
-.btn:hover::before {
+.btn:hover::before,
+.info-card:hover::before,
+.skill-block:hover::before,
+.blog-entry:hover::before,
+.social-list a:hover::before {
   opacity: 1;
 }
 
 /* Depth/shadow for stone feel */
-.btn::after {
+.btn::after,
+.info-card::after,
+.skill-block::after,
+.social-list a::after {
   content: '';
   position: absolute;
   top: 0;
@@ -722,35 +730,41 @@ ul { list-style: none; }
   opacity: 0;
   transition: opacity 0.5s ease;
   pointer-events: none;
+  z-index: 1;
   background:
     radial-gradient(ellipse at 30% 15%, rgba(74,70,64,0.15) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 85%, rgba(196,185,168,0.05) 0%, transparent 40%);
 }
 
-.btn:hover::after {
+.btn:hover::after,
+.info-card:hover::after,
+.skill-block:hover::after,
+.social-list a:hover::after {
   opacity: 1;
 }
 
-.btn:hover {
+/* Stone hover shared styles */
+.btn:hover,
+.info-card:hover,
+.skill-block:hover,
+.blog-entry:hover,
+.social-list a:hover {
   filter: url(#stone-texture);
-}
-
-.btn-solid:hover {
-  background-color: var(--stone-light);
   border-color: rgba(196,185,168,0.2);
   box-shadow:
-    inset 0 1px 0 rgba(196,185,168,0.08),
-    inset 0 -1px 3px rgba(0,0,0,0.3),
-    0 2px 8px rgba(0,0,0,0.4);
+    inset 0 1px 0 rgba(196,185,168,0.06),
+    inset 0 -1px 3px rgba(0,0,0,0.25),
+    0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Button-specific overrides */
+.btn-solid:hover {
+  background-color: var(--stone-light);
 }
 
 .btn-ghost:hover {
   background-color: var(--stone-texture);
-  border-color: rgba(196,185,168,0.15);
   color: var(--white);
-  box-shadow:
-    inset 0 1px 0 rgba(196,185,168,0.06),
-    inset 0 -1px 3px rgba(0,0,0,0.2);
 }
 
 /* ===== RESPONSIVE — MOBILE FIRST ===== */
