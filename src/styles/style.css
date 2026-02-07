@@ -178,8 +178,8 @@ ul { list-style: none; }
   z-index: 0;
   object-fit: contain;
   transition: opacity 2s ease-in-out;
-  filter: brightness(0.8) contrast(1.1) saturate(0.7);
-  mix-blend-mode: luminosity;
+  filter: brightness(0.85) contrast(1.05) saturate(0.8);
+  opacity: 0.15;
 }
 
 /* Hero statues */
@@ -187,14 +187,14 @@ ul { list-style: none; }
   left: -5%;
   bottom: -10%;
   height: 85%;
-  opacity: 0.12;
+  opacity: 0.2;
 }
 
 .statue-right {
   right: -3%;
   bottom: -5%;
   height: 90%;
-  opacity: 0.08;
+  opacity: 0.14;
 }
 
 /* Panel background statues */
@@ -203,21 +203,21 @@ ul { list-style: none; }
   bottom: -10%;
   height: 95%;
   transform: translateX(-50%);
-  opacity: 0.06;
+  opacity: 0.1;
 }
 
 .statue-bg-right {
   right: -5%;
   bottom: -10%;
   height: 90%;
-  opacity: 0.08;
+  opacity: 0.12;
 }
 
 .statue-bg-left {
   left: -5%;
   bottom: -10%;
   height: 90%;
-  opacity: 0.08;
+  opacity: 0.12;
 }
 
 /* ===== HERO PANEL ===== */
