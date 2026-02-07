@@ -121,6 +121,8 @@ ul { list-style: none; }
   padding-top: 64px;
   overflow-x: auto;
   overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
   overscroll-behavior-x: contain;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -133,7 +135,7 @@ ul { list-style: none; }
 .panel {
   min-width: 100vw;
   height: calc(100vh - 64px);
-  /* no snap — JS controls all navigation */
+  scroll-snap-align: center;
   position: relative;
   display: flex;
   align-items: center;
