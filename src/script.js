@@ -1,143 +1,111 @@
 // ===== Jeison Wu — Horizontal Scroll Portfolio =====
-// Scroll logic based on original working version
 
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
+const container = document.getElementById('container');
+const panels = document.querySelectorAll('.panel[id]');
+const navLinks = document.querySelectorAll('.header-nav a');
+const scrollHint = document.getElementById('scrollHint');
 
-const container = $('#container');
-const panels = $$('.panel[id]');
-const navLinks = $$('.header-nav a');
-const scrollHint = $('#scrollHint');
-
-// ===== Scroll Step (dynamic with zoom/resize) =====
+// ===== Dynamic scroll step =====
 let scrollStep = window.innerWidth;
-let isScrolling = false; // debounce flag
+window.addEventListener('resize', () => { scrollStep = window.innerWidth; }, { passive: true });
 
-window.addEventListener('resize', () => {
-  scrollStep = window.innerWidth;
-}, { passive: true });
+// ===== Core: scroll to panel by index =====
+let isAnimating = false;
 
-// ===== Mouse Wheel → Horizontal Snap =====
-// Debounced: one wheel event = one panel jump, then lock until animation completes
+function goToPanel(index) {
+  if (!container || isAnimating) return;
+  const target = Math.max(0, Math.min(panels.length - 1, index));
+  const targetLeft = target * scrollStep;
+
+  // Temporarily disable snap so smooth scroll works
+  container.style.scrollSnapType = 'none';
+  isAnimating = true;
+
+  container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+
+  // Re-enable snap after animation
+  setTimeout(() => {
+    container.style.scrollSnapType = 'x mandatory';
+    isAnimating = false;
+  }, 500);
+}
+
+function getCurrentPanel() {
+  if (!container) return 0;
+  return Math.round(container.scrollLeft / scrollStep);
+}
+
+// ===== Mouse wheel → one panel per scroll =====
 function handleWheel(e) {
   if (!container) return;
   e.preventDefault();
-
-  // Block rapid-fire wheel events during animation
-  if (isScrolling) return;
-  isScrolling = true;
+  if (isAnimating) return;
 
   const direction = e.deltaY > 0 ? 1 : -1;
-  // Calculate which panel we're currently on
-  const currentPanel = Math.round(container.scrollLeft / scrollStep);
-  // Target the next/prev panel
-  const targetPanel = Math.max(0, Math.min(panels.length - 1, currentPanel + direction));
-  const targetScroll = targetPanel * scrollStep;
-
-  container.scrollTo({
-    left: targetScroll,
-    behavior: 'smooth'
-  });
-
-  // Unlock after animation (matches CSS scroll-behavior: smooth duration)
-  setTimeout(() => {
-    isScrolling = false;
-  }, 600);
+  goToPanel(getCurrentPanel() + direction);
 }
 
 if (container) {
   container.addEventListener('wheel', handleWheel, { passive: false });
 }
 
-// ===== Touch Swipe → Snap to Panel =====
-// On mobile: track touch start/end to determine swipe direction, then snap
+// ===== Touch swipe =====
 let touchStartX = 0;
-let touchStartY = 0;
-let touchStartScroll = 0;
-let isTouchActive = false;
+let touchStartScrollLeft = 0;
 
 function handleTouchStart(e) {
-  if (!container) return;
   touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-  touchStartScroll = container.scrollLeft;
-  isTouchActive = true;
-}
-
-function handleTouchMove(e) {
-  if (!container || !isTouchActive) return;
-  const deltaX = touchStartX - e.touches[0].clientX;
-  const deltaY = Math.abs(touchStartY - e.touches[0].clientY);
-
-  // Only handle horizontal swipes (ignore vertical scroll within panels)
-  if (Math.abs(deltaX) > deltaY) {
-    // Let CSS scroll-snap handle the actual scrolling
-    // But prevent vertical scroll interference
-  }
+  touchStartScrollLeft = container ? container.scrollLeft : 0;
 }
 
 function handleTouchEnd(e) {
-  if (!container || !isTouchActive) return;
-  isTouchActive = false;
-
+  if (!container) return;
   const deltaX = touchStartX - (e.changedTouches[0]?.clientX ?? touchStartX);
-  const threshold = scrollStep * 0.15; // 15% of screen width to trigger snap
+  const threshold = scrollStep * 0.15;
 
   if (Math.abs(deltaX) > threshold) {
     const direction = deltaX > 0 ? 1 : -1;
-    const currentPanel = Math.round(touchStartScroll / scrollStep);
-    const targetPanel = Math.max(0, Math.min(panels.length - 1, currentPanel + direction));
-
-    container.scrollTo({
-      left: targetPanel * scrollStep,
-      behavior: 'smooth'
-    });
+    const startPanel = Math.round(touchStartScrollLeft / scrollStep);
+    goToPanel(startPanel + direction);
   } else {
-    // Snap back to nearest panel
-    const nearestPanel = Math.round(container.scrollLeft / scrollStep);
-    container.scrollTo({
-      left: nearestPanel * scrollStep,
-      behavior: 'smooth'
-    });
+    // Snap back
+    goToPanel(getCurrentPanel());
   }
 }
 
 if (container) {
   container.addEventListener('touchstart', handleTouchStart, { passive: true });
-  container.addEventListener('touchmove', handleTouchMove, { passive: true });
   container.addEventListener('touchend', handleTouchEnd, { passive: true });
 }
 
-// ===== Nav link click → smooth scroll =====
-navLinks.forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const targetId = link.getAttribute('href').replace('#', '');
-    const targetPanel = document.getElementById(targetId);
-    if (targetPanel && container) {
-      container.scrollTo({
-        left: targetPanel.offsetLeft,
-        behavior: 'smooth'
-      });
+// ===== All anchor links (#about, #contact, etc.) =====
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', (e) => {
+    const targetId = anchor.getAttribute('href').replace('#', '');
+    const targetEl = document.getElementById(targetId);
+    if (targetEl && container) {
+      e.preventDefault();
+      // Find panel index
+      const panelArray = Array.from(panels);
+      const index = panelArray.indexOf(targetEl);
+      if (index !== -1) {
+        goToPanel(index);
+      }
     }
   });
 });
 
-// ===== Active nav highlight on scroll =====
+// ===== Active nav highlight =====
 function updateActiveNav() {
   if (!container) return;
-  const scrollPos = container.scrollLeft;
-
+  const current = getCurrentPanel();
   panels.forEach((panel, i) => {
-    const panelStart = i * scrollStep;
-    const panelEnd = panelStart + scrollStep;
-
-    if (scrollPos >= panelStart - scrollStep * 0.3 && scrollPos < panelEnd - scrollStep * 0.3) {
-      const id = panel.getAttribute('id');
-      navLinks.forEach(link => {
-        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-      });
-    }
+    const id = panel.getAttribute('id');
+    navLinks.forEach(link => {
+      if (link.getAttribute('href') === `#${id}`) {
+        link.classList.toggle('active', i === current);
+      }
+    });
   });
 }
 
@@ -145,19 +113,23 @@ if (container) {
   container.addEventListener('scroll', updateActiveNav, { passive: true });
 }
 
+// ===== Keyboard navigation =====
+document.addEventListener('keydown', (e) => {
+  if (!container) return;
+  if (e.key === 'ArrowRight') { goToPanel(getCurrentPanel() + 1); }
+  else if (e.key === 'ArrowLeft') { goToPanel(getCurrentPanel() - 1); }
+});
+
 // ===== Statue parallax =====
-const statues = $$('.statue');
+const statues = document.querySelectorAll('.statue');
 
 function updateStatueParallax() {
   if (!container || !statues.length) return;
   const scrollPos = container.scrollLeft;
-
   statues.forEach(statue => {
     const panel = statue.closest('.panel');
     if (!panel) return;
-    const panelLeft = panel.offsetLeft;
-    const offset = (scrollPos - panelLeft) * 0.04;
-
+    const offset = (scrollPos - panel.offsetLeft) * 0.04;
     if (statue.classList.contains('statue-bg-center')) {
       statue.style.transform = `translateX(calc(-50% + ${offset}px))`;
     } else {
@@ -170,73 +142,32 @@ if (container) {
   container.addEventListener('scroll', updateStatueParallax, { passive: true });
 }
 
-// ===== Statue breathing animation (from original) =====
-function animateStatue(selector, minOpacity, maxOpacity, duration, delay) {
+// ===== Statue breathing =====
+function animateStatue(selector, min, max, duration, delay) {
   const el = document.querySelector(selector);
   if (!el) return;
-
-  const baseFilter = 'brightness(0.85) contrast(1.05) saturate(0.8)';
   el.style.transition = `opacity ${duration}ms ease-in-out`;
-
   setTimeout(() => {
     setInterval(() => {
-      const current = parseFloat(getComputedStyle(el).opacity);
-      const isHigh = Math.abs(current - maxOpacity) < 0.05;
-      el.style.opacity = isHigh ? minOpacity : maxOpacity;
+      const cur = parseFloat(getComputedStyle(el).opacity);
+      el.style.opacity = Math.abs(cur - max) < 0.05 ? min : max;
     }, duration);
   }, delay);
 }
 
-// Gentle breathing on statues
-animateStatue('#statue-gym', 0.12, 0.22, 3000, 1200);
-animateStatue('#statue-run', 0.08, 0.16, 3000, 600);
-animateStatue('#statue-code', 0.06, 0.12, 3000, 0);
-animateStatue('#statue-strength', 0.08, 0.14, 3000, 900);
-animateStatue('#statue-finish', 0.08, 0.14, 3000, 300);
+animateStatue('#statue-gym', 0.10, 0.20, 3000, 1200);
+animateStatue('#statue-run', 0.06, 0.14, 3000, 600);
+animateStatue('#statue-code', 0.05, 0.12, 3000, 0);
+animateStatue('#statue-strength', 0.06, 0.12, 3000, 900);
+animateStatue('#statue-finish', 0.06, 0.12, 3000, 300);
 
-// ===== Scroll hint fade =====
-function handleScrollHint() {
-  if (!container || !scrollHint) return;
-  scrollHint.style.opacity = container.scrollLeft > scrollStep * 0.3 ? '0' : '';
+// ===== Scroll hint =====
+if (container && scrollHint) {
+  container.addEventListener('scroll', () => {
+    scrollHint.style.opacity = container.scrollLeft > scrollStep * 0.3 ? '0' : '';
+  }, { passive: true });
 }
-
-if (container) {
-  container.addEventListener('scroll', handleScrollHint, { passive: true });
-}
-
-// ===== Keyboard navigation =====
-document.addEventListener('keydown', (e) => {
-  if (!container || isScrolling) return;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-    isScrolling = true;
-    const direction = e.key === 'ArrowRight' ? 1 : -1;
-    const currentPanel = Math.round(container.scrollLeft / scrollStep);
-    const targetPanel = Math.max(0, Math.min(panels.length - 1, currentPanel + direction));
-
-    container.scrollTo({
-      left: targetPanel * scrollStep,
-      behavior: 'smooth'
-    });
-
-    setTimeout(() => { isScrolling = false; }, 600);
-  }
-});
 
 // ===== Footer year =====
 const yearEl = document.getElementById('anio');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-// ===== Anchor links in content (e.g. "Contáctame" button) =====
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', (e) => {
-    const targetId = anchor.getAttribute('href').replace('#', '');
-    const targetEl = document.getElementById(targetId);
-    if (targetEl && container) {
-      e.preventDefault();
-      container.scrollTo({
-        left: targetEl.offsetLeft,
-        behavior: 'smooth'
-      });
-    }
-  });
-});

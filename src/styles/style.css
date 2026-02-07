@@ -122,7 +122,6 @@ ul { list-style: none; }
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
   overscroll-behavior-x: contain;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -187,6 +186,9 @@ ul { list-style: none; }
   filter: brightness(0.7) contrast(1.1) saturate(0.5);
   opacity: 0.18;
   mix-blend-mode: multiply;
+  /* Fade edges so statues dissolve into background */
+  -webkit-mask-image: radial-gradient(ellipse 70% 65% at center 55%, black 30%, transparent 70%);
+  mask-image: radial-gradient(ellipse 70% 65% at center 55%, black 30%, transparent 70%);
 }
 
 /* Hero statues */
