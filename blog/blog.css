@@ -1,0 +1,268 @@
+/* =====================================================
+   BLOG POST — Inherits marble palette from main site
+   ===================================================== */
+
+:root {
+  --marble-white: #EDEAE6;
+  --marble-cream: #D9D2C7;
+  --marble-warm: #C4B9A8;
+  --marble-mid: #B0A99F;
+  --marble-shadow: #9C9486;
+  --marble-vein: #7B7468;
+  --marble-deep: #4A4640;
+  --marble-darkest: #3A3632;
+
+  --bg: #2C2824;
+  --bg-alt: #332F2A;
+  --surface: #3D3831;
+  --surface-hover: #4A4640;
+  --white: #EDEAE6;
+  --gray: #B0A99F;
+  --gray-light: #C4B9A8;
+  --gray-dark: #8A8078;
+  --border: rgba(237, 234, 230, 0.08);
+  --radius: 2px;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+a { color: var(--marble-cream); text-decoration: none; }
+a:hover { color: var(--white); }
+
+/* ===== Header ===== */
+.blog-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 5%;
+  background: rgba(44, 40, 36, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(196, 185, 168, 0.1);
+  z-index: 1000;
+}
+
+.blog-header-logo {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.5px;
+}
+
+.blog-header-logo span { color: var(--marble-warm); }
+
+.blog-header-back {
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--gray);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.3s ease;
+}
+
+.blog-header-back:hover { color: var(--white); }
+
+/* ===== Article ===== */
+.blog-article {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 100px 24px 80px;
+}
+
+.blog-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.blog-tag-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid rgba(196, 185, 168, 0.2);
+  background: rgba(196, 185, 168, 0.06);
+  border-radius: 100px;
+  color: var(--marble-warm);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.blog-date-text {
+  font-size: 1.2rem;
+  color: var(--gray-dark);
+}
+
+.blog-read-time {
+  font-size: 1.2rem;
+  color: var(--gray-dark);
+}
+
+.blog-title {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 5vw, 4.8rem);
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  color: var(--white);
+}
+
+.blog-subtitle {
+  font-size: 1.8rem;
+  color: var(--gray);
+  line-height: 1.5;
+  margin-bottom: 40px;
+}
+
+.blog-divider {
+  width: 60px;
+  height: 2px;
+  background: var(--marble-warm);
+  opacity: 0.4;
+  margin-bottom: 40px;
+}
+
+/* ===== Content ===== */
+.blog-content h2 {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 48px 0 16px;
+  color: var(--white);
+}
+
+.blog-content h3 {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 600;
+  margin: 36px 0 12px;
+  color: var(--marble-cream);
+}
+
+.blog-content p {
+  font-size: 1.6rem;
+  line-height: 1.85;
+  color: var(--gray-light);
+  margin-bottom: 20px;
+}
+
+.blog-content strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.blog-content em {
+  color: var(--marble-warm);
+  font-style: italic;
+}
+
+.blog-content blockquote {
+  border-left: 3px solid var(--marble-warm);
+  padding: 16px 24px;
+  margin: 32px 0;
+  background: var(--surface);
+  border-radius: var(--radius);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+.blog-content blockquote p {
+  color: var(--marble-cream);
+  font-size: 1.5rem;
+  margin-bottom: 0;
+}
+
+.blog-content ul, .blog-content ol {
+  padding-left: 24px;
+  margin-bottom: 20px;
+}
+
+.blog-content li {
+  font-size: 1.5rem;
+  line-height: 1.8;
+  color: var(--gray-light);
+  margin-bottom: 8px;
+}
+
+.blog-content hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 48px 0;
+}
+
+/* ===== Footer nav ===== */
+.blog-footer-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 60px;
+}
+
+.blog-footer-link {
+  font-size: 1.4rem;
+  color: var(--gray);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.3s ease;
+}
+
+.blog-footer-link:hover { color: var(--white); }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .blog-article {
+    padding: 84px 20px 60px;
+  }
+
+  .blog-title {
+    font-size: 2.8rem;
+  }
+
+  .blog-subtitle {
+    font-size: 1.5rem;
+  }
+
+  .blog-content p {
+    font-size: 1.5rem;
+  }
+
+  .blog-content h2 {
+    font-size: 2rem;
+  }
+}
