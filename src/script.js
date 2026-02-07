@@ -1,11 +1,49 @@
 // ===== Jeison Wu — Horizontal Scroll Portfolio =====
 
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
+const $ = (id) => document.getElementById(id);
+const container = $("container") || document.querySelector(".body-container");
+const imagenAbajo = $("imagen-abajo");
+
+// ===== Statue "breathing" animation =====
+function animarElemento(id, min = "0.3", max = "1", tiempo = 1000, delayInicial = 0) {
+  const el = $(id);
+  if (!el) return;
+  el.style.transition = "opacity 1.5s ease-in-out";
+  setTimeout(() => {
+    setInterval(() => {
+      const currentOpacity = getComputedStyle(el).opacity;
+      const isMax = Math.abs(currentOpacity - max) < 0.1;
+      el.style.opacity = isMax ? min : max;
+    }, tiempo);
+  }, delayInicial);
+}
+
+animarElemento("mensaje-pc");
+animarElemento("mensaje-tel");
+animarElemento("gym", 0.1, 0.35, 3000, 1200);
+animarElemento("running", 0.1, 0.35, 3000, 600);
+animarElemento("coding", 0.1, 0.35, 3000, 0);
+
+// ===== Wave shape size (desktop) =====
+function changeSizeBackground() {
+  if (!imagenAbajo) return;
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (isMobileUA) return;
+  imagenAbajo.style.height = (window.innerWidth < 900) ? "69px" : "163px";
+}
+
+changeSizeBackground();
+window.addEventListener("resize", changeSizeBackground, { passive: true });
 
 // ===== Horizontal Scroll via Mouse Wheel =====
-const container = $('#container');
 let scrollStep = window.innerWidth;
+
+function updateStepOnZoom() {
+  scrollStep = window.innerWidth;
+  changeSizeBackground();
+}
+
+window.addEventListener("resize", updateStepOnZoom, { passive: true });
 
 function handleWheel(e) {
   if (!container) return;
@@ -14,86 +52,24 @@ function handleWheel(e) {
   container.scrollLeft += scrollStep * direction;
 }
 
-if (container) {
-  container.addEventListener('wheel', handleWheel, { passive: false });
-}
-
-window.addEventListener('resize', () => {
-  scrollStep = window.innerWidth;
-}, { passive: true });
-
-// ===== Active nav link on scroll =====
-const panels = $$('.panel[id]');
-const navLinks = $$('.header-nav a');
-
-function updateActiveNav() {
+function initHorizontalScroll() {
   if (!container) return;
-  const scrollPos = container.scrollLeft;
-  const panelWidth = window.innerWidth;
-
-  panels.forEach((panel, i) => {
-    const panelStart = i * panelWidth;
-    const panelEnd = panelStart + panelWidth;
-
-    if (scrollPos >= panelStart - panelWidth * 0.3 && scrollPos < panelEnd - panelWidth * 0.3) {
-      const id = panel.getAttribute('id');
-      navLinks.forEach(link => {
-        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-      });
-    }
-  });
+  updateStepOnZoom();
+  container.addEventListener("wheel", handleWheel, { passive: false });
 }
 
-if (container) {
-  container.addEventListener('scroll', updateActiveNav, { passive: true });
-}
+initHorizontalScroll();
 
-// ===== Statue parallax on scroll =====
-const statues = $$('.statue');
-
-function updateStatueParallax() {
-  if (!container || !statues.length) return;
-  const scrollPos = container.scrollLeft;
-
-  statues.forEach(statue => {
-    const panel = statue.closest('.panel');
-    if (!panel) return;
-    const panelLeft = panel.offsetLeft;
-    const offset = (scrollPos - panelLeft) * 0.05;
-    statue.style.transform = `translateX(${offset}px) ${statue.classList.contains('statue-bg-center') ? `translateX(calc(-50% + ${offset}px))` : ''}`;
-  });
-}
-
-if (container) {
-  container.addEventListener('scroll', updateStatueParallax, { passive: true });
-}
-
-// ===== Scroll hint fade out =====
-const scrollHint = $('#scrollHint');
-
-function handleScrollHint() {
-  if (!container || !scrollHint) return;
-  if (container.scrollLeft > window.innerWidth * 0.3) {
-    scrollHint.style.opacity = '0';
-  } else {
-    scrollHint.style.opacity = '';
-  }
-}
-
-if (container) {
-  container.addEventListener('scroll', handleScrollHint, { passive: true });
-}
-
-// ===== Footer year =====
-const yearEl = document.getElementById('anio');
-if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-// ===== Keyboard navigation =====
-document.addEventListener('keydown', (e) => {
+// ===== Keyboard Navigation =====
+document.addEventListener("keydown", (e) => {
   if (!container) return;
-  if (e.key === 'ArrowRight') {
+  if (e.key === "ArrowRight") {
     container.scrollLeft += scrollStep;
-  } else if (e.key === 'ArrowLeft') {
+  } else if (e.key === "ArrowLeft") {
     container.scrollLeft -= scrollStep;
   }
 });
+
+// ===== Footer year =====
+const anio = $("anio");
+if (anio) anio.textContent = new Date().getFullYear();

@@ -1,0 +1,252 @@
+/* ===== DESKTOP (900px+) ===== */
+
+body .body-container {
+  overflow-y: hidden;
+  overflow-x: scroll;
+}
+
+.custom-shape-divider-bottom-1670009055 svg {
+  height: 176px;
+}
+
+h1, h2, p {
+  cursor: default;
+}
+
+.texto-container {
+  padding: 45px 100px;
+}
+
+.header-container a {
+  font-size: 1.5rem;
+}
+
+.header-container .header-logo {
+  margin-right: 20vw;
+  font-size: 3rem;
+}
+
+/* Hero desktop */
+#presentacion {
+  align-items: flex-start;
+}
+
+.presentation-saludo {
+  padding-left: 10vw;
+  padding-top: 15vh;
+}
+
+.presentation-saludo .title-style {
+  font-size: 6rem;
+}
+
+.hero-subtitle {
+  font-size: 1.8rem;
+  max-width: 500px;
+}
+
+.presentation-saludo .contact-button {
+  width: 35vw;
+}
+
+.hero-stats {
+  left: 10vw;
+  bottom: 60px;
+  gap: 32px;
+}
+
+/* About desktop */
+.about-botones {
+  transition: all 500ms;
+  overflow: hidden;
+  justify-content: center;
+  width: fit-content;
+  align-self: center;
+  gap: 20px;
+}
+
+.about-botones:hover > :not(:hover) {
+  opacity: 0.5;
+}
+
+.about-botones .contact-button {
+  width: 40vw;
+}
+
+.curriculum {
+  width: 40vw;
+  transition: 500ms;
+}
+
+.contact-button {
+  transition: all 500ms;
+}
+
+.contact-button:hover {
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border);
+  color: var(--black);
+  width: 60%;
+}
+
+.about-botones .contact-button:hover {
+  width: 50vw;
+}
+
+.curriculum:hover {
+  background-color: var(--white);
+  color: var(--black);
+  width: 50vw;
+}
+
+.title-style {
+  font-size: 6rem;
+}
+
+.texto-container .parrafo-style {
+  font-size: 1.6rem;
+}
+
+.subtitle-style {
+  font-size: 3.5rem;
+}
+
+/* Contact desktop */
+.desktopcontainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.medias-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.socialMedia-container {
+  margin-left: 10vh;
+}
+
+#form-container {
+  width: 50vw;
+}
+
+.medias-container:hover > :not(:hover) {
+  opacity: 0.2;
+}
+
+.medias-container a {
+  transition: all 500ms;
+}
+
+.medias-container a:hover {
+  transform: translateX(10px);
+}
+
+.send-buton {
+  cursor: pointer;
+  transition: all 500ms;
+}
+
+.send-buton:hover {
+  width: 30vw;
+  background-color: var(--white);
+  color: var(--black);
+}
+
+#message-input {
+  height: 90px;
+}
+
+/* Header desktop */
+.header-logo {
+  transition: all 500ms;
+}
+
+.header-logo:hover {
+  text-shadow: 3px 3px 20px rgba(255,255,255,0.3), -2px 1px 30px rgba(255,255,255,0.2);
+}
+
+.header-list a {
+  transition: all 500ms;
+}
+
+.header-list a:hover {
+  font-size: 1.8rem;
+  color: var(--white);
+}
+
+.sections-containers {
+  max-height: 94vh;
+}
+
+/* Scroll hint desktop */
+.deslizame-mensaje {
+  position: relative;
+  display: flex;
+  transition-duration: 800ms;
+  flex-direction: row;
+  align-items: center;
+  top: 2vh;
+  left: 0;
+}
+
+#raton {
+  margin-top: 10px;
+  opacity: 0.2;
+  height: 33px;
+  width: 33px;
+  color: var(--gray-dark);
+}
+
+.deslizame-mensaje p {
+  font-weight: 400;
+  opacity: 0.5;
+  color: var(--gray-dark);
+}
+
+/* Skills desktop */
+.skills-container {
+  padding: 50px 80px;
+}
+
+.skills-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.skills-container .title-style {
+  font-size: 5rem;
+  margin-bottom: 8px;
+}
+
+/* Blog desktop */
+.blog-container {
+  padding: 50px 80px;
+}
+
+.blog-container .title-style {
+  font-size: 5rem;
+  margin-bottom: 8px;
+}
+
+.blog-stack {
+  max-width: 700px;
+}
+
+/* Statue images desktop */
+.fondo-sketch {
+  left: 30%;
+  width: 75%;
+  top: 5%;
+  object-fit: contain;
+  opacity: 0.15;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000000de 20%, black 80%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 20%, #000000f7 80%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000000de 20%, black 80%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 20%, #000000f7 80%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+#gym {
+  top: 5%;
+}

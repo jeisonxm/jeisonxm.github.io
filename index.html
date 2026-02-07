@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="author" content="Jeison Sang Wu Mitre" />
-  <meta name="description" content="Jeison Wu — AI & Data Leader, Gerente de Auditoría Analítica. Ingeniero Industrial, Científico de Datos, maratonista en formación.">
+  <meta name="description" content="Jeison Wu — AI & Data Leader. Gerente de Auditoría Analítica, Ingeniero Industrial, Científico de Datos, maratonista en formación.">
   <meta name="keywords" content="Jeison Wu, AI, Data Science, Auditoría, Liderazgo, Agentes IA, Python, Machine Learning, Panamá">
   
   <title>Jeison Wu | AI & Data Leader</title>
@@ -13,45 +13,52 @@
   <script src="https://kit.fontawesome.com/10b9adabac.js" crossorigin="anonymous"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="/src/styles/style.css">
+  <link rel="stylesheet" href="/src/styles/tablet.css" media="(min-width: 630px)" />
+  <link rel="stylesheet" href="/src/styles/desktop.css" media="(min-width: 900px)" />
   <link rel="icon" href="./src/icons/LGOO-SIMPLE.ico">
 </head>
 <body>
-
-  <!-- Header -->
-  <header class="header" id="header">
-    <a href="#hero" class="header-logo">JW<span class="logo-dot">.</span></a>
-    <nav class="header-nav">
-      <a href="#about">Sobre Mí</a>
-      <a href="#skills">Skills</a>
-      <a href="#blog">Blog</a>
-      <a href="#contact">Contacto</a>
-    </nav>
+  <header class='header-container' id="header">
+    <a href="#presentacion">
+      <span class="header-logo">JW</span>
+    </a>
+    <ul class="header-list">
+      <a href="#about"><li>Sobre Mí</li></a>
+      <a href="#skills"><li>Skills</li></a>
+      <a href="#blog"><li>Blog</li></a>
+      <a href="#contact"><li>Contacto</li></a>
+    </ul>
   </header>
 
-  <!-- Horizontal Scroll Container -->
-  <main class="scroll-container" id="container">
+  <main class="body-container" id="container">
+    
+    <!-- SECCIÓN 1: PRESENTACIÓN -->
+    <section id='presentacion' class="presentation-container sections-containers">
+      <img src="./src/images/pesas.png" alt="" class="fondo-sketch" id="gym">
+      <img src="./src/images/corriendo.png" alt="" class="fondo-sketch" id="running">
+      <img src="./src/images/escribiendo.png" alt="" class="fondo-sketch" id="coding">
 
-    <!-- PANEL 1: Hero -->
-    <section id="hero" class="panel hero-panel">
-      <!-- Statue backgrounds -->
-      <img src="./src/images/pesas.png" alt="" class="statue statue-left" id="statue-gym">
-      <img src="./src/images/corriendo.png" alt="" class="statue statue-right" id="statue-run">
-
-      <div class="hero-content">
+      <div class="presentation-saludo">
         <div class="hero-label">AI & Data Leader</div>
-        <h1 class="hero-title">
-          Hola,<br>Soy <span class="hero-name">Jeison Wu</span>
-        </h1>
-        <p class="hero-sub">Innovador por vocación. Maratonista en formación.</p>
-        <div class="hero-buttons">
-          <a href="#contact" class="btn btn-solid">Contáctame</a>
-          <a href="#about" class="btn btn-ghost">Explorar →</a>
+        <h1 class='title-style telefono'>¡Hola!<br>Soy Jeison</h1>
+        <h1 class='title-style oculto'>¡Hola!<br>Soy Jeison Sang Wu Mitre</h1>
+        <p class="hero-subtitle">Transformo auditoría con inteligencia artificial.<br>
+          <strong>+80,000 horas-hombre</strong> automatizadas. Maratonista en formación.</p>
+        <a href="#contact" class='contact-button'>Contáctame</a>
+        
+        <p class="deslizame-mensaje_tel telefono" id="mensaje-tel">Desliza para ir a la siguiente sección →</p>
+        <div class="deslizame-mensaje oculto" id="mensaje-pc">
+          <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="raton" aria-hidden="true">
+            <path d="M12 5L12.5303 4.46967C12.2374 4.17678 11.7626 4.17678 11.4697 4.46967L12 5ZM12 13L11.4697 13.5303C11.7626 13.8232 12.2374 13.8232 12.5303 13.5303L12 13ZM9.46967 6.46967C9.17678 6.76256 9.17678 7.23744 9.46967 7.53033C9.76256 7.82322 10.2374 7.82322 10.5303 7.53033L9.46967 6.46967ZM13.4697 7.53033C13.7626 7.82322 14.2374 7.82322 14.5303 7.53033C14.8232 7.23744 14.8232 6.76256 14.5303 6.46967L13.4697 7.53033ZM10.5303 10.4697C10.2374 10.1768 9.76256 10.1768 9.46967 10.4697C9.17678 10.7626 9.17678 11.2374 9.46967 11.5303L10.5303 10.4697ZM14.5303 11.5303C14.8232 11.2374 14.8232 10.7626 14.5303 10.4697C14.2374 10.1768 13.7626 10.1768 13.4697 10.4697L14.5303 11.5303ZM3.25 10V14H4.75V10H3.25ZM20.75 14V10H19.25V14H20.75ZM11.25 5V13H12.75V5H11.25ZM11.4697 4.46967L9.46967 6.46967L10.5303 7.53033L12.5303 5.53033L11.4697 4.46967ZM11.4697 5.53033L13.4697 7.53033L14.5303 6.46967L12.5303 4.46967L11.4697 5.53033ZM12.5303 12.4697L10.5303 10.4697L9.46967 11.5303L11.4697 13.5303L12.5303 12.4697ZM12.5303 13.5303L14.5303 11.5303L13.4697 10.4697L11.4697 12.4697L12.5303 13.5303ZM20.75 10C20.75 5.16751 16.8325 1.25 12 1.25V2.75C16.0041 2.75 19.25 5.99594 19.25 10H20.75ZM12 22.75C16.8325 22.75 20.75 18.8325 20.75 14H19.25C19.25 18.0041 16.0041 21.25 12 21.25V22.75ZM3.25 14C3.25 18.8325 7.16751 22.75 12 22.75V21.25C7.99594 21.25 4.75 18.0041 4.75 14H3.25ZM4.75 10C4.75 5.99594 7.99594 2.75 12 2.75V1.25C7.16751 1.25 3.25 5.16751 3.25 10H4.75Z" fill="currentColor"/>
+          </svg>
+          <p>Usa la rueda del ratón para moverte entre secciones</p>
         </div>
       </div>
 
+      <!-- Stats bar -->
       <div class="hero-stats">
         <div class="stat-item">
           <span class="stat-num">+80K</span>
@@ -69,161 +76,156 @@
         </div>
       </div>
 
-      <div class="scroll-hint" id="scrollHint">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <div class="custom-shape-divider-bottom-1670009055">
+        <svg id="imagen-abajo" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
+            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
+            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
         </svg>
-        <span class="hint-desktop">Usa la rueda del ratón para navegar</span>
-        <span class="hint-mobile">Desliza →</span>
       </div>
     </section>
 
-    <!-- PANEL 2: About -->
-    <section id="about" class="panel about-panel">
-      <img src="./src/images/escribiendo.png" alt="" class="statue statue-bg-center" id="statue-code">
-
-      <div class="panel-content about-content">
-        <h2 class="panel-title">Sobre Mí</h2>
-        <div class="about-text">
-          <p>
-            Mi camino comenzó con una fascinación por entender cómo funcionan las cosas, lo que me llevó de la Ingeniería Industrial al mundo del código.
-            Lo que empezó como interés por estadística, maduró hacia una misión:
-            <strong>utilizar la Ciencia de Datos para resolver problemas estructurales de negocio</strong>.
-          </p>
-          <p>
-            Hoy, como <strong>Gerente de Línea Analítica en Auditoría</strong>, no solo construyo modelos; construyo capacidades.
-            Lidero equipos que implementan automatización inteligente, logrando liberar
-            <strong>más de 80,000 horas-hombre anuales</strong> mediante <strong>Agentes de IA</strong>.
-          </p>
-          <p>
-            Mi liderazgo se define por <strong>unir conocimiento técnico y visión humana</strong>.
-            Aquí comparto cómo interpreto la transformación tecnológica y las lecciones que la vida me enseña.
-          </p>
-        </div>
-        <div class="about-actions">
-          <a href="/src/JEISON SANG WU MITRE curriculum final.pdf" download class="btn btn-solid">Descargar CV</a>
-          <a href="#contact" class="btn btn-ghost">Hablemos</a>
-        </div>
+    <!-- SECCIÓN 2: SOBRE MÍ -->
+    <section id='about' class="about-container sections-containers">
+      <div class="texto-container">
+        <h1 class="title-style">Sobre Mí</h1>
+        <p class="parrafo-style">
+          Mi camino comenzó con una fascinación por entender cómo funcionan las cosas, lo que me llevó de la Ingeniería Industrial al mundo del código.
+          Pero lo que empezó como un interés por el desarrollo web y la estadística, maduró rápidamente hacia una misión más grande:
+          <strong>utilizar la Ciencia de Datos para resolver problemas estructurales de negocio</strong>.
+          <br><br>
+          Hoy, como <strong>Gerente de Línea Analítica en Auditoría</strong>, no solo construyo modelos; construyo capacidades.
+          He pasado de crear mis primeros algoritmos a liderar equipos que implementan automatización inteligente y auditoría continua, logrando hitos como liberar
+          <strong>más de 80,000 horas-hombre anuales</strong> mediante el uso pionero de <strong>Agentes de IA</strong>.
+          <br><br>
+          Mi estilo de liderazgo se define por <strong>unir conocimiento técnico y visión humana</strong>.
+          Este espacio no es un repositorio de código, sino un <strong>blog de reflexiones, visiones y aprendizajes</strong>.
+          Aquí comparto cómo interpreto la transformación tecnológica y las lecciones que la vida y la gerencia me van enseñando.
+        </p>
+      </div>
+      <div class="about-botones">
+        <a href="#contact" class='contact-button'>Contáctame</a>
+        <a href='/src/JEISON SANG WU MITRE curriculum final.pdf' download='Hoja de Vida - Jeison Wu.pdf' class='curriculum'>Ver CV</a>
       </div>
     </section>
 
-    <!-- PANEL 3: Skills -->
-    <section id="skills" class="panel skills-panel">
-      <img src="./src/images/pesas.png" alt="" class="statue statue-bg-right" id="statue-strength">
+    <!-- SECCIÓN 3: SKILLS -->
+    <section id='skills' class="skills-container sections-containers">
+      <h1 class="title-style">Tech Stack</h1>
+      <p class="parrafo-style skills-intro">Las herramientas con las que construyo, analizo y transformo.</p>
+      
+      <div class="skills-grid">
+        <article class="skill-card">
+          <div class="skill-card-header">
+            <i class="fa-solid fa-brain" aria-hidden="true"></i>
+            <h3>Data Science & AI</h3>
+          </div>
+          <ul class="skill-list">
+            <li>Python</li>
+            <li>Pandas / NumPy</li>
+            <li>Scikit-Learn</li>
+            <li>TensorFlow</li>
+            <li>AI Agents / LLMs</li>
+            <li>Streamlit</li>
+          </ul>
+        </article>
 
-      <div class="panel-content">
-        <h2 class="panel-title">Tech Stack</h2>
-        <div class="skills-columns">
-          <div class="skill-block">
-            <h3><i class="fa-solid fa-brain"></i> Data Science & AI</h3>
-            <ul>
-              <li>Python</li>
-              <li>Pandas / NumPy</li>
-              <li>Scikit-Learn</li>
-              <li>TensorFlow</li>
-              <li>AI Agents / LLMs</li>
-              <li>Streamlit</li>
-            </ul>
+        <article class="skill-card">
+          <div class="skill-card-header">
+            <i class="fa-solid fa-server" aria-hidden="true"></i>
+            <h3>Data & Infra</h3>
           </div>
-          <div class="skill-block">
-            <h3><i class="fa-solid fa-server"></i> Data & Infra</h3>
-            <ul>
-              <li>SQL / PostgreSQL</li>
-              <li>MongoDB</li>
-              <li>Docker</li>
-              <li>Power BI</li>
-              <li>Tableau</li>
-            </ul>
+          <ul class="skill-list">
+            <li>SQL / PostgreSQL</li>
+            <li>MongoDB</li>
+            <li>Docker</li>
+            <li>Power BI</li>
+            <li>Tableau</li>
+          </ul>
+        </article>
+
+        <article class="skill-card">
+          <div class="skill-card-header">
+            <i class="fa-solid fa-code" aria-hidden="true"></i>
+            <h3>Development</h3>
           </div>
-          <div class="skill-block">
-            <h3><i class="fa-solid fa-code"></i> Development</h3>
-            <ul>
-              <li>HTML / CSS / JS</li>
-              <li>React</li>
-              <li>Git</li>
-              <li>Figma</li>
-            </ul>
+          <ul class="skill-list">
+            <li>HTML / CSS / JS</li>
+            <li>React</li>
+            <li>Git</li>
+            <li>Figma</li>
+          </ul>
+        </article>
+
+        <article class="skill-card">
+          <div class="skill-card-header">
+            <i class="fa-solid fa-chess-king" aria-hidden="true"></i>
+            <h3>Business & Audit</h3>
           </div>
-          <div class="skill-block">
-            <h3><i class="fa-solid fa-chess-king"></i> Business</h3>
-            <ul>
-              <li>Auditoría Interna</li>
-              <li>GRC</li>
-              <li>Supply Chain</li>
-              <li>Gestión de Riesgos</li>
-            </ul>
-          </div>
-        </div>
+          <ul class="skill-list">
+            <li>Auditoría Interna</li>
+            <li>GRC</li>
+            <li>Supply Chain</li>
+            <li>Gestión de Riesgos</li>
+            <li>Automatización</li>
+          </ul>
+        </article>
       </div>
     </section>
 
-    <!-- PANEL 4: Blog -->
-    <section id="blog" class="panel blog-panel">
-      <div class="panel-content">
-        <h2 class="panel-title">Blog</h2>
-        <p class="blog-intro">Reflexiones sobre tecnología, liderazgo y la búsqueda de la excelencia.</p>
-        <div class="blog-stack">
-          <article class="blog-entry">
-            <span class="blog-tag">Próximamente</span>
-            <h3>El arte de automatizar lo que nadie pensó posible</h3>
-            <p>Cómo los Agentes de IA están transformando la auditoría interna desde Panamá.</p>
-            <span class="blog-date">Febrero 2026</span>
-          </article>
-          <article class="blog-entry">
-            <span class="blog-tag">Próximamente</span>
-            <h3>De ingeniero a líder: lo que no enseñan en la universidad</h3>
-            <p>Lecciones de liderazgo a los 26 años en un banco en fusión.</p>
-            <span class="blog-date">Febrero 2026</span>
-          </article>
-          <article class="blog-entry">
-            <span class="blog-tag">Próximamente</span>
-            <h3>La disciplina del corredor y la del programador</h3>
-            <p>Correr un maratón y construir software son la misma batalla mental.</p>
-            <span class="blog-date">Febrero 2026</span>
-          </article>
-        </div>
+    <!-- SECCIÓN 4: BLOG -->
+    <section id='blog' class="blog-container sections-containers">
+      <h1 class="title-style">Blog</h1>
+      <p class="parrafo-style blog-intro">Reflexiones sobre tecnología, liderazgo y la búsqueda de la excelencia.</p>
+      
+      <div class="blog-stack">
+        <article class="blog-entry">
+          <span class="blog-tag">Próximamente</span>
+          <h3>El arte de automatizar lo que nadie pensó posible</h3>
+          <p>Cómo los Agentes de IA están transformando la auditoría interna desde Panamá.</p>
+          <span class="blog-date">Febrero 2026</span>
+        </article>
+        <article class="blog-entry">
+          <span class="blog-tag">Próximamente</span>
+          <h3>De ingeniero a líder: lo que no enseñan en la universidad</h3>
+          <p>Lecciones de liderazgo a los 26 años en un banco en fusión.</p>
+          <span class="blog-date">Febrero 2026</span>
+        </article>
+        <article class="blog-entry">
+          <span class="blog-tag">Próximamente</span>
+          <h3>La disciplina del corredor y la del programador</h3>
+          <p>Correr un maratón y construir software son la misma batalla mental.</p>
+          <span class="blog-date">Febrero 2026</span>
+        </article>
       </div>
     </section>
 
-    <!-- PANEL 5: Contact -->
-    <section id="contact" class="panel contact-panel">
-      <img src="./src/images/corriendo.png" alt="" class="statue statue-bg-left" id="statue-finish">
-
-      <div class="panel-content contact-content">
-        <h2 class="panel-title">Contacto</h2>
-        <div class="contact-grid">
-          <form class="contact-form" action="mailto:jeisonwumitre@gmail.com" method="post" enctype="text/plain">
-            <h3>Envíame un mensaje</h3>
-            <div class="form-row">
-              <input type="email" name="email" placeholder="Tu email" required />
-              <input type="text" name="name" placeholder="Tu nombre" required />
-            </div>
-            <textarea name="message" placeholder="Tu mensaje" required></textarea>
-            <button type="submit" class="btn btn-solid">Enviar</button>
-          </form>
-          <div class="contact-social">
-            <h3>Conectemos</h3>
-            <div class="social-list">
-              <a href="https://www.linkedin.com/in/jeisonwu/" target="_blank" rel="noopener noreferrer">
-                <i class="fa-brands fa-linkedin"></i> LinkedIn
-              </a>
-              <a href="https://github.com/jeisonxm" target="_blank" rel="noopener noreferrer">
-                <i class="fa-brands fa-github"></i> GitHub
-              </a>
-              <a href="https://instagram.com/jeisonwu/" target="_blank" rel="noopener noreferrer">
-                <i class="fa-brands fa-instagram"></i> Instagram
-              </a>
-              <a href="https://twitter.com/jeisonwu/" target="_blank" rel="noopener noreferrer">
-                <i class="fa-brands fa-x-twitter"></i> X
-              </a>
-            </div>
+    <!-- SECCIÓN 5: CONTACTO -->
+    <section id='contact' class="contact-container sections-containers">
+      <h1 class="title-style">Contacto</h1>
+      <div class="desktopcontainer">
+        <form action="mailto:jeisonwumitre@gmail.com" method="post" id='form-container' enctype="text/plain">
+          <h2 class="subtitle-style">Envíame Un Mensaje</h2>
+          <div class="input-container">
+            <input type="email" class='input-style' name="email" id="email-input" placeholder='Email' required />
+            <input type="text" class='input-style' name="name" id='name-input' placeholder='Nombre' required />
+          </div>
+          <textarea id='message-input' name="message" placeholder='Mensaje' required></textarea>
+          <button class='send-buton' type="submit">Enviar</button>
+        </form>
+        <div class="socialMedia-container">
+          <h2 class="subtitle-style">Redes Sociales</h2>
+          <div class="medias-container">
+            <a href="https://www.linkedin.com/in/jeisonwu/" target="_blank" rel="noopener noreferrer"><span><i class="fa-brands fa-linkedin" aria-hidden="true"></i></span>Jeison Sang Wu Mitre</a>
+            <a href="https://github.com/jeisonxm" target="_blank" rel="noopener noreferrer"><span><i class="fa-brands fa-github" aria-hidden="true"></i></span>jeisonxm</a>
+            <a href="https://instagram.com/jeisonwu/" target="_blank" rel="noopener noreferrer"><span><i class="fa-brands fa-instagram" aria-hidden="true"></i></span>JeisonWu</a>
+            <a href="https://twitter.com/jeisonwu/" target="_blank" rel="noopener noreferrer"><span><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></span>JeisonWu</a>
           </div>
         </div>
       </div>
     </section>
-
+    
   </main>
-
   <script src="./src/script.js"></script>
 </body>
 </html>
