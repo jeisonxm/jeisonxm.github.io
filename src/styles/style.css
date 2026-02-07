@@ -116,7 +116,6 @@ ul { list-style: none; }
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  width: max-content;
   height: 100vh;
   padding-top: 64px;
   overflow-x: auto;
