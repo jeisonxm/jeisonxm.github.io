@@ -95,6 +95,7 @@ a:hover { color: var(--white); }
   max-width: 720px;
   margin: 0 auto;
   padding: 100px 24px 80px;
+  overflow: hidden;
 }
 
 .blog-meta {
@@ -226,16 +227,17 @@ a:hover { color: var(--white); }
 /* ===== Blog Images ===== */
 .blog-img {
   width: 100%;
+  height: 480px;
   margin: 40px 0;
   border-radius: var(--radius);
   overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .blog-img img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  max-height: 560px;
   object-fit: cover;
   object-position: center 20%;
   filter: brightness(0.95) contrast(1.05);
@@ -259,7 +261,6 @@ a:hover { color: var(--white); }
 }
 
 .blog-img-hero img {
-  max-height: 480px;
   object-fit: cover;
   object-position: center 15%;
 }
@@ -467,13 +468,14 @@ a:hover { color: var(--white); }
     font-size: 1.6rem;
   }
 
+  .blog-img {
+    height: 360px;
+  }
+
   .blog-img-hero {
     width: calc(100% + 40px);
     margin-left: -20px;
     margin-right: -20px;
-  }
-
-  .blog-img-hero img {
-    max-height: 360px;
+    height: 320px;
   }
 }
