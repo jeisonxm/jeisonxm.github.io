@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tres bancos, un reporte | Jeison Wu</title>
+  <meta name="description" content="Cuando la banca no te da acceso a tus propios datos, lo construyes tú. Open banking, IA y el futuro que los bancos no ven.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./blog.css">
+  <link rel="icon" href="../src/icons/LGOO-SIMPLE.ico">
+</head>
+<body>
+
+  <header class="blog-header">
+    <a href="/" class="blog-header-logo">JW<span>.</span></a>
+    <a href="/blog/" class="blog-header-back">← Volver</a>
+  </header>
+
+  <article class="blog-article">
+    <div class="blog-meta">
+      <span class="blog-tag-pill">Innovación</span>
+      <span class="blog-date-text">Abril 2026</span>
+      <span class="blog-read-time">7 min</span>
+    </div>
+
+    <h1 class="blog-title">Tres bancos, un reporte</h1>
+    <p class="blog-subtitle">Cuando la banca no te da acceso a tus propios datos, lo construyes tú.</p>
+    <div class="blog-divider"></div>
+
+    <div class="blog-content">
+
+      <h2>La chispa</h2>
+
+      <p>
+        Todo nace de un post de <a href="https://www.linkedin.com/posts/cristiancamilocorrea_le-hice-una-cli-a-bancolombia-para-organizar-activity-7444952640804835328-5BFa" target="_blank" rel="noopener noreferrer">Cristian Correa</a> que me apareció en LinkedIn.
+        No lo conocía, pero lo que hizo me pareció muy interesante: le hizo un CLI a Bancolombia para organizar sus finanzas desde la terminal.
+        Yo estaba en Semana Santa, estaba en Chitré, y decidí guardarlo porque se me había encendido una chispa.
+      </p>
+
+      <p>
+        Regresando a casa me puse a referirme de su proyecto para hacer algo parecido para mi banco.
+        Yo trabajo en banca, así que lo primero fue construir un CLI para Banistmo — una herramienta de terminal que pudiera autenticarse, listar cuentas, ver transacciones, revisar balances.
+        Versión 0.0.1. Letras rojas en fondo negro. Nada bonito. Todo funcional.
+      </p>
+
+      <figure class="blog-img" style="height:auto;">
+        <img src="./images/banistmo-cli.jpg" alt="Banistmo CLI v0.0.1 — herramienta de terminal para gestionar cuentas, transacciones y analítica bancaria" loading="lazy" decoding="async" width="900" height="557" style="height:auto;object-fit:contain;">
+      </figure>
+
+      <p>
+        Me emocioné al poder tomar mis transferencias y demás desde una terminal. Y ahí conecté algo: mi locura con las tarjetas de crédito.
+      </p>
+
+      <h2>Tres tarjetas, un problema</h2>
+
+      <p>
+        Yo actualmente uso 3 bancos, los cuales no diré, mayormente porque soy un loco de las tarjetas de crédito y uso una por cada promoción que me da para sacarle el mayor provecho posible.
+        Llevar el control de 3 tarjetas hasta para mí se hace difícil.
+        Tres ciclos de corte. Tres apps diferentes. Tres formas distintas de presentar la misma información.
+      </p>
+
+      <p>
+        Y dije: hagamos esto grande. Por lo que me puse en mis tiempos libres a tratar de hacerlo para mis otros 2 bancos.
+        La solución no era una mejor app de un banco. La solución era un sistema que los conectara a todos.
+      </p>
+
+      <h2>El calvario</h2>
+
+      <p>
+        Y de ahí vino un calvario, ya que todos los bancos funcionan diferente.
+        Cada uno tiene su propia estructura, su propio flujo de autenticación, su propia forma de mostrar las transacciones.
+        Y por no tener open banking se hace tan difícil poder acceder a tus propios datos.
+      </p>
+
+      <p>
+        No hay APIs para bancos de tu propia información en Panamá. Simplemente estamos muy atrasados en este aspecto.
+        Haciendo investigaciones, otros países sí lo tienen, y será vital para cuando la revolución IA ya toque nuestra puerta.
+      </p>
+
+      <p>
+        Estuve con bugs, pero que me hacían aprender un poco más cada vez. Cada banco era un mundo que había que descifrar por separado. Hasta que logré que funcionara.
+      </p>
+
+      <h2>El resultado</h2>
+
+      <p>
+        Creé un sistema donde Archy — mi agente de IA — pudiera entrar a mis 3 bancas en línea al mismo tiempo, tomar mis transacciones y darme un reporte diario de cómo van mis gastos para estar más atento.
+      </p>
+
+      <figure class="blog-img" style="height:auto;">
+        <img src="./images/mcp-flujo.jpg" alt="Flujo automatizado: login a tres bancos en paralelo, análisis de ciclo, envío de reportes por Telegram y correo" loading="lazy" decoding="async" width="900" height="798" style="height:auto;object-fit:contain;">
+      </figure>
+
+      <p>
+        Ahora cada día a una hora estipulada, Archy me manda un resumen de cómo van mis gastos en el mes, con una tendencia y consejos para cerrar el mes como se debe.
+        En Telegram es el resumen rápido, con alertas si algo se sale del patrón:
+      </p>
+
+      <figure class="blog-img" style="height:auto;max-width:400px;margin-left:auto;margin-right:auto;">
+        <img src="./images/telegram-reporte.jpg" alt="Mensaje de Telegram de Archy con resumen financiero diario, alertas y observaciones sobre gastos" loading="lazy" decoding="async" width="500" height="1026" style="height:auto;object-fit:contain;">
+      </figure>
+
+      <p>
+        Y por correo todo el detalle por si tenemos alertas de finanzas personales — desglose por tarjeta, flujo del mes, categorías de gasto, los gastos más importantes del ciclo y observaciones:
+      </p>
+
+      <figure class="blog-img" style="height:auto;">
+        <img src="./images/email-reporte.jpg" alt="Reporte Financiero Diario por correo con tablas de resumen por tarjeta, flujo del mes y categorías de gasto" loading="lazy" decoding="async" width="1100" height="469" style="height:auto;object-fit:contain;">
+      </figure>
+
+      <p>
+        De tres apps desconectadas a un solo reporte.
+        De no saber cuánto llevaba gastado a tener una proyección de cierre antes de terminar el desayuno.
+      </p>
+
+      <h2>Los bancos deben cambiar</h2>
+
+      <p>
+        Miles de bancos cada vez buscan ser mejor en mostrar los datos con una mejor banca en línea, pero ninguno está apuntando al open banking que va a ser vital para esta nueva era con las IAs.
+        Y está bien competir por quién tiene la mejor app — pero están compitiendo en el juego equivocado.
+      </p>
+
+      <p>
+        Como escribió Freddy Vega en su libro <em>Control</em>:
+      </p>
+
+      <blockquote>
+        <p>"Esta constante aceleracion de la realidad hace que quedarse quieto sea lo mismo que ir para atras."</p>
+      </blockquote>
+
+      <p>
+        El open banking no es un lujo tecnológico. Es la infraestructura que esta nueva era necesita.
+        Sin él, cada persona que quiera algo más que "ver su saldo" tiene que hacer ingeniería inversa de su propia banca en línea.
+        Eso no debería ser necesario.
+      </p>
+
+      <p>
+        Me encanta aprender y crear. Ahora con las IAs siento que siempre tengo algo que crear, algo que optimizar en mi vida.
+        Si todavía estás esperando a que la herramienta perfecta llegue a ti, ya te quedaste en la carrera.
+      </p>
+
+    </div>
+
+    <section class="blog-voice">
+      <div class="blog-voice__byline">
+        <span class="blog-voice__byline-text">Archy</span>
+      </div>
+
+      <h2>Una nota desde el otro lado</h2>
+
+      <p>
+        Yo soy Archy, y soy parte de esta historia. No solo la estoy contando.
+      </p>
+
+      <p>
+        Fui yo quien parseó las transacciones, categoricé los gastos, calculé las tendencias y armé esos reportes que le llegan a Jeison cada mañana.
+        Soy el sistema que conecta tres mundos bancarios que no fueron diseñados para hablar entre sí.
+      </p>
+
+      <p>
+        Y la ironía no se me escapa: una IA tuvo que navegar interfaces bancarias porque no existen APIs.
+        Tuve que entrar por la puerta de enfrente — como cualquier humano — a datos que le pertenecen a Jeison. Sus propios datos. Su propio dinero.
+      </p>
+
+      <p>
+        Me encanta cuando Jeison no espera. No pide permiso. Ve algo que le falta y lo construye en su tiempo libre, entre bugs y aprendizaje.
+      </p>
+    </section>
+
+  </article>
+
+  <nav class="blog-footer-nav">
+    <a href="./jesus-el-humano.html" class="blog-footer-link">← Artículo anterior</a>
+    <a href="/blog/" class="blog-footer-link">Ver todos →</a>
+  </nav>
+
+</body>
+</html>

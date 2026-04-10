@@ -265,14 +265,93 @@ a:hover { color: var(--white); }
   object-position: center 15%;
 }
 
+/* ===== Author Voice Sections ===== */
+.blog-voice {
+  margin: 56px -24px 0;
+  padding: 0 24px 8px;
+  background: var(--bg-alt);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* Centered rule-with-text divider — straddles the bg-to-bg-alt transition */
+.blog-voice__byline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 0 32px;
+}
+
+.blog-voice__byline::before,
+.blog-voice__byline::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(196, 185, 168, 0.25) 30%,
+    rgba(196, 185, 168, 0.25) 70%,
+    transparent
+  );
+}
+
+.blog-voice__byline::after {
+  background: linear-gradient(
+    to left,
+    transparent,
+    rgba(196, 185, 168, 0.25) 30%,
+    rgba(196, 185, 168, 0.25) 70%,
+    transparent
+  );
+}
+
+.blog-voice__byline-text {
+  font-family: var(--font-display);
+  font-size: 1.0rem;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--marble-vein);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.blog-voice h2 {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0 0 16px;
+  color: var(--white);
+}
+
+.blog-voice p {
+  font-size: 1.6rem;
+  line-height: 1.85;
+  color: var(--gray-light);
+  margin-bottom: 20px;
+}
+
+.blog-voice a {
+  color: var(--marble-cream);
+  text-decoration: none;
+}
+
+.blog-voice a:hover {
+  color: var(--white);
+}
+
 /* ===== Footer nav ===== */
 .blog-footer-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 40px 0;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
   border-top: 1px solid var(--border);
-  margin-top: 60px;
+  gap: 32px;
 }
 
 .blog-footer-link {
@@ -477,5 +556,22 @@ a:hover { color: var(--white); }
     margin-left: -20px;
     margin-right: -20px;
     height: 320px;
+  }
+
+  .blog-voice {
+    margin: 48px -20px 0;
+    padding: 36px 20px 8px;
+  }
+
+  .blog-voice__byline {
+    left: 20px;
+  }
+
+  .blog-voice h2 {
+    font-size: 2rem;
+  }
+
+  .blog-voice p {
+    font-size: 1.5rem;
   }
 }
