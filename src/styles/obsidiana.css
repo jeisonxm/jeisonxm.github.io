@@ -54,7 +54,7 @@
 .statue-right { opacity: 0.28; }
 .statue-bg-center,
 .statue-bg-right,
-.statue-bg-left { opacity: 0.24; }
+.statue-bg-left { opacity: 0.26; }
 
 @media (max-width: 768px) {
   .statue-left  { opacity: 0.14; }
