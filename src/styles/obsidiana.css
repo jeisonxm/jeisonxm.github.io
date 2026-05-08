@@ -1,0 +1,115 @@
+/* =====================================================
+   JEISON WU — Portfolio (English)
+   Style: Obsidiana — Volcanic glass, premium tech
+   Palette overrides applied on top of style.css
+   ===================================================== */
+
+:root {
+  /* --- Obsidiana palette (cool, near-neutral, sharp) --- */
+  --marble-white: #F2F2F0;
+  --marble-cream: #D4D4D2;
+  --marble-warm: #00D4FF;       /* cyan eléctrico — accent */
+  --marble-mid: #A8A8A6;
+  --marble-shadow: #6E6E6C;
+  --marble-vein: #444442;
+  --marble-deep: #1E1E1C;
+  --marble-darkest: #141412;
+
+  /* --- Semantic mapping --- */
+  --bg: #0A0A09;
+  --bg-alt: #141412;
+  --surface: #1E1E1C;
+  --surface-hover: #2A2A28;
+  --white: #F2F2F0;
+  --gray: #A8A8A6;
+  --gray-light: #D4D4D2;
+  --gray-dark: #6E6E6C;
+  --accent: #00D4FF;
+  --accent-light: #66E2FF;
+  --accent-dim: #0099BB;
+  --accent-glow: rgba(0, 212, 255, 0.12);
+  --stone: #1E1E1C;
+  --stone-light: #2A2A28;
+  --stone-texture: #141412;
+  --border: rgba(242, 242, 240, 0.08);
+  --border-hover: rgba(0, 212, 255, 0.2);
+}
+
+/* English version uses heavier display weights and looser tracking
+   to suit the colder palette (per ux-engineer spec) */
+.hero-title,
+.panel-title {
+  letter-spacing: -1.2px;
+  font-weight: 700;
+}
+
+/* Statue cool-shift: cyan dodge + lifted presence (Jeison should read clearly
+   against obsidiana, not vanish into it) */
+.statue {
+  filter: brightness(0.92) contrast(1.2) saturate(0.65) hue-rotate(-15deg);
+  opacity: 0.32;
+}
+
+.statue-left  { opacity: 0.36; }
+.statue-right { opacity: 0.28; }
+.statue-bg-center,
+.statue-bg-right,
+.statue-bg-left { opacity: 0.24; }
+
+@media (max-width: 768px) {
+  .statue-left  { opacity: 0.14; }
+  .statue-right { opacity: 0.10; }
+  .statue-bg-center,
+  .statue-bg-right,
+  .statue-bg-left { opacity: 0.10; }
+}
+
+/* Override the "stone crack" hover veins with obsidiana-appropriate values
+   (cyan shimmer + sharp dark fractures instead of warm marble) */
+.btn::before,
+.info-card::before,
+.skill-block::before,
+.blog-entry::before,
+.social-list a::before {
+  background:
+    linear-gradient(42deg, transparent 30%, rgba(0,212,255,0.05) 31%, rgba(20,20,18,0.18) 31.5%, transparent 32%),
+    linear-gradient(138deg, transparent 48%, rgba(0,212,255,0.04) 49%, rgba(20,20,18,0.14) 49.5%, transparent 50%),
+    linear-gradient(-25deg, transparent 58%, rgba(0,212,255,0.04) 59%, rgba(20,20,18,0.12) 59.5%, transparent 60%),
+    linear-gradient(75deg, transparent 22%, rgba(20,20,18,0.14) 22.5%, rgba(0,212,255,0.03) 23%, transparent 24%),
+    linear-gradient(-55deg, transparent 72%, rgba(20,20,18,0.12) 72.5%, transparent 73%),
+    linear-gradient(165deg, transparent 40%, rgba(0,212,255,0.04) 41%, rgba(20,20,18,0.1) 41.5%, transparent 42%);
+}
+
+.btn::after,
+.info-card::after,
+.skill-block::after,
+.social-list a::after {
+  background:
+    radial-gradient(ellipse at 30% 15%, rgba(20,20,18,0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 85%, rgba(0,212,255,0.04) 0%, transparent 40%);
+}
+
+/* Hover glow uses cyan instead of marble warm */
+.btn:hover,
+.info-card:hover,
+.skill-block:hover,
+.blog-entry:hover,
+.social-list a:hover {
+  border-color: rgba(0, 212, 255, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(0, 212, 255, 0.06),
+    inset 0 -1px 3px rgba(0, 0, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Hero label border in cyan tones */
+.hero-label {
+  border-color: rgba(0, 212, 255, 0.2);
+  background: rgba(0, 212, 255, 0.04);
+}
+
+/* Header background slightly different alpha to suit darker bg */
+.header {
+  background: rgba(10, 10, 9, 0.92);
+  border-bottom-color: rgba(0, 212, 255, 0.08);
+}

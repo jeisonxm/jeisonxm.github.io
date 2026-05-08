@@ -1,0 +1,21 @@
+{
+  "_doc": "Mapping of Spanish blog slugs to English. Authoritative source is <link rel=alternate hreflang=...> on each page; this file is documentary fallback. Update when adding posts.",
+  "posts": {
+    "automatizar-lo-imposible": "automating-the-impossible",
+    "carnavales-y-soledad-productiva": "carnival-and-productive-solitude",
+    "construir-en-silencio": "building-in-silence",
+    "crei-que-amaba-openclaw": "i-thought-i-loved-openclaw",
+    "diez-kilometros-de-verdad": "ten-real-kilometers",
+    "disciplina-corredor-programador": "runner-programmer-discipline",
+    "duplicar-la-distancia": "doubling-the-distance",
+    "el-arte-de-sentirse-idiota": "the-art-of-feeling-stupid",
+    "el-ingeniero-confiado": "the-confident-engineer",
+    "el-juega-vivo-no-es-control": "playing-clever-is-not-control",
+    "el-laboratorio-propio": "my-own-laboratory",
+    "escribir-sin-ver": "writing-without-seeing",
+    "jesus-el-humano": "jesus-the-human",
+    "la-semana-de-200-commits": "the-200-commit-week",
+    "libros-que-me-formaron": "books-that-shaped-me",
+    "tres-bancos-un-reporte": "three-banks-one-report"
+  }
+}
