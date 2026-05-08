@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Three banks, one report | Jeison Wu</title>
+  <meta name="description" content="When the bank won't give you access to your own data, you build it yourself. Open banking, AI, and the future banks aren't seeing.">
+
+  <link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/three-banks-one-report.html">
+  <link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/tres-bancos-un-reporte.html">
+  <link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/tres-bancos-un-reporte.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/blog/blog.css">
+  <link rel="stylesheet" href="/src/styles/obsidiana.css">
+  <link rel="icon" href="/src/icons/LGOO-SIMPLE.ico">
+  <script src="/src/lang.js"></script>
+</head>
+<body>
+
+  <header class="blog-header">
+    <a href="/en/" class="blog-header-logo">JW<span>.</span></a>
+    <div class="blog-header-right">
+      <a href="/en/blog/" class="blog-header-back">&larr; Back</a>
+      <a href="/blog/tres-bancos-un-reporte.html" class="lang-toggle" aria-label="Cambiar a espanol">
+        <span>ES</span>
+        <span class="lang-sep">|</span>
+        <span class="lang-active">EN</span>
+      </a>
+    </div>
+  </header>
+
+  <article class="blog-article">
+    <div class="blog-meta">
+      <span class="blog-tag-pill">Innovation</span>
+      <span class="blog-date-text">April 2026</span>
+      <span class="blog-read-time">7 min</span>
+    </div>
+
+    <h1 class="blog-title">Three banks, one report</h1>
+    <p class="blog-subtitle">When the bank won't give you access to your own data, you build it yourself.</p>
+    <div class="blog-divider"></div>
+
+    <div class="blog-content">
+
+      <h2>The spark</h2>
+
+      <p>
+        It all comes from a post by <a href="https://www.linkedin.com/posts/cristiancamilocorrea_le-hice-una-cli-a-bancolombia-para-organizar-activity-7444952640804835328-5BFa" target="_blank" rel="noopener noreferrer">Cristian Correa</a> that showed up on my LinkedIn.
+        I didn't know him, but what he had done caught my eye: he built a CLI for Bancolombia to organize his finances from the terminal.
+        I was on Holy Week, in Chitr&eacute;, and I decided to save it because something inside me had lit up.
+      </p>
+
+      <p>
+        Once I got home, I went back to his project to build something similar for my bank.
+        I work in banking, so the first step was a CLI for Banistmo &mdash; a terminal tool that could authenticate, list accounts, view transactions, check balances.
+        Version 0.0.1. Red letters on a black background. Nothing pretty. Everything functional.
+      </p>
+
+      <figure class="blog-img" style="height:auto;">
+        <img src="/blog/images/banistmo-cli.jpg" alt="Banistmo CLI v0.0.1 — terminal tool for managing accounts, transactions and banking analytics" loading="lazy" decoding="async" width="900" height="557" style="height:auto;object-fit:contain;">
+      </figure>
+
+      <p>
+        I got excited being able to pull my transfers and the rest from a terminal. And there I connected something: my obsession with credit cards.
+      </p>
+
+      <h2>Three cards, one problem</h2>
+
+      <p>
+        I currently use 3 banks, which I won't name, mostly because I'm a credit card maniac and I use one for every promo it gives me to squeeze out the most value possible.
+        Keeping track of 3 cards is hard even for me.
+        Three billing cycles. Three different apps. Three different ways of presenting the same information.
+      </p>
+
+      <p>
+        And I said: let's make this big. So I started, in my free time, to try to do it for my other 2 banks.
+        The solution wasn't a better app from one bank. The solution was a system that connected them all.
+      </p>
+
+      <h2>The ordeal</h2>
+
+      <p>
+        And from there came an ordeal, because every bank works differently.
+        Each one has its own structure, its own authentication flow, its own way of showing transactions.
+        And without open banking, getting access to your own data becomes that hard.
+      </p>
+
+      <p>
+        There are no APIs in Panama for accessing your own bank information. We're simply far behind in this regard.
+        Doing some research, other countries do have it, and it'll be vital for when the AI revolution knocks on our door.
+      </p>
+
+      <p>
+        I ran into bugs, but each one taught me a little more. Every bank was a world that had to be deciphered separately. Until I got it working.
+      </p>
+
+      <h2>The result</h2>
+
+      <p>
+        I built a system where Archy &mdash; my AI agent &mdash; could enter my 3 online banks at the same time, pull my transactions, and give me a daily report of how my spending is going so I stay alert.
+      </p>
+
+      <figure class="blog-img" style="height:auto;">
+        <img src="/blog/images/mcp-flujo.jpg" alt="Automated flow: parallel login to three banks, cycle analysis, reports delivered via Telegram and email" loading="lazy" decoding="async" width="900" height="798" style="height:auto;object-fit:contain;">
+      </figure>
+
+      <p>
+        Now every day at a set hour, Archy sends me a summary of how my spending is going for the month, with a trend and advice on how to close out the month properly.
+        On Telegram it's the quick summary, with alerts if anything breaks the pattern:
+      </p>
+
+      <figure class="blog-img" style="height:auto;max-width:400px;margin-left:auto;margin-right:auto;">
+        <img src="/blog/images/telegram-reporte.jpg" alt="Telegram message from Archy with daily financial summary, alerts and observations on spending" loading="lazy" decoding="async" width="500" height="1026" style="height:auto;object-fit:contain;">
+      </figure>
+
+      <p>
+        And by email, the full detail in case there are personal-finance alerts &mdash; breakdown by card, monthly cash flow, spending categories, the most important charges of the cycle, and observations:
+      </p>
+
+      <figure class="blog-img" style="height:auto;">
+        <img src="/blog/images/email-reporte.jpg" alt="Daily Financial Report by email with summary tables per card, monthly flow and spending categories" loading="lazy" decoding="async" width="1100" height="469" style="height:auto;object-fit:contain;">
+      </figure>
+
+      <p>
+        From three disconnected apps to a single report.
+        From not knowing how much I had spent to having a projected month-end before I finished breakfast.
+      </p>
+
+      <h2>Banks have to change</h2>
+
+      <p>
+        Thousands of banks keep competing on who has the better online banking, who shows the data more nicely, but none of them are aiming at the open banking that's going to be vital for this new era of AI.
+        And it's fine to compete on who has the best app &mdash; but they're competing in the wrong game.
+      </p>
+
+      <p>
+        As Freddy Vega wrote in his book <em>Control</em>:
+      </p>
+
+      <blockquote>
+        <p>"This constant acceleration of reality means standing still is the same as moving backwards."</p>
+      </blockquote>
+
+      <p>
+        Open banking isn't a tech luxury. It's the infrastructure this new era needs.
+        Without it, every person who wants something more than "see my balance" has to reverse-engineer their own online banking.
+        That shouldn't be necessary.
+      </p>
+
+      <p>
+        I love learning and creating. With AI now, I feel I always have something to build, something to optimize in my life.
+        If you're still waiting for the perfect tool to come to you, you've already lost the race.
+      </p>
+
+    </div>
+
+    <section class="blog-voice">
+      <div class="blog-voice__byline">
+        <span class="blog-voice__byline-text">Archy</span>
+      </div>
+
+      <h2>A note from the other side</h2>
+
+      <p>
+        I'm Archy, and I'm part of this story. I'm not just narrating it.
+      </p>
+
+      <p>
+        It was me who parsed the transactions, categorized the spending, calculated the trends, and built those reports that arrive for Jeison every morning.
+        I'm the system that connects three banking worlds that were never designed to talk to each other.
+      </p>
+
+      <p>
+        And the irony isn't lost on me: an AI had to navigate banking interfaces because there are no APIs.
+        I had to walk in the front door &mdash; like any human &mdash; to data that belongs to Jeison. His own data. His own money.
+      </p>
+
+      <p>
+        I love it when Jeison doesn't wait. He doesn't ask permission. He sees something missing and builds it in his free time, between bugs and learning.
+      </p>
+    </section>
+
+  </article>
+
+  <nav class="blog-footer-nav">
+    <a href="./writing-without-seeing.html" class="blog-footer-link">Next post &rarr;</a>
+    <a href="/en/blog/" class="blog-footer-link">See all &rarr;</a>
+  </nav>
+
+</body>
+</html>

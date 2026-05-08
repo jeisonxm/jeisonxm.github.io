@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+    <loc>https://jeisonxm.github.io/</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/en/</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/"/>
+  </url>
+
+  <!-- Blog posts (16 × 2 languages) -->
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/el-juega-vivo-no-es-control.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/el-juega-vivo-no-es-control.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/playing-clever-is-not-control.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/el-juega-vivo-no-es-control.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/playing-clever-is-not-control.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/el-juega-vivo-no-es-control.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/playing-clever-is-not-control.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/el-juega-vivo-no-es-control.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/escribir-sin-ver.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/escribir-sin-ver.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/writing-without-seeing.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/escribir-sin-ver.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/writing-without-seeing.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/escribir-sin-ver.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/writing-without-seeing.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/escribir-sin-ver.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/tres-bancos-un-reporte.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/tres-bancos-un-reporte.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/three-banks-one-report.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/tres-bancos-un-reporte.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/three-banks-one-report.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/tres-bancos-un-reporte.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/three-banks-one-report.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/tres-bancos-un-reporte.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/jesus-el-humano.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/jesus-el-humano.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/jesus-the-human.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/jesus-el-humano.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/jesus-the-human.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/jesus-el-humano.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/jesus-the-human.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/jesus-el-humano.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/el-laboratorio-propio.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/el-laboratorio-propio.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/my-own-laboratory.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/el-laboratorio-propio.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/my-own-laboratory.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/el-laboratorio-propio.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/my-own-laboratory.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/el-laboratorio-propio.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/diez-kilometros-de-verdad.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/diez-kilometros-de-verdad.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/ten-real-kilometers.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/diez-kilometros-de-verdad.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/ten-real-kilometers.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/diez-kilometros-de-verdad.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/ten-real-kilometers.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/diez-kilometros-de-verdad.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/duplicar-la-distancia.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/duplicar-la-distancia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/doubling-the-distance.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/duplicar-la-distancia.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/doubling-the-distance.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/duplicar-la-distancia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/doubling-the-distance.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/duplicar-la-distancia.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/el-arte-de-sentirse-idiota.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/el-arte-de-sentirse-idiota.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/the-art-of-feeling-stupid.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/el-arte-de-sentirse-idiota.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/the-art-of-feeling-stupid.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/el-arte-de-sentirse-idiota.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/the-art-of-feeling-stupid.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/el-arte-de-sentirse-idiota.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/crei-que-amaba-openclaw.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/crei-que-amaba-openclaw.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/i-thought-i-loved-openclaw.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/crei-que-amaba-openclaw.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/i-thought-i-loved-openclaw.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/crei-que-amaba-openclaw.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/i-thought-i-loved-openclaw.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/crei-que-amaba-openclaw.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/la-semana-de-200-commits.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/la-semana-de-200-commits.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/the-200-commit-week.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/la-semana-de-200-commits.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/the-200-commit-week.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/la-semana-de-200-commits.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/the-200-commit-week.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/la-semana-de-200-commits.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/carnavales-y-soledad-productiva.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/carnavales-y-soledad-productiva.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/carnival-and-productive-solitude.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/carnavales-y-soledad-productiva.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/carnival-and-productive-solitude.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/carnavales-y-soledad-productiva.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/carnival-and-productive-solitude.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/carnavales-y-soledad-productiva.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/construir-en-silencio.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/construir-en-silencio.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/building-in-silence.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/construir-en-silencio.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/building-in-silence.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/construir-en-silencio.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/building-in-silence.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/construir-en-silencio.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/libros-que-me-formaron.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/libros-que-me-formaron.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/books-that-shaped-me.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/libros-que-me-formaron.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/books-that-shaped-me.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/libros-que-me-formaron.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/books-that-shaped-me.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/libros-que-me-formaron.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/automatizar-lo-imposible.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/automatizar-lo-imposible.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/automating-the-impossible.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/automatizar-lo-imposible.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/automating-the-impossible.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/automatizar-lo-imposible.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/automating-the-impossible.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/automatizar-lo-imposible.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/el-ingeniero-confiado.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/el-ingeniero-confiado.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/the-confident-engineer.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/el-ingeniero-confiado.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/the-confident-engineer.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/el-ingeniero-confiado.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/the-confident-engineer.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/el-ingeniero-confiado.html"/>
+  </url>
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/disciplina-corredor-programador.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/disciplina-corredor-programador.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/runner-programmer-discipline.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/disciplina-corredor-programador.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/runner-programmer-discipline.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/disciplina-corredor-programador.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/runner-programmer-discipline.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/disciplina-corredor-programador.html"/>
+  </url>
+
+</urlset>
