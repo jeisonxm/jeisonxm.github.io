@@ -43,28 +43,30 @@
   font-weight: 700;
 }
 
-/* Statue cool-shift: cyan dodge + lifted presence (Jeison should read clearly
-   against obsidiana, not vanish into it). On near-black bg, multiply (heredado
-   de style.css) hace que las fotos se desvanezcan; screen las levanta como un
-   gel de luz, manteniendo la presencia que tiene la versión marble. */
+/* Statue cool-shift: en obsidiana usamos mix-blend-mode: screen (heredado de
+   style.css es multiply, que se traga la foto en bg near-black). Con screen,
+   los valores de opacity leen mucho más brillantes que en marble — por eso
+   estas opacities son mucho más bajas que las de la versión ES. La intención
+   sigue siendo que Jeison se sienta presente como textura del fondo, no como
+   foreground popeando contra el negro. */
 .statue {
-  filter: brightness(1.05) contrast(1.15) saturate(0.7) hue-rotate(-15deg);
+  filter: brightness(0.85) contrast(1.1) saturate(0.55) hue-rotate(-15deg);
   mix-blend-mode: screen;
-  opacity: 0.55;
+  opacity: 0.15;
 }
 
-.statue-left  { opacity: 0.62; }
-.statue-right { opacity: 0.50; }
+.statue-left  { opacity: 0.20; }
+.statue-right { opacity: 0.14; }
 .statue-bg-center,
 .statue-bg-right,
-.statue-bg-left { opacity: 0.42; }
+.statue-bg-left { opacity: 0.10; }
 
 @media (max-width: 768px) {
-  .statue-left  { opacity: 0.32; }
-  .statue-right { opacity: 0.24; }
+  .statue-left  { opacity: 0.10; }
+  .statue-right { opacity: 0.07; }
   .statue-bg-center,
   .statue-bg-right,
-  .statue-bg-left { opacity: 0.22; }
+  .statue-bg-left { opacity: 0.05; }
 }
 
 /* Override the "stone crack" hover veins with obsidiana-appropriate values
