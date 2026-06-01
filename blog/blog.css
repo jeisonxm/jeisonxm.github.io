@@ -209,6 +209,34 @@ a:hover { color: var(--white); }
   margin-bottom: 0;
 }
 
+/* ===== Archy note — la voz del agente, intercalada ===== */
+.archy-note {
+  border: 1px dashed var(--marble-vein);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+  padding: 18px 22px 20px;
+  margin: 34px 0;
+}
+
+.archy-note .archy-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--marble-shadow);
+  margin-bottom: 10px;
+}
+
+.archy-note p {
+  font-size: 1.45rem;
+  line-height: 1.75;
+  color: var(--marble-mid);
+  margin-bottom: 0;
+}
+
+.archy-note p + p { margin-top: 12px; }
+
 .blog-content ul, .blog-content ol {
   padding-left: 24px;
   margin-bottom: 20px;
