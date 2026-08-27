@@ -31,9 +31,16 @@
   // El parallax por JS solo en punteros finos: escribir transform de forma
   // continua durante el scroll con inercia es jank y batería en Android.
   var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  var doJsParallax = !cssParallax && finePointer && !reduceMotion.matches;
 
+  // Se declara ANTES de cualquier uso. Estaba debajo de doJsParallax, y con
+  // `var` eso lo dejaba en undefined al evaluarlo: solo salvaba el
+  // cortocircuito de `!cssParallax`, que es false en los navegadores con
+  // scroll-timeline. En Safari <= 25 y en Firefox se evaluaba de verdad y el
+  // TypeError mataba el IIFE entero — rueda, teclado, puntos, 4 de 5 fotos y
+  // el guard del formulario.
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  var doJsParallax = !cssParallax && finePointer && !reduceMotion.matches;
 
   function behavior() {
     return reduceMotion.matches ? 'auto' : 'smooth';
