@@ -1,0 +1,29 @@
+/* Anadir dentro del IIFE de /src/lang.js, justo antes de
+   `if (document.readyState === 'loading') {`.
+   lang.js ya lo cargan los 38 html, asi que esto NO toca ningun HTML.
+   STORAGE_VT y el bloque que RESTAURA el origen (lineas 18-29 del
+   lang.js actual) ya existen y no se tocan. */
+
+  // El documento saliente ofrece una transicion aunque el destino no
+  // opte (indice -> post). Esa promesa interna se rechaza con AbortError
+  // y sale como unhandledrejection en la consola del documento que se
+  // abandona. No es visible para el usuario, pero ensucia la consola y
+  // cualquier tracker de errores. Se silencia SOLO ese caso concreto.
+  addEventListener('unhandledrejection', function (e) {
+    var r = e.reason;
+    if (r && r.name === 'AbortError' &&
+        String(r.message).indexOf('Transition was skipped') !== -1) {
+      e.preventDefault();
+    }
+  });
+
+  // ---- 5. Portal: capturar el origen del click en enlaces marcados ----
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-portal]');
+    if (!a) return;
+    var r = a.getBoundingClientRect();
+    var x = r.left + r.width / 2, y = r.top + r.height / 2;
+    try { localStorage.setItem(STORAGE_VT, JSON.stringify({ x: x, y: y })); } catch (err) {}
+    document.documentElement.style.setProperty('--vt-origin-x', x + 'px');
+    document.documentElement.style.setProperty('--vt-origin-y', y + 'px');
+  }, true);

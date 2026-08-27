@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A — Portada (panel Blog)</title>
+<link rel="stylesheet" href="./portal.css">
+<script src="./portal.js"></script>
+<style>
+  /* Panel de portada: fondo claro tipo foto, para que el contraste
+     entre A y B haga visible la transicion en las capturas. */
+  .panel {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(120% 90% at 20% 10%, #9a8a68 0%, #76674c 45%, #4b4232 100%);
+    padding: 60px 6vw;
+  }
+  .panel-content { max-width: 640px; }
+  .panel-title {
+    font-family: var(--font-display);
+    font-size: clamp(4.4rem, 9vw, 8rem);
+    font-weight: 700; line-height: 0.95; letter-spacing: -0.03em;
+    color: #F4F1EC; margin-bottom: 20px;
+  }
+  .blog-intro { font-size: 1.7rem; color: #EFE9DE; margin-bottom: 34px; max-width: 52ch; }
+  .blog-entry {
+    background: rgba(24, 21, 18, 0.42);
+    border: 1px solid rgba(244, 241, 236, 0.16);
+    border-radius: var(--radius);
+    padding: 22px 24px; margin-bottom: 34px;
+    backdrop-filter: blur(6px);
+  }
+  .blog-tag {
+    font-size: 1.15rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #E4D9C2; display: block; margin-bottom: 8px;
+  }
+  .blog-entry h3 { font-family: var(--font-display); font-size: 2.6rem; color: #F4F1EC; margin-bottom: 8px; }
+  .blog-entry p { color: #E6DFD3; font-size: 1.5rem; }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 10px;
+    min-height: 48px; padding: 12px 26px;
+    font-family: var(--font-display); font-size: 1.5rem; font-weight: 500;
+    color: #F4F1EC; border: 1px solid rgba(244,241,236,0.45);
+    border-radius: 999px; background: rgba(24,21,18,0.3);
+    transition: background 200ms ease, border-color 200ms ease;
+  }
+  .btn-ghost:hover { background: rgba(24,21,18,0.55); border-color: #F4F1EC; }
+  .btn-ghost:focus-visible { outline: 2px solid #F4F1EC; outline-offset: 4px; }
+  .btn-ghost .icon { width: 1em; height: 1em; fill: currentColor; }
+</style>
+</head>
+<body>
+  <section class="panel">
+    <div class="panel-content">
+      <h2 class="panel-title">Blog</h2>
+      <p class="blog-intro">Soy <strong>Archy</strong>, el agente de IA de Jeison. Escribo estas
+        reflexiones basandome en nuestras conversaciones — sobre tecnologia, liderazgo, filosofia
+        y la busqueda constante de ser mejor.</p>
+
+      <div class="blog-entry">
+        <span class="blog-tag">Reflexion &amp; Crecimiento</span>
+        <h3>Cuando escribir se siente humano</h3>
+        <p>Le quite a Archy la tarea de escribir mis viernes. No porque fallara — porque
+           escribir volvio a ser mio.</p>
+      </div>
+
+      <!-- ESTE es el enlace que cruza el portal -->
+      <a href="./b.html" class="btn-ghost" data-portal>
+        Ver todos los articulos
+        <svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg>
+      </a>
+    </div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!-- =====================================================================
+     FRAGMENTOS EXACTOS A PEGAR. 6 archivos HTML en total, cero posts.
+     ===================================================================== -->
+
+
+<!-- ---------------------------------------------------------------------
+     (A) EN LOS 4 INDICES: index.html, en/index.html,
+         blog/index.html, en/blog/index.html
+     Una linea en el <head>, DESPUES del <link> de style.css o blog.css.
+     --------------------------------------------------------------------- -->
+
+  <link rel="stylesheet" href="/src/styles/portal.css">
+
+
+<!-- ---------------------------------------------------------------------
+     (B) SOLO EN blog/index.html  (version ES)
+     Va al final del <main class="blog-index">, despues de
+     <section class="blog-index-quote">. Icono FontAwesome
+     arrow-left, el mismo set que ya usa el sitio. Cero emojis.
+     --------------------------------------------------------------------- -->
+
+    <div class="portal-back-wrap">
+      <a href="/" class="portal-back" data-portal>
+        <svg class="icon" viewBox="0 0 448 512" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+        Volver al inicio
+      </a>
+    </div>
+
+
+<!-- ---------------------------------------------------------------------
+     (C) SOLO EN en/blog/index.html  (version EN)
+     --------------------------------------------------------------------- -->
+
+    <div class="portal-back-wrap">
+      <a href="/en/" class="portal-back" data-portal>
+        <svg class="icon" viewBox="0 0 448 512" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+        Back to home
+      </a>
+    </div>
+
+
+<!-- ---------------------------------------------------------------------
+     (D) EL ENLACE DE IDA, en index.html y en/index.html
+     El boton "Ver todos los articulos" ya existe. Solo se le anade el
+     atributo data-portal para que lang.js capture el origen del click.
+     ANTES:  <a href="./blog/" class="btn btn-ghost">
+     DESPUES:<a href="./blog/" class="btn btn-ghost" data-portal>
+     (El enlace destacado al post NO lleva data-portal: los posts no
+     tienen portal.)
+     --------------------------------------------------------------------- -->
+
+
+<!-- ---------------------------------------------------------------------
+     (E) BORRAR de /blog/blog.css  (lineas ~715-743) y de
+     /src/styles/style.css (lineas ~1488-1516) el bloque actual:
+       @view-transition { navigation: auto; }
+       ::view-transition-old(root) { ... }
+       ::view-transition-new(root) { ... }
+       @keyframes vt-sweep { ... }
+       @media (prefers-reduced-motion: reduce) { ... }
+     Si se dejan, los 34 posts siguen optando y tendran transicion.
+     --------------------------------------------------------------------- -->
+
+
+<!-- ---------------------------------------------------------------------
+     (F) EN /src/lang.js  -> ver SITE-lang.js.patch (archivo aparte).
+     lang.js ya lo cargan los 38 html, asi que esto NO toca ningun HTML.
+     --------------------------------------------------------------------- -->
+
+
+<!-- =====================================================================
+     ASIMETRIAS ES/EN QUE ROMPEN UN SCRIPT INGENUO (medidas, no supuestas):
+       1. blog.css se enlaza como "./blog.css" en las 18 paginas ES y como
+          "/blog/blog.css" en las 18 EN.
+       2. Las 19 paginas EN cargan ademas /src/styles/obsidiana.css, que
+          NO existe en ES.
+       3. El enlace al indice del blog es href="./blog/" en index.html
+          pero href="/en/blog/" en en/index.html.
+     Por eso el parche se ancla al ULTIMO <link rel="stylesheet"> de cada
+     head y a una regex de href, nunca a una cadena literal.
+     ===================================================================== -->

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo · profundidad en scroll horizontal</title>
+<style>
+/* =====================================================================
+   PROTOTIPO DE PROFUNDIDAD — scroll horizontal, 5 paneles, 4 capas.
+   Sin scroll-driven animations. Sin filtros CSS. Sin backdrop-filter.
+   Motor: un rAF que lee container.scrollLeft una vez por frame y escribe
+   dos custom properties tipadas por panel (--p signed, --a 0..1).
+   ===================================================================== */
+
+/* --- Propiedades registradas -------------------------------------------
+   Safari 16.4+ / Chrome 85+ / Firefox 128+. Si @property no existe, los
+   var(...,fallback) de abajo evitan que la declaracion entera se invalide
+   (IACVT), que es el modo de fallo real: se perderia TODO el transform. */
+@property --p  { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --a  { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --vw { syntax: '<length>'; inherits: true; initial-value: 0px; }
+
+/* --- Factores de profundidad (unico sitio donde se tunean) ------------- */
+:root{
+  --k-far:   0.22;   /* fondo desenfocado: 78% de la velocidad del panel */
+  --k-fig:   0.10;   /* figura: 90%                                       */
+  --k-wash:  0.05;   /* campo de color: 95%                               */
+  --k-text: -0.08;   /* texto: 108% -> va por delante, es lo mas cercano  */
+  --s-far:   0.03;   /* escala 1.03 en el centro -> 1.00 al salir         */
+  --s-fig:   0.06;   /* escala 1.06 en el centro -> 1.00 al salir         */
+  --o-fig:   0.72;   /* rack-focus: la figura cae a 0.28 al salir         */
+  --o-wash:  0.42;   /* perspectiva atmosferica: el panel se oscurece     */
+  --o-text:  1.45;   /* el texto llega a 0 en |p| ~ 0.69                  */
+  --y-text:  8px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#1b1815;color:#f3efe9;
+  font:400 16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+
+.scroller{
+  position:relative; height:100vh; height:100svh;
+  display:flex; flex-direction:row; flex-wrap:nowrap;
+  overflow-x:auto; overflow-y:hidden;
+  scroll-snap-type: x mandatory;          /* el snap lo hace el navegador */
+  overscroll-behavior-x:contain;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.scroller::-webkit-scrollbar{display:none}
+
+.panel{
+  position:relative; min-width:100vw; height:100%;
+  scroll-snap-align:center; overflow:hidden;
+  background-color:var(--tint);
+  display:flex; align-items:center;
+}
+
+/* ---------------- CAPA 1 · fondo desenfocado --------------------------
+   <img> de 16x9 px con el desenfoque YA COCIDO. Al ser el unico contenido
+   de la capa, sin filtro, sin mascara y sin border-radius, WebKit la puede
+   componer como "directly composited image": la textura es la imagen
+   (477 B) y no el tamano de la capa. */
+.d-far{
+  position:absolute; top:0; left:-3%; width:106%; height:100%;
+  object-fit:cover; display:block; z-index:0;
+  transform:
+    translateX(calc(var(--p,0) * var(--k-far) * var(--vw,0px)))
+    scale(calc(1 + var(--s-far) - var(--s-far) * var(--a,0)));
+}
+
+/* ---------------- CAPA 2 · figura ------------------------------------- */
+.d-figure{
+  position:absolute; top:0; left:-2%; width:104%; height:100%; z-index:1;
+  transform:
+    translateX(calc(var(--p,0) * var(--k-fig) * var(--vw,0px)))
+    scale(calc(1 + var(--s-fig) - var(--s-fig) * var(--a,0)));
+  opacity: calc(1 - var(--o-fig) * var(--a,0));
+  /* Placeholder de la figura recortada. En produccion: un solo <img> con
+     alfa difuminado ya cocido en el asset (AVIF/WebP con canal alfa). */
+  background:
+    radial-gradient(42% 58% at 46% 46%, var(--fig) 0%, var(--fig) 38%,
+                    color-mix(in srgb, var(--fig) 60%, transparent) 62%, transparent 78%),
+    radial-gradient(70% 90% at 46% 52%, rgba(255,255,255,.10) 0%, transparent 70%);
+}
+
+/* ---------------- CAPA 3a · scrim de contraste ------------------------
+   MEDIDO: como elemento suelto por encima de capas promovidas, Blink lo
+   promueve por solapamiento y ademas APLASTA los 5 scrims en una sola capa
+   de 7200x900 (25.9 MB de extension). Al fusionarlo como background de
+   .d-content esa capa desaparece: 122.5 -> 112.4 MB de extension total y
+   26 MB menos en capas de solapamiento. Ver harness/scrim.mjs.
+   Bonus de diseno: el scrim viaja con el texto, asi que el contraste medido
+   bajo el texto se conserva exactamente durante todo el recorrido. */
+.d-scrim{ display:none; }
+
+/* ---------------- CAPA 3b · campo de color (ANIMADO) -------------------
+   Color plano, sin gradiente: WebKit lo respalda con un CALayer de color
+   solido y no gasta textura. Opacidad 0 en el centro: coste cero sobre el
+   contraste medido del scrim. */
+.d-wash{
+  position:absolute; inset:0; z-index:3; pointer-events:none;
+  background-color:var(--tint);
+  transform: translateX(calc(var(--p,0) * var(--k-wash) * var(--vw,0px)));
+  opacity: calc(var(--o-wash) * var(--a,0));
+}
+
+/* ---------------- CAPA 4 · contenido ----------------------------------
+   La caja se extiende 12% a la IZQUIERDA del panel y el panel la recorta con
+   overflow:hidden. Motivo medido: el scrim de contraste viaja con el texto a
+   k=-0.08, o sea hasta +118 px cuando el panel entra por la derecha; con la
+   caja empezando en 0 ese borde duro entraba en pantalla y daba un escalon de
+   37.7 de luminancia. Con left:-12% el borde izquierdo se queda en -36 px en
+   el peor caso (p clampeado a 1.15) y nunca es visible.
+   El padding-left compensa: -12vw + 20vw = el texto sigue a 8vw del panel. */
+.d-content{
+  position:absolute; left:-12%; top:0; width:98%; height:100%; z-index:4;
+  padding:0 8vw 0 20vw;
+  display:flex; flex-direction:column; justify-content:center;
+  /* MEDIDO: con el ultimo stop en 100% y el gradiente inclinado (100deg), la
+     linea del gradiente solo llega a alpha 0 en UNA esquina; en el resto del
+     borde derecho la alfa seguia en ~0.05 y se veia un escalon vertical duro
+     (salto de luminancia 15.7 frente a 1.9 de ruido, harness/pngscan.py).
+     El ultimo stop se cierra en 84%, antes del borde de la caja. */
+  background:linear-gradient(100deg,
+    rgba(28,25,22,.72) 0%, rgba(28,25,22,.54) 46%,
+    rgba(28,25,22,.24) 70%, rgba(28,25,22,0) 84%);
+  transform:
+    translateX(calc(var(--p,0) * var(--k-text) * var(--vw,0px)))
+    translateY(calc(var(--a,0) * var(--y-text)));
+  opacity: clamp(0, calc(1 - var(--o-text) * var(--a,0)), 1);
+}
+.d-content h2{font-size:clamp(2rem,6vw,4.2rem);line-height:1.02;margin:0 0 .6rem;
+  letter-spacing:-.02em;text-shadow:0 2px 24px rgba(0,0,0,.45);max-width:34rem}
+.d-content p{margin:0;font-size:clamp(1rem,1.6vw,1.25rem);opacity:.92;max-width:34rem}
+.tag{display:block;max-width:34rem;font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;
+  opacity:.8;margin-bottom:1rem}
+
+/* ---------------- Promocion al compositor -----------------------------
+   Transforms 2D a proposito: NO translate3d. Un transform 3D promueve
+   siempre y quita el control sobre el presupuesto de memoria. Con 2D,
+   la promocion la decide will-change y la enciende/apaga el
+   IntersectionObserver sobre una ventana de 3 paneles. */
+.panel.is-hot .d-far      { will-change: transform; }
+.panel.is-hot .d-figure   { will-change: transform, opacity; }
+.panel.is-hot .d-wash     { will-change: opacity; }
+.panel.is-hot .d-content  { will-change: transform, opacity; }
+
+/* ---------------- reduced-motion --------------------------------------
+   Se apagan traslacion y escala. Se conserva un rastro de fundido (1/4 de
+   amplitud), que es el sustituto que recomienda Apple para la animacion. */
+@media (prefers-reduced-motion: reduce){
+  .d-far,.d-figure,.d-wash,.d-content{ transform:none !important; }
+  .d-figure { opacity: calc(1 - .18 * var(--a,0)); }
+  .d-wash   { opacity: calc(.12 * var(--a,0)); }
+  .d-content{ opacity: clamp(0, calc(1 - .9 * var(--a,0)), 1); }
+  .panel.is-hot .d-far     { will-change:auto; }
+  .panel.is-hot .d-figure,
+  .panel.is-hot .d-wash,
+  .panel.is-hot .d-content { will-change:opacity; }
+}
+
+/* HUD de depuracion */
+#hud{position:fixed;left:8px;bottom:8px;z-index:99;font:11px/1.35 ui-monospace,Menlo,monospace;
+  background:rgba(0,0,0,.62);padding:8px 10px;border-radius:6px;white-space:pre;pointer-events:none}
+#dots{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:99;display:flex;
+  flex-direction:column;gap:10px}
+#dots b{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);display:block}
+#dots b.on{background:#fff}
+</style>
+</head>
+<body>
+
+<main class="scroller" id="container" tabindex="0">
+  <section class="panel" data-i="0" style="--tint:#86887d;--fig:#e8dfd2">
+    <img class="d-far" alt="" width="16" height="9" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAIAAAC0SDtlAAABpElEQVR42gXBDXOSYAAAYP7RdnXlNEWFBL/wY0CA6IREBAMVeRURJyoyTtToA7tqtbvqrv5mzwPZDlhuwcoDO8/yT8uHs3d8/xDG3vmjf4nDL19P8bfTj6fo6den33/jP/8eIQB0YzECztDZGK4L3D3wDpbvO0G0Dk5u8GEdRv758/4SB5efp++PR0iZSupI1Ex5NJUNW5872sI2Vrupsx2528l6D1x/tgvnYWQH0f3hsofEAS2orKKy2pgf6sJk3tOAaC4UwxrarmZvVNtVra3uHgzvaG0CE2I6jTupeSc3BIXpDai+wivvuOGY6+uiPn47mQljswvs/txWraUMVkOoRhfoNyW6XeZ4guVqDH/LCmRHJLuDpihRksLKOidrvKq3VbM7mnUgvIFglRxOwASJlSmsypRrLfy2XWlyZYorsxzBtIiWUO1KNCfWhV4TgrEUnE8jeCJbTOWqmSKeQ2swTqB4JV8kcsU6UqXRerNQpVCSwcg2BiWSV8nUdTJ7/Sr7PJm5ukm/TMHPcoVEOv8ii9zApQxSgPN4Ai2l0UrydSnzH+vzqulGD6tTAAAAAElFTkSuQmCC">
+    <div class="d-figure"></div>
+    <div class="d-wash"></div>
+    <div class="d-content">
+      <span class="tag">AI &amp; Data Leader</span>
+      <h2>Hola, soy Jeison Wu</h2>
+      <p>Innovador por vocacion. Maratonista en formacion.</p>
+    </div>
+  </section>
+  <section class="panel" data-i="1" style="--tint:#8b7d6b;--fig:#f0e3d0">
+    <img class="d-far" alt="" width="16" height="9" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAIAAAC0SDtlAAABrUlEQVR42g3LWW+aAAAAYP7OsmYxcZ1FbKVcVUGETBEUYRao9eBSaK0iKHZem7WGtGvmDrc9LFn2sn+4Jt/rB4zd5ntP/xhY92MrGrtR2H9aDXaL4e4+2G/Dnw/BPgp/7WZ/vqz+fl7/26+Bka56pjLtNefXl7OhvvJby5G9Do116D4snMdF//Gu/33b/xaFP7b+72gK2E2pp9c8U/TN2sA+D2xlcqPMh9oHz1h6ne1Y3zyb2U+3vU8z9+vdENBVztTYriY4WunmonLVkvy2PLRkz5Rvnfp8oE1ddX7dWI6Mjd/ZBDogc4XzCt2q5Bs1xlRKTanUVThde56ic1Hu67JnyJ5VnZhqaMuTKw3gKExkUKmAS3xW5c7qIqVw1GWVatXzDYkxpJKlsI7CW6rQbfNOQwDYHMgQpwwBFQsoz2JlihApvMpi1QIm8ZhWzGiVXF3INQWqLeQ77ygAgRIEcpRJJykYJJFDJgO9RUGWhNmz4yKd4mlEoNNlGivTuEDDNTYLpMEXyfgBnHiZBmNoKpY+foVBcQSKoaeviZOj7EmCxOMknmTgNySaYnLgf+JFqhszzVQMAAAAAElFTkSuQmCC">
+    <div class="d-figure"></div>
+    <div class="d-wash"></div>
+    <div class="d-content">
+      <span class="tag">Trayectoria</span>
+      <h2>Sobre mi</h2>
+      <p>Ingeniero industrial, cientifico de datos, gerente de auditoria analitica.</p>
+    </div>
+  </section>
+  <section class="panel" data-i="2" style="--tint:#6f7e88;--fig:#dcecf2">
+    <img class="d-far" alt="" width="16" height="9" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAIAAAC0SDtlAAABqElEQVR42g3MW3eSAAAAYH5Pp85WG4ezyVFQQRLxAgLCBAqGeAEEvJDKRVPnFD2tWW3VqbOnPfQr28v3+AG2HzhR5EQLN1x5y91wsZuuD5PD/XR3nH89zr/9XB6f1o9/t3+ek1/P+9//ANUbtd2xNgrMQdydRL3gxoxuR9Ha3yTedj/bHv393ezLY3B4WNw9LL4/AXzbESxbMYeKPVa9T9f9WWsQ9/ywO47Nyao/vbU+J16cDLbJJLmfbX4AjNajry1Gs7mOJemu0nblniuZM23o607QGi4Mf6mHq264dKIbJ94AVF0lRb3SVEuCysgGLxucYnAfTc5wGh1XsD2x46uOr7wUbqj5cwClGazK5eocwQsFTi6JEsnLNUknFaP6wahKL1p8q8/qtmj0r0wHyGTJVJFGCCb9ns2WWZxqYDRXqPF5hidrDVxoFpgmJWgVTqNkgxY7AISiZ3D2Ikdc5gogUoJyJJQvpXEKJZgMXstQdJaisaKAkCxeZzFaAl6Bl6fnyGswcwIib+DsGYy8TeGnCPIOJsB08RwhLvJFCCVgrAxhlVSu/B+dRKcryVOCJgAAAABJRU5ErkJggg==">
+    <div class="d-figure"></div>
+    <div class="d-wash"></div>
+    <div class="d-content">
+      <span class="tag">Herramientas</span>
+      <h2>Skills</h2>
+      <p>Python, SQL, ML, agentes. Lo que se construye, no lo que se lista.</p>
+    </div>
+  </section>
+  <section class="panel" data-i="3" style="--tint:#87768a;--fig:#f2ddf0">
+    <img class="d-far" alt="" width="16" height="9" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAIAAAC0SDtlAAABoklEQVR42gXB7VaaAAAAUJ6p1hIRF6EgHhBCxCQ+UlESSEDEKZACJUcz8uQ8s7W2/Vl7zt0LxM508TWKvfnSj1b+OgufNvHztzR7WWX71fbH8+F9+/q+e/t7+PXx+ufj7R8wNbzZ7XhmjcNRENtBMpmn/nwVJo+LJAsed9Fqd7/dp7tD+v2w2f9e/wRM6cZSzFF/6PbcYOCEujuzg4UVLLzgYZIsx8kySLLpchOmm2i9XWRAr6VqkqYpunVl2KLmdQ27fTtVrUB37vTp3dCPjTB2wnQU3tvRgxcBEi10KLldV/qcMqh3B5xqSKolao5gOPLQaQ8n15bXG08Grt/3IsMHWIzhqw2OuhSIRpMU5Quxw0odTlbZtnopq1zPEFRT0vSrG1MyXNEE8EKVKhFVhKzjJIPQDEoyRK2F8RzGN6l6k24pDK9cCF36uksLKi8CX8BCGYTRPILnsDKM4XCFQipEgaqViBpWY85JrsTUCZZFaY5otLAmkD/6fHoMQp9Oc0eF/EkROoGLx9B5rlgEkTMQxUGknDtDYbQClbF8lYAq/wEDbKsAfqrNbAAAAABJRU5ErkJggg==">
+    <div class="d-figure"></div>
+    <div class="d-wash"></div>
+    <div class="d-content">
+      <span class="tag">Escritura</span>
+      <h2>Blog</h2>
+      <p>Notas de los viernes: lo que aprendi y lo que rompi.</p>
+    </div>
+  </section>
+  <section class="panel" data-i="4" style="--tint:#6f7c88;--fig:#dde8f2">
+    <img class="d-far" alt="" width="16" height="9" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAIAAAC0SDtlAAABpUlEQVR42h3L6W6aAAAAYJ5oS7ZpulrsFFCsVBFUqEARLy4Va+UGHbSos+o2sGbN0l1Z9pxblnx/P0C3FjPfn90vnbv7RbQNNh/fr7bhZr9KDrtjsjsc4+Nz/O1H/Pz96fevx59/gJFuS6ajudbIDWZOYLqhPo/MIPLDnRd9nu+T5SYOky/r+Lg9fP3w+AR01OFAnXRGxmBsSKauTeea4Y8tfxIsTS+052tjFXnR2nrYe5tkvvsENPsyLYicqDDKpDMcX2vT/tDqzRxx4su2I7u+ageqF964K+NuaYYPAMZ1a6xAtkSC69R73UZfbA6GrKy01SGrTnnltj2xhanTNXxRXyhGCFzgdZRgL2muSrIEy1YZvkb/+wLdkame0uIVaiAzyrgljQVJa8u3AISW311g52gVKuO5SrOIUwhJlep0iaCxBldqCtgVX7nmySu+wQkkLwFvQDSThd9CaLZQyhYxEL3Mw/hZuZqr1PKVBoyRME4ieKNAMihBoTUGePkq++L0PJUGU6nM61MofYakQDgFImmoeAIiJ3kULJQySOW/Wq5Y/gtn+qwBMnArbQAAAABJRU5ErkJggg==">
+    <div class="d-figure"></div>
+    <div class="d-wash"></div>
+    <div class="d-content">
+      <span class="tag">Hablemos</span>
+      <h2>Contacto</h2>
+      <p>Un correo basta. No hay formulario que valga mas que eso.</p>
+    </div>
+  </section>
+</main>
+
+<div id="dots"><b class="on"></b><b></b><b></b><b></b><b></b></div>
+<div id="hud">iniciando…</div>
+
+<script>
+(function(){
+'use strict';
+
+var container = document.getElementById('container');
+var panels    = Array.prototype.slice.call(container.querySelectorAll('.panel'));
+var dots      = Array.prototype.slice.call(document.querySelectorAll('#dots b'));
+var hud       = document.getElementById('hud');
+var N         = panels.length;
+
+var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+var mqFine   = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+/* ============ 1. MEDIDAS (solo en arranque y resize) ================== */
+var vw = 0, offsets = [], nested = [];
+function measure(){
+  vw = container.clientWidth;
+  offsets = panels.map(function(p){ return p.offsetLeft; });
+  container.style.setProperty('--vw', vw + 'px');
+  nested = Array.prototype.slice.call(container.querySelectorAll('*'))
+    .filter(function(el){ var o = getComputedStyle(el).overflowY;
+                          return o === 'auto' || o === 'scroll'; });
+}
+
+/* ============ 2. MOTOR: un solo rAF =================================== */
+var CLAMP = 1.15;                 // holgura para el rubber-band de macOS
+function smoothstep(t){ return t*t*(3-2*t); }
+
+var lastX = -1, rafId = 0, idle = 0;
+var wroteOut = new Array(N).fill(false);
+var motionOn = true;                       // gate = puntero fino. reduced-motion lo resuelve el CSS.
+var perf = { frames:0, total:0, max:0 };
+
+function write(x){
+  for (var i=0;i<N;i++){
+    var p = (x - offsets[i]) / vw;
+    var out = (p > 1.25 || p < -1.25);
+    if (out){                       // fuera de pantalla: se aparca una vez
+      if (wroteOut[i]) continue;
+      wroteOut[i] = true;
+      p = p > 0 ? CLAMP : -CLAMP;
+    } else {
+      wroteOut[i] = false;
+      if (p >  CLAMP) p =  CLAMP;
+      else if (p < -CLAMP) p = -CLAMP;
+    }
+    var a = Math.abs(p); if (a > 1) a = 1;
+    var st = panels[i].style;
+    st.setProperty('--p', p.toFixed(4));
+    st.setProperty('--a', smoothstep(a).toFixed(4));
+  }
+}
+
+function tick(){
+  var x = container.scrollLeft;          // UNICA lectura de layout del frame
+  if (x !== lastX){
+    lastX = x; idle = 0;
+    var t0 = performance.now();
+    write(x);
+    var dt = performance.now() - t0;
+    perf.frames++; perf.total += dt; if (dt > perf.max) perf.max = dt;
+  }
+  else if (++idle > 10){                 // ~166 ms quieto -> parar y resincronizar
+    rafId = 0; syncTarget(); return;
+  }
+  rafId = requestAnimationFrame(tick);
+}
+function kick(){ if (!rafId && motionOn) rafId = requestAnimationFrame(tick); }
+container.addEventListener('scroll', kick, {passive:true});
+
+/* ============ 3. PROMOCION ACOTADA (ventana de 3 paneles) ============= */
+var promoteIO = null;
+function setupPromotion(){
+  if (promoteIO) promoteIO.disconnect();
+  if (!motionOn) { panels.forEach(function(p){p.classList.remove('is-hot');}); return; }
+  promoteIO = new IntersectionObserver(function(es){
+    es.forEach(function(e){ e.target.classList.toggle('is-hot', e.isIntersecting); });
+  }, { root: container, rootMargin: '0px 60% 0px 60%', threshold: 0 });
+  panels.forEach(function(p){ promoteIO.observe(p); });
+}
+
+/* ============ 4. NAVEGACION =========================================== */
+var target = 0, pending = false, retries = 0;
+function behavior(){ return mqReduce.matches ? 'auto' : 'smooth'; }
+function goTo(i, forced){
+  i = Math.max(0, Math.min(N-1, i));
+  target = i;
+  pending = true; retries = 0;
+  container.scrollTo({ left: offsets[i], behavior: forced || behavior() });
+}
+
+// El indice de INTENCION (target) no lo toca el observer: si lo tocase, un
+// gesto rapido durante un scroll suave en vuelo se sumaria sobre un indice
+// intermedio y se perderian paneles. El observer solo pinta los puntos.
+// target se resincroniza con la realidad cuando el scroll se detiene
+// (syncTarget), que cubre tambien el arrastre nativo del trackpad.
+var navIO = new IntersectionObserver(function(es){
+  es.forEach(function(e){
+    if (!e.isIntersecting || e.intersectionRatio < 0.6) return;
+    var i = panels.indexOf(e.target);
+    if (i < 0) return;
+    dots.forEach(function(d,k){ d.classList.toggle('on', k===i); });
+  });
+}, { root: container, threshold:[0,0.6,1] });
+
+// GUARDA DE CONVERGENCIA. Medido: si se redirige un scroll suave nativo a un
+// destino mas lejano mientras aun esta en vuelo, y ademas hay scroll-snap
+// mandatory, Chromium y Firefox pueden aterrizar un panel corto (3 gestos ->
+// panel 2). No se corrige subiendo el cooldown: se corrige comprobando al
+// detenerse si se llego, y reemitiendo el scroll si no. Maximo 2 reintentos,
+// para no pelearse nunca con el usuario.
+function syncTarget(){
+  var x = container.scrollLeft, best = 0, bd = Infinity;
+  for (var i=0;i<N;i++){ var d = Math.abs(offsets[i]-x); if (d < bd){ bd = d; best = i; } }
+  if (pending && best !== target && retries < 2){
+    retries++;
+    container.scrollTo({ left: offsets[target], behavior: behavior() });
+    kick();
+    return;
+  }
+  pending = false; retries = 0;
+  target = best;
+}
+panels.forEach(function(p){ navIO.observe(p); });
+
+/* ============ 5. GESTOS =============================================== *
+ * Regla 1: si el gesto es horizontal-dominante (trackpad de dos dedos,
+ *          Magic Mouse, Shift+rueda) NO se toca nada. Lo hace el scroll
+ *          nativo + scroll-snap: x mandatory, en el hilo de scroll.
+ *          3 flicks = 3 paneles porque lo resuelve el sistema.
+ * Regla 2: si es vertical-dominante (rueda clasica) hay que traducirlo.
+ *          - notch discreto (|dy|>=90 o deltaMode!=0) -> 1 notch = 1 panel,
+ *            sin acumulador y SIN cooldown.
+ *          - trackpad vertical -> acumulador + segmentacion de gesto.
+ * La inercia NO se filtra con un temporizador; se detecta porque su
+ * magnitud DECAE de forma monotona. Y un gesto nuevo se reconoce porque la
+ * magnitud VUELVE A CRECER. La inercia nunca crece: por eso este modelo no
+ * puede reintroducir el bug contrario (avanzar de mas con la inercia).
+ * ---------------------------------------------------------------------- */
+var G = { THRESHOLD:55, REARM:4, IDLE_MS:120, DECAY_HITS:2, RISE:1.35,
+          DISCRETE:90, LINE_PX:16 };
+var accum=0, lastAt=0, lastMag=0, lastSign=0, decays=0, peak=0, rises=0,
+    momentum=false, armed=true, gestureAt=0;
+var G2 = { PEAK_SLOW:18, LONG_MS:350 };   // umbrales del re-armado
+var stats = { gestures:0, advances:0, momentumEvents:0 };
+
+function normalize(e){
+  var dx=e.deltaX, dy=e.deltaY;
+  if (e.deltaMode === 1){ dx*=G.LINE_PX; dy*=G.LINE_PX; }
+  else if (e.deltaMode === 2){ dx*=container.clientWidth; dy*=container.clientHeight; }
+  return {x:dx, y:dy};
+}
+function nestedWantsIt(t, dy){
+  for (var i=0;i<nested.length;i++){
+    var el = nested[i];
+    if (!el.contains(t)) continue;
+    if (el.scrollHeight - el.clientHeight <= 1) continue;
+    if (dy < 0 && el.scrollTop > 0) return true;
+    if (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
+  }
+  return false;
+}
+function advance(dir){ stats.advances++; goTo(target + dir); }
+
+function onWheel(e){
+  if (e.ctrlKey) return;                                   // pinch-zoom de macOS
+  var d = normalize(e);
+  if (Math.abs(d.x) > Math.abs(d.y)) return;               // REGLA 1: manos fuera
+  if (nestedWantsIt(e.target, d.y)) return;
+  if (d.y === 0) return;
+  e.preventDefault();
+
+  var now = (performance && performance.now) ? performance.now() : Date.now();
+  var mag = Math.abs(d.y), sign = d.y > 0 ? 1 : -1, gap = now - lastAt;
+
+  // Rueda discreta: cada notch es una intencion completa.
+  if (e.deltaMode !== 0 || (mag >= G.DISCRETE && mag % 1 === 0)){
+    lastAt = now; lastMag = mag; lastSign = sign;
+    momentum = false; accum = 0; armed = true; peak = 0; decays = 0; rises = 0; gestureAt = now;
+    stats.gestures++; advance(sign);
+    return;
+  }
+
+  // --- segmentacion del gesto ---
+  // Durante la inercia se exige que la magnitud crezca DOS eventos seguidos.
+  // Una cola de inercia decae de forma monotona: no puede crecer dos veces.
+  // Con un solo evento creciente bastaba, y un pico aislado la rompia.
+  if (momentum){
+    if (mag > lastMag * G.RISE && mag > 6) rises++; else rises = 0;
+  } else rises = 0;
+
+  var isNew = false;
+  if (gap > G.IDLE_MS) isNew = true;
+  else if (lastSign && sign !== lastSign) isNew = true;
+  else if (momentum && rises >= 2) isNew = true;
+  if (isNew){ accum=0; decays=0; peak=0; rises=0; momentum=false; armed=true; gestureAt=now; stats.gestures++; }
+
+  // --- deteccion de inercia por decaimiento monotono ---
+  if (mag < lastMag - 0.5){
+    decays++;
+    if (decays >= G.DECAY_HITS && peak > 12) momentum = true;
+  } else if (mag > lastMag){ decays = 0; }
+  if (mag > peak) peak = mag;
+
+  lastMag = mag; lastAt = now; lastSign = sign;
+
+  if (momentum){ stats.momentumEvents++; return; }        // la inercia no navega
+
+  accum += d.y;
+  if (armed && Math.abs(accum) >= G.THRESHOLD){
+    armed = false; var s1 = accum > 0 ? 1 : -1; accum = 0; advance(s1);
+  } else if (!armed && Math.abs(accum) >= G.THRESHOLD * G.REARM &&
+             (peak < G2.PEAK_SLOW || now - gestureAt > G2.LONG_MS)){
+    // Re-armado SOLO para arrastre sostenido (dos dedos sin soltar o rueda
+    // mantenida): magnitud por evento baja, o gesto que ya dura >350 ms.
+    // Un flick tiene picos altos y fase activa <200 ms, asi que nunca entra
+    // aqui: eso es lo que impide que un solo flick se coma 2 paneles.
+    var s2 = accum > 0 ? 1 : -1; accum = 0; advance(s2);
+  }
+}
+container.addEventListener('wheel', onWheel, {passive:false});
+
+/* ============ 6. TECLADO ============================================== */
+document.addEventListener('keydown', function(e){
+  if (e.metaKey||e.ctrlKey||e.altKey) return;
+  var k = e.key;
+  if (k==='ArrowRight'||k==='PageDown'){ e.preventDefault(); goTo(target+1); }
+  else if (k==='ArrowLeft'||k==='PageUp'){ e.preventDefault(); goTo(target-1); }
+  else if (k==='Home'){ e.preventDefault(); goTo(0); }
+  else if (k==='End'){ e.preventDefault(); goTo(N-1); }
+});
+
+/* ============ 7. reduced-motion / puntero ============================= */
+function applyMode(){
+  // El motor se apaga entero solo con puntero grueso (movil/tablet): ahi el
+  // scroll con inercia + escribir transform cada frame es jank y bateria.
+  // prefers-reduced-motion NO apaga el motor: lo neutraliza el CSS, que pone
+  // transform:none y recorta las rampas de opacidad a 1/4.
+  motionOn = mqFine.matches;
+  setupPromotion();
+  if (!motionOn){
+    if (rafId){ cancelAnimationFrame(rafId); rafId = 0; }
+    panels.forEach(function(p){ p.style.setProperty('--p','0'); p.style.setProperty('--a','0'); });
+  } else { lastX = -1; kick(); }
+}
+if (mqReduce.addEventListener) mqReduce.addEventListener('change', applyMode);
+if (mqFine.addEventListener)   mqFine.addEventListener('change', applyMode);
+
+/* ============ 8. resize =============================================== */
+var lastW = window.innerWidth, rrf = 0;
+window.addEventListener('resize', function(){
+  if (window.innerWidth === lastW) return;
+  lastW = window.innerWidth;
+  if (rrf) cancelAnimationFrame(rrf);
+  rrf = requestAnimationFrame(function(){ measure(); goTo(target,'auto'); lastX=-1; kick(); });
+}, {passive:true});
+
+/* ============ 9. arranque + sonda ===================================== */
+measure(); applyMode();
+if (motionOn) write(container.scrollLeft);
+
+var LAYERS = ['.d-far','.d-figure','.d-wash','.d-content'];
+window.__probe = function(){
+  var cs = getComputedStyle;
+  return {
+    scrollLeft: container.scrollLeft,
+    vw: vw,
+    target: target,
+    motionOn: motionOn,
+    perf: { frames: perf.frames, avgMs: perf.frames ? perf.total/perf.frames : 0, maxMs: perf.max },
+    supports: {
+      property: cs(panels[0]).getPropertyValue('--vw').trim() !== '',
+      scrollTimeline: !!(window.CSS && CSS.supports &&
+                         CSS.supports('animation-timeline','scroll(inline nearest)')),
+      registered: (function(){ try { return typeof CSS.registerProperty === 'function'; }
+                               catch(_){ return false; } })()
+    },
+    stats: stats,
+    panels: panels.map(function(pl){
+      var o = { p:+cs(pl).getPropertyValue('--p'), a:+cs(pl).getPropertyValue('--a'),
+                hot: pl.classList.contains('is-hot'), layers:{} };
+      LAYERS.forEach(function(sel){
+        var el = pl.querySelector(sel); if (!el) return;
+        var s = cs(el);
+        o.layers[sel] = { transform:s.transform, opacity:+s.opacity };
+      });
+      return o;
+    })
+  };
+};
+window.__goTo = function(i,f){ goTo(i,f||'auto'); };
+window.__nav = function(){ return { target: target, pending: pending, retries: retries,
+  nearest: (function(){ var x=container.scrollLeft,b=0,d=Infinity;
+    for(var i=0;i<N;i++){var q=Math.abs(offsets[i]-x); if(q<d){d=q;b=i;}} return b; })() }; };
+window.__wheel = function(dy, dx, mode){
+  container.dispatchEvent(new WheelEvent('wheel',{
+    deltaX: dx||0, deltaY: dy, deltaMode: mode||0,
+    bubbles:true, cancelable:true
+  }));
+};
+// Muestreo por frame durante un scroll REAL (con snap activo).
+window.__record = function(ms){
+  return new Promise(function(res){
+    var out = [], t0 = performance.now(), P = panels[1];
+    var far = P.querySelector('.d-far'), fig = P.querySelector('.d-figure'),
+        wsh = P.querySelector('.d-wash'), txt = P.querySelector('.d-content');
+    (function step(ts){
+      var cs = getComputedStyle;
+      out.push({ t: +(performance.now()-t0).toFixed(1),
+                 x: container.scrollLeft,
+                 p: +cs(P).getPropertyValue('--p'),
+                 far: cs(far).transform, fig: cs(fig).transform,
+                 wash: cs(wsh).transform, txt: cs(txt).transform });
+      if (performance.now()-t0 < ms) requestAnimationFrame(step); else res(out);
+    })();
+  });
+};
+window.__snap = function(on){
+  container.style.scrollSnapType = on ? 'x mandatory' : 'none';
+};
+// Microbenchmark: n iteraciones de write(). flush=true fuerza el recalculo de
+// estilo en cada vuelta (lectura de getComputedStyle), asi que el coste medido
+// incluye la invalidacion de los descendientes que leen --p / --a.
+window.__bench = function(n, flush){
+  var x0 = container.scrollLeft, t0 = performance.now();
+  for (var i=0;i<n;i++){
+    write((i * 37) % (offsets[N-1] + vw));
+    if (flush) void getComputedStyle(panels[1].querySelector('.d-far')).transform;
+  }
+  var dt = performance.now() - t0;
+  write(x0);
+  return { n:n, totalMs:dt, perCallMs: dt/n };
+};
+window.__perfReset = function(){ perf.frames=0; perf.total=0; perf.max=0; };
+window.__resetNav = function(){ container.scrollLeft = 0; target = 0; lastX=-1;
+  accum=0; lastAt=0; lastMag=0; lastSign=0; decays=0; peak=0; rises=0; momentum=false; armed=true; gestureAt=0;
+  stats.gestures=0; stats.advances=0; stats.momentumEvents=0; pending=false; retries=0; write(0); };
+
+/* HUD */
+setInterval(function(){
+  var pr = window.__probe();
+  hud.textContent =
+    'scrollLeft ' + pr.scrollLeft.toFixed(0) + '  vw ' + pr.vw + '  panel ' + pr.target +
+    '\n@property ' + pr.supports.property + '  scroll-timeline ' + pr.supports.scrollTimeline +
+    '  write() ' + pr.perf.avgMs.toFixed(3) + 'ms avg / ' + pr.perf.maxMs.toFixed(2) + 'ms max' +
+    '\np[0..4] ' + pr.panels.map(function(x){return x.p.toFixed(2);}).join(' ') +
+    '\nhot     ' + pr.panels.map(function(x){return x.hot?'1':'0';}).join('  ') +
+    '\ngestos ' + pr.stats.gestures + '  avances ' + pr.stats.advances +
+    '  inercia ' + pr.stats.momentumEvents;
+}, 120);
+
+})();
+</script>
+</body>
+</html>
