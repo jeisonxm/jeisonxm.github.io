@@ -222,3 +222,54 @@ Y tres defectos de la misma familia, cada uno encontrado midiendo:
   18.2+. Por debajo degrada a corte instantáneo, verificado en Firefox.
 - **Endpoint real de Formspree.**
 - Si quiere **regenerar `EN_AI_BUILDER`** antes de publicarlo.
+
+
+---
+
+## 5 quater — El pie en el suelo, y el defecto que salió al medirlo
+
+**Lo pedido:** *"si mejor dejemos que mi pie si parezca esta pisando debajo, oseo
+que el pie si toque abajo, y de ahi jugar con el tamano de la imagen para hacer
+que siempre mi cabeza no este tapada."*
+
+La figura ya medía **0 px del borde inferior** en los 8 teléfonos. Pero medir no
+es ver: el degradado del hero llegaba a `0.92` de negro en la base y se comía la
+pierna entera, así que el pie no *parecía* pisar aunque el número dijera cero. Se
+bajó la base a `0.40` y las stats, que perdían el fondo que las sostenía,
+pasaron a una banda propia. Contraste tras el cambio: el peor del hero pasó de
+3.22:1 a **7.67:1**.
+
+### El defecto que apareció al mirar la captura
+
+La píldora de puntos es `position: fixed` abajo al centro y flota sobre
+**cualquier** panel. Medido a 375×667 tapaba texto en **4 de los 5**:
+"Horas automatizadas", "Descargar CV", "Hablemos" y "GitHub".
+
+**Por qué no lo cazó ninguna compuerta — cinco porqués:**
+
+1. ¿Por qué tapaba texto? Porque flota sobre el panel y el contenido llegaba al borde.
+2. ¿Por qué llegaba al borde? Porque nadie reservó el hueco que ocupa (28 px + 14 de margen).
+3. ¿Por qué nadie lo reservó? Porque en escritorio la píldora va en el lateral derecho, vertical, y nunca cruzó contenido. Al moverla abajo en móvil se movió el elemento, no el hueco.
+4. ¿Por qué no lo vio `layout-check`? Porque su bucle de solapes compara **hermanos dentro de `.d-text`**, y la píldora no es descendiente de ningún panel.
+5. **Raíz:** el conjunto de elementos de la compuerta se definió como "descendientes del panel". Eso excluye por construcción todo el cromo fijo — píldora, cabecera, cualquier cosa `position: fixed`. No era un fallo de umbral: era un fallo de *a quién se mira*.
+
+**Arreglado en los dos lados:**
+
+- **Sitio:** la reserva se ancla al mismo breakpoint en que la píldora se va abajo (899 px), no al de 699. Entre 700 y 899 —el iPad mini vertical— ya estaba abajo sin hueco reservado.
+- **Compuerta:** `layout-check` ahora recoge todo `position: fixed|sticky` fuera de los paneles y lo compara con las hojas de texto. Y compara **geometría visible**: intersecta cada rect con sus ancestros que recortan, porque `.panel-content` tiene `overflow-y: auto` con 1004 px de contenido en 500 y "Descargar CV" daba un solape fantasma de 16 px estando cortado.
+- **Mutación:** con la reserva a `0`, la compuerta sale con código 1 y marca 5 de 14 dispositivos. Su verde discrimina.
+
+### Lo que se rompió al arreglarlo
+
+Reservar 60 px por abajo subía 30 px el bloque centrado del hero y el titular se
+metía en la cabeza (holgura de **−18 a −30 px** en cuatro teléfonos). Crecer la
+imagen no servía: de 90 % a 100 % solo ganaba 12 px de los 40 esperados, porque
+un `max-width` la topa antes. Se resolvió sacando las stats del bloque centrado
+—ancladas al pie de la capa— y apretando el titular en pantallas de 521–620 px
+de alto. `layout-check` cazó el choque intermedio contenido/stats en el SE
+(19 px → 5 px → 0).
+
+**Medido, 8 teléfonos de 320×480 a 430×745:** pie a **0 px** del suelo en todos,
+holgura de cabeza **17–111 px**, stats en **una sola fila** con el mismo margen
+de borde que el resto (29–34 px). Las 12 compuertas + probe en los 3 motores,
+en verde.

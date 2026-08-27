@@ -109,6 +109,66 @@ for (const d of DISPOSITIVOS) {
           out.push({ tipo: 'desborda', a: bloques[a].nombre, px: Math.round(b0.bottom - pr.bottom) });
         }
       }
+
+      // El cromo FIJO (pildora de puntos, cabecera) flota sobre el panel y no es
+      // descendiente suyo, asi que los bucles de arriba —que solo comparan
+      // hermanos dentro de .d-text— nunca lo veian. Ese hueco dejo pasar que la
+      // pildora se comiera "Horas automatizadas", "Descargar CV", "Hablemos" y
+      // "GitHub" en 4 de los 5 paneles a 375x667.
+      const cromo = Array.from(document.querySelectorAll('body *')).filter((e) => {
+        if (e.closest('.panel')) return false;
+        const cs = getComputedStyle(e);
+        if (cs.position !== 'fixed' && cs.position !== 'sticky') return false;
+        if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+        if (parseFloat(cs.opacity) < 0.05) return false;
+        const b = e.getBoundingClientRect();
+        return b.width > 4 && b.height > 4;
+      }).map((e) => ({ r: e.getBoundingClientRect(),
+                       nombre: e.className && typeof e.className === 'string'
+                         ? '.' + e.className.split(/\s+/)[0] : e.tagName.toLowerCase() }));
+
+      // Un elemento recortado por un ancestro con overflow no se VE, y lo que no
+      // se ve no lo puede tapar nadie. Medido: "Descargar CV" cae en y=592-638
+      // pero .panel-content (overflow-y:auto, 1004px de contenido en 500) corta
+      // en 604. Comparar el rect crudo daba un solape fantasma de 16px. Se
+      // intersecta con cada ancestro que recorta antes de comparar.
+      const rectVisible = (el) => {
+        let r = el.getBoundingClientRect();
+        for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+          const cs = getComputedStyle(n);
+          if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+          const c = n.getBoundingClientRect();
+          r = { top: Math.max(r.top, c.top), bottom: Math.min(r.bottom, c.bottom),
+                left: Math.max(r.left, c.left), right: Math.min(r.right, c.right) };
+          if (r.bottom <= r.top || r.right <= r.left) return null;
+        }
+        return r;
+      };
+
+      // Solo hojas con texto o interactivas: comparar contenedores daria falsos
+      // positivos por cualquier envoltorio que llegue al borde.
+      const hojas = Array.from(panel.querySelectorAll('h1,h2,h3,h4,p,a,button,li,span'))
+        .filter((e) => {
+          if (e.querySelector('h1,h2,h3,h4,p,a,button,li,span')) return false;
+          if (!e.textContent.trim()) return false;
+          const cs = getComputedStyle(e);
+          if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+          const b = e.getBoundingClientRect();
+          return b.width > 4 && b.height > 4;
+        });
+
+      for (const c of cromo) {
+        for (const h of hojas) {
+          const H = rectVisible(h);
+          if (!H) continue;
+          const sy = Math.min(c.r.bottom, H.bottom) - Math.max(c.r.top, H.top);
+          const sx = Math.min(c.r.right, H.right) - Math.max(c.r.left, H.left);
+          if (sy > 2 && sx > 2) {
+            out.push({ tipo: 'cromo', a: c.nombre,
+                       b: h.textContent.trim().slice(0, 24), px: Math.round(sy) });
+          }
+        }
+      }
       return out;
     }, PANELES[i]);
     for (const x of r) problemas.push({ panel: PANELES[i], ...x });
@@ -185,7 +245,9 @@ for (const d of DISPOSITIVOS) {
   filas.push({ d: d.n, w: d.w, h: d.h, problemas });
   const resumen = problemas.length
     ? problemas.map((p) => p.tipo === 'solapa' ? `${p.panel}: ${p.a} pisa ${p.b} (${p.px}px)`
-        : p.tipo === 'desborda' ? `${p.panel}: ${p.a} desborda ${p.px}px` : p.tipo + (p.a ? ' — ' + p.a : ''))
+        : p.tipo === 'desborda' ? `${p.panel}: ${p.a} desborda ${p.px}px`
+        : p.tipo === 'cromo' ? `${p.panel}: ${p.a} (fijo) tapa "${p.b}" (${p.px}px)`
+        : p.tipo + (p.a ? ' — ' + p.a : ''))
         .slice(0, 3).join(' | ')
     : 'OK';
   console.log(`${problemas.length ? 'FALLO' : 'OK   '} ${d.n.padEnd(24)} ${String(d.w).padStart(4)}x${String(d.h).padStart(4)}  ${resumen}`);

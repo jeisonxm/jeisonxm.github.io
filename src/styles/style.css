@@ -1411,6 +1411,32 @@ ul { list-style: none; }
   border-radius: 50%;
 }
 
+/* La pildora de puntos pasa a abajo-centro a los 899 px y es position:fixed:
+   flota sobre CUALQUIER panel y no es descendiente de ninguno, asi que el bucle
+   de hermanos de layout-check no la veia. Medido, se comia texto en 4 de los 5
+   paneles a 375x667 y en el hero del iPad mini. Ocupa 28 px de alto + 14 de
+   hueco; se reservan 60. La reserva va en ESTE breakpoint, no en el de 699:
+   entre 700 y 899 la pildora ya estaba abajo y el hueco no estaba reservado. */
+@media (max-width: 899px) {
+  .panel .d-text { padding-bottom: 60px; }
+
+  /* El hero no puede pagar la reserva con padding: su bloque va centrado
+     (margin-block:auto), asi que quitarle 60 px por abajo lo sube 30 y el
+     titular se metia en la cabeza (medido: -18 a -30 px de holgura en cuatro
+     telefonos). Las stats se anclan al pie de la capa y salen del centrado, que
+     asi recupera su alto. Si en una pantalla corta llegaran a pisar los
+     botones, layout-check lo caza: son hermanos dentro de .d-text. */
+  .panel.hero-panel .d-text { padding-bottom: 28px; }
+  .panel.hero-panel .hero-stats {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: 60px;
+    width: auto;
+    max-width: none;
+  }
+}
+
 @media (max-width: 899px) {
   .panel-dots {
     right: auto;
@@ -1813,8 +1839,24 @@ ul { list-style: none; }
    (medido: el texto empezaba en 20 px, por dentro del gutter de 31). Se dejan
    envolver y se quita el separador cuando pasan a dos filas. */
 @media (max-width: 699px) {
-  .hero-stats { flex-wrap: wrap; gap: 10px 20px; width: 100%; }
+  /* Los tres bloques suman 340 px (100 cada uno + 2 huecos de 20) y en un
+     iPhone SE solo caben 315: envolvian a dos filas y la segunda chocaba con la
+     pildora de puntos, que corta "Meta Maraton 2026" por la mitad. Se aprietan
+     para que quepan en UNA fila. */
+  .hero-stats { flex-wrap: wrap; gap: 10px 12px; width: 100%; }
+  .hero-stats .stat-num { font-size: 1.7rem; }
+  .hero-stats .stat-desc { font-size: 0.92rem; letter-spacing: 0; }
   .hero-stats .stat-divider { display: none; }
+  /* Al aclarar el pie del scrim para que se vea el pie, las stats se quedaban
+     sin fondo que las sostuviera. Se les da UNA banda comun, no un respaldo por
+     bloque: tres cajas con relleno propio suman 60 px extra y volvian a
+     envolver a dos filas, que es justo lo que se venia arreglando. */
+  .hero-stats {
+    background: rgb(var(--bg-rgb) / 0.72);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+  }
+  .hero-stats .stat-desc { font-size: 0.84rem; }
   /* `flex: 0 0 auto` para que ENVUELVAN en vez de comprimirse: con min-width:0
      los tres se apretaban en una sola fila y "Audit Analytics @ 25" quedaba
      cortado. */
@@ -1823,51 +1865,100 @@ ul { list-style: none; }
 
 
 /* =====================================================================
-   MOVIL: donde cae la figura y cuanto tapa (peticion del dueno)
+   MOVIL: donde cae la figura y cuanto tapa
    =====================================================================
    En vertical los cinco paneles ponian la figura en el mismo sitio —abajo a la
    derecha— y eso funcionaba en Contacto pero no en el resto: en el hero los
-   botones caian justo sobre la cara, y en Sobre Mi la foto en la que sale
-   sonriendo quedaba enterrada detras del texto. Aqui cada panel decide. */
+   botones caian sobre la cara y en Sobre Mi la foto en la que sale sonriendo
+   quedaba enterrada detras del texto. Aqui cada panel decide.
+
+   OJO AL ANIDAMIENTO. Una version anterior de este bloque cerraba una llave de
+   mas al insertar los brackets de pantalla corta: el scrim del hero acababa
+   dentro de `@media (max-height: 620px)` y las tarjetas de skills/blog se
+   quedaban SIN media query, aplicandose tambien en escritorio. El sintoma era
+   desconcertante: cambiar los numeros del gradiente no movia la medicion ni un
+   decimal, porque la regla no llegaba a aplicarse nunca. */
 @media (max-width: 699px), (max-aspect-ratio: 3/4) {
 
-  /* La pildora de rol cae en la zona donde el scrim es suave a proposito (para
-     no apagar la cara), asi que se apoya en fondo PROPIO. Medida sin el: 3.86:1. */
+  /* --- HERO: el pie apoyado abajo y la cabeza libre ---
+     Con el pie en el suelo la geometria queda determinada, asi que se calcula:
+     en el lienzo de 1200x1800 el alfa del hero va de y=89 a y=1799 y el cuello
+     esta en y=332, o sea que la cabeza ocupa del 4.9% al 18.4% de la altura de
+     la imagen. Anclada abajo, la cabeza termina en `panelBottom - 0.816*H`, y
+     para quedar sobre el titular hace falta H > 82% del panel. Se usa 90%.
+     Al crecer en alto crece en ancho (el lienzo es 2:3), asi que la persona se
+     iria al centro y volveria a pisar el texto: el margen negativo la devuelve
+     a la derecha. Lo que desborda el panel es alfa vacio. */
+  .hero-panel .d-fig picture { align-items: flex-end; justify-content: flex-end; padding-right: 0; }
+  .hero-panel .d-fig img { height: 90%; max-width: none; margin-right: -27%; }
+
+  /* El corte del gradiente esta atado a donde acaba la cabeza, no a un numero
+     bonito: a 390x844 el cuello cae en el 32% de la pantalla. Hasta ahi el
+     scrim es casi transparente para no apagar la cara; del 44% para abajo
+     aprieta, porque ahi van el titular y el subtitulo sobre el torso, que es la
+     zona mas clara de la foto. `.panel.hero-panel` y no `.hero-panel` porque el
+     grupo generico de los cinco paneles vive mas abajo con la misma
+     especificidad y ganaba por orden. */
+  .panel.hero-panel .d-text {
+    background: linear-gradient(180deg,
+      rgb(var(--bg-rgb) / 0.20) 0%,
+      rgb(var(--bg-rgb) / 0.26) 30%,
+      rgb(var(--bg-rgb) / 0.84) 44%,
+      rgb(var(--bg-rgb) / 0.86) 64%,
+      rgb(var(--bg-rgb) / 0.40) 100%);
+  }
+
+  /* La pildora de rol cae donde el scrim es suave a proposito, asi que se apoya
+     en fondo propio. Medida sin el: 3.86:1. */
   .hero-panel .hero-label {
     background: rgb(var(--bg-rgb) / 0.78);
     border-color: rgb(var(--white-rgb) / 0.16);
   }
 
-  /* HERO — la cabeza ARRIBA, por encima del nombre. El cuerpo sigue detras del
-     texto, pero la cara queda limpia, que es lo que se pidio. */
-  .hero-panel .d-fig picture { align-items: flex-start; }
-  .hero-panel .d-fig img { height: 74%; max-width: 90%; }
-  /* El scrim del hero arranca casi transparente para no apagar la cara, y
-     aprieta a partir del 34%, que es donde empieza el titular. */
-  .hero-panel .d-text {
-    background: linear-gradient(180deg,
-      rgb(var(--bg-rgb) / 0.22) 0%,
-      rgb(var(--bg-rgb) / 0.30) 26%,
-      rgb(var(--bg-rgb) / 0.74) 40%,
-      rgb(var(--bg-rgb) / 0.86) 100%);
-  }
-
-  /* SOBRE MI — es la unica foto en la que sale sonriendo y de cerca: va ARRIBA,
-     a la altura del titulo, no enterrada al fondo del panel. */
+  /* --- SOBRE MI: es la unica foto en la que sale sonriendo y de cerca, asi que
+     va ARRIBA, a la altura del titulo, no enterrada al fondo del panel. --- */
   .about-panel .d-fig picture { align-items: flex-start; justify-content: flex-end; }
   .about-panel .d-fig img { height: 46%; max-width: 58%; }
-  .about-panel .d-text {
+  .panel.about-panel .d-text {
     background: linear-gradient(180deg,
       rgb(var(--bg-rgb) / 0.34) 0%,
       rgb(var(--bg-rgb) / 0.58) 26%,
       rgb(var(--bg-rgb) / 0.82) 100%);
   }
 
-  /* SKILLS y BLOG — las tarjetas estaban al 94% y lo tapaban entero. Se dejan
-     ver a traves. El texto sigue por encima de AA: lo mide mobile-contrast. */
+  /* --- SKILLS y BLOG: las tarjetas estaban al 94% y lo tapaban entero. --- */
   .skills-panel .skill-block,
-  .blog-panel .blog-entry {
-    background: rgb(var(--surface-rgb) / 0.72);
-  }
+  .blog-panel .blog-entry { background: rgb(var(--surface-rgb) / 0.72); }
   .blog-panel .d-fig img { height: 50%; max-width: 66%; }
+}
+
+/* Panel corto (iPhone SE y compania): el titular sube, asi que la cabeza
+   necesita MAS altura de figura. Medido a 375x553: con 90% la cabeza acaba en
+   194 y el titulo empieza en 177 — la tapa por 17 px. */
+@media (max-height: 620px) and (max-width: 699px) {
+  .hero-panel .d-fig img { height: 97%; margin-right: -22%; }
+}
+
+/* Panel MUY corto (~416 px: iPhone SE de primera generacion). Ahi las dos cosas
+   no caben: para que la cabeza quede sobre el titular haria falta una figura mas
+   alta que el propio panel (450 px de figura en 416 de panel). Se libera altura
+   quitando el pie de stats —lo secundario del hero, y que a ese tamano ya salia
+   comprimido en tres filas— y apretando el titular. */
+/* Escalon intermedio. Con las stats ancladas al pie, en un iPhone SE (553 px de
+   alto, panel de 489) el bloque centrado y las stats se pisaban 19 px. Se
+   recorta el titular y sus margenes hasta que caben los dos; por debajo de
+   520 px ya no hay forma y el escalon siguiente esconde las stats. */
+@media (max-height: 620px) and (min-height: 521px) and (max-width: 699px) {
+  .hero-panel .hero-title { font-size: 2.7rem; line-height: 1.04; margin-bottom: 8px; }
+  .hero-panel .hero-sub { margin-bottom: 14px; }
+  .hero-panel .hero-label { margin-bottom: 10px; }
+  .hero-panel .hero-stats { padding: 6px 10px; }
+  .hero-panel .hero-stats .stat-num { font-size: 1.5rem; }
+}
+
+@media (max-height: 520px) and (max-width: 699px) {
+  .hero-panel .hero-stats { display: none; }
+  .hero-panel .d-text { padding-bottom: 26px; }
+  .hero-panel .hero-title { font-size: 2.6rem; line-height: 1.05; margin-bottom: 8px; }
+  .hero-panel .hero-sub { margin-bottom: 16px; }
 }
