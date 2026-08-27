@@ -1,4 +1,8 @@
-// checkbg.mjs — puerta de aceptacion de T3: capa L1 y fotos de la Version B.
+// checkbg.mjs — puerta de aceptacion de T3: la capa L1.
+//
+// La Version B se retiro: el dueno comparo las dos y eligio la A. El generador
+// (stage_e_background.mjs) sigue sabiendo producirla, pero no se sirve, asi que
+// tampoco se comprueba.
 //
 //   node checkbg.mjs [dir]
 
@@ -45,15 +49,13 @@ console.log(`\n=== T3 · L1 y Version B — ${DIR}\n`);
 let sumaL1 = 0, sumaFig = 0, sumaB = 0;
 for (const fig of geo.figuras) {
   const l1 = path.join(DIR, `${fig.slug}-l1l320.avif`);
-  const b = path.join(DIR, `${fig.slug}-b${B_MAX}.avif`);
   const f = path.join(DIR, `${fig.slug}-fig1800.avif`);
-  for (const p of [l1, b, f]) if (!existsSync(p)) { console.log(`FALTA ${p}`); fallos++; }
-  if (!existsSync(l1) || !existsSync(b) || !existsSync(f)) continue;
+  for (const p of [l1, f]) if (!existsSync(p)) { console.log(`FALTA ${p}`); fallos++; }
+  if (!existsSync(l1) || !existsSync(f)) continue;
 
-  const ml1 = await sharp(l1).metadata(), mb = await sharp(b).metadata();
+  const ml1 = await sharp(l1).metadata();
   const okL1Dim = ml1.width === 320 && ml1.height === 180;
-  const okBDim = Math.max(mb.width, mb.height) === B_MAX;
-  if (!okL1Dim || !okBDim) fallos++;
+  if (!okL1Dim) fallos++;
 
   // ¿esta el blur horneado? se compara contra la misma foto SIN desenfocar
   const raw = await sharp(l1).removeAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -69,11 +71,10 @@ for (const fig of geo.figuras) {
   const okBlur = razon < 0.5;
   if (!okBlur) fallos++;
 
-  sumaL1 += bytes(l1); sumaB += bytes(b); sumaFig += bytes(f);
+  sumaL1 += bytes(l1); sumaFig += bytes(f);
   console.log(`${fig.slug.padEnd(8)} L1 ${ml1.width}x${ml1.height} ${String(bytes(l1)).padStart(5)} B ${okL1Dim ? 'OK' : 'DIM MAL'}` +
     `   nitidez ${gBlur.toFixed(2)} vs ${gCrudo.toFixed(2)} sin desenfocar (razon ${razon.toFixed(2)}) ${okBlur ? 'OK' : 'EL BLUR NO ESTA HORNEADO'}`);
-  console.log(`${''.padEnd(8)} B  ${mb.width}x${mb.height} ${String(bytes(b)).padStart(6)} B ${okBDim ? 'OK' : 'DIM MAL'}` +
-    `   figura ${bytes(f)} B`);
+  console.log(`${''.padEnd(8)} figura ${bytes(f)} B`);
 }
 
 const okL1 = sumaL1 <= L1_PRESUPUESTO;
@@ -86,11 +87,6 @@ console.log(`\nL1 los 5 juntos      ${sumaL1} B  /  ${L1_PRESUPUESTO} B   ${okL1
 console.log(`VERSION A (fig + L1) ${aTotal} B  /  ${A_TOTAL_MAX} B   ${okA ? 'OK' : 'EXCEDIDO'}`);
 console.log(`                     contra ${HOY} B del sitio de hoy: ${((aTotal / HOY - 1) * 100).toFixed(1)}%  ${aTotal < HOY ? 'BAJA, como pide el plan' : 'SUBE'}`);
 console.log(`PANEL 1 (hero)       ${aHero} B  /  ${A_HERO_MAX} B de techo de LCP   ${okHero ? `OK, ${A_HERO_MAX - aHero} B de margen` : 'EXCEDIDO'}`);
-console.log(`VERSION B los 5      ${sumaB} B  (+${(100 * (sumaB + sumaL1) / aTotal - 100).toFixed(0)}% sobre A)`);
-console.log(`\nLo que hay que escribir tal cual (plan §2.7):`);
-console.log(`  La Version B NO puede ser HD real a pantalla completa sin duplicar el peso.`);
-console.log(`  A ${B_MAX} px sobre un panel de ${DPR2_PANEL} px de dispositivo sigue ${(DPR2_PANEL / B_MAX).toFixed(2)}x escalada.`);
-console.log(`  Solo la Version A da 1.00x. Por eso A es la predeterminada.`);
 
 // CONTROL NEGATIVO: la propia referencia sin desenfocar tiene que FALLAR la
 // comprobacion de blur. Si pasara, la comprobacion seria ciega y su verde no

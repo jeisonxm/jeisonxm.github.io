@@ -397,56 +397,8 @@
     requestAnimationFrame(frame);
   }, { passive: true });
 
-  // ---------- Boton A/B ----------
-  // El dueno decide el tratamiento fotografico VIENDOLO. La eleccion persiste
-  // para poder vivir con una durante dias. Por defecto A: es la unica que da
-  // HD real (a 2048 la B sigue 1.58x escalada en un Retina).
-  var VER_KEY = 'jw-version';
-  var verBtns = [];
-
-  function revelarB() {
-    // Las fotos de B van diferidas a proposito: A es la predeterminada, y B no
-    // debe competir por el LCP mientras nadie la pida.
-    var pend = document.querySelectorAll('.d-photo [data-src], .d-photo [data-srcset]');
-    Array.prototype.forEach.call(pend, function (el) {
-      if (el.getAttribute('data-srcset')) {
-        el.setAttribute('srcset', el.getAttribute('data-srcset'));
-        el.removeAttribute('data-srcset');
-      }
-      if (el.getAttribute('data-src')) {
-        el.setAttribute('src', el.getAttribute('data-src'));
-        el.removeAttribute('data-src');
-      }
-    });
-  }
-
-  function aplicarVersion(v, guardar) {
-    document.documentElement.setAttribute('data-version', v);
-    verBtns.forEach(function (b) {
-      b.setAttribute('aria-pressed', b.getAttribute('data-ver') === v ? 'true' : 'false');
-    });
-    if (v === 'b') revelarB();
-    if (guardar) { try { localStorage.setItem(VER_KEY, v); } catch (e) { /* modo privado */ } }
-  }
-
-  function cablearVersion() {
-    verBtns = Array.prototype.slice.call(document.querySelectorAll('.ver-toggle button'));
-    if (!verBtns.length) return false;
-    var guardada = null;
-    try { guardada = localStorage.getItem(VER_KEY); } catch (e) { /* modo privado */ }
-    aplicarVersion(guardada === 'b' ? 'b' : 'a', false);
-    verBtns.forEach(function (b) {
-      b.addEventListener('click', function () { aplicarVersion(b.getAttribute('data-ver'), true); });
-    });
-    return true;
-  }
-  // El script se carga ANTES del marcado del boton, asi que en el primer intento
-  // querySelectorAll devolvia una lista VACIA: ni se ponia data-version ni se
-  // enganchaba un solo listener. El boton se veia y no hacia nada, y la Version B
-  // parecia identica a la A porque nunca llegaba a activarse.
-  if (!cablearVersion()) {
-    document.addEventListener('DOMContentLoaded', cablearVersion, { once: true });
-  }
+  // El boton A/B se retira: el dueno comparo las dos versiones y eligio la A.
+  // Con el se va tambien la carga diferida de la Version B, que era su unico uso.
 
   // Se escucha `change` en AMBOS media queries para aplicarlo en vivo sin
   // recargar: alguien que active reduced-motion o conecte un raton no deberia

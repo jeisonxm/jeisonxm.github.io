@@ -84,14 +84,6 @@
             <img alt="" width="1200" height="1800" src="/src/images/panels/hero-fig1800.webp" fetchpriority="high" decoding="async">
           </picture>
         </div>
-        <!-- Version B — la foto entera. Diferida: A es la predeterminada y B es
-             un modo de comparacion, asi que no compite por el LCP. -->
-        <div class="d-photo">
-          <picture>
-            <source type="image/avif" data-srcset="/src/images/panels/hero-b2048.avif">
-            <img alt="" width="1366" height="2048" data-src="/src/images/panels/hero-b2048.webp" decoding="async" loading="lazy">
-          </picture>
-        </div>
         <!-- L3 — campo de color -->
         <div class="d-wash"></div>
       </div>
@@ -150,12 +142,6 @@
           <picture>
             <source type="image/avif" srcset="/src/images/panels/about-fig1800.avif">
             <img alt="" width="1200" height="1800" src="/src/images/panels/about-fig1800.webp" decoding="async" loading="lazy">
-          </picture>
-        </div>
-        <div class="d-photo">
-          <picture>
-            <source type="image/avif" data-srcset="/src/images/panels/about-b2048.avif">
-            <img alt="" width="1366" height="2048" data-src="/src/images/panels/about-b2048.webp" decoding="async" loading="lazy">
           </picture>
         </div>
         <div class="d-wash"></div>
@@ -222,12 +208,6 @@
           <picture>
             <source type="image/avif" srcset="/src/images/panels/skills-fig1800.avif">
             <img alt="" width="1200" height="1800" src="/src/images/panels/skills-fig1800.webp" decoding="async" loading="lazy">
-          </picture>
-        </div>
-        <div class="d-photo">
-          <picture>
-            <source type="image/avif" data-srcset="/src/images/panels/skills-b2048.avif">
-            <img alt="" width="1366" height="2048" data-src="/src/images/panels/skills-b2048.webp" decoding="async" loading="lazy">
           </picture>
         </div>
         <div class="d-wash"></div>
@@ -297,12 +277,6 @@
             <img alt="" width="1200" height="1800" src="/src/images/panels/blog-fig1800.webp" decoding="async" loading="lazy">
           </picture>
         </div>
-        <div class="d-photo">
-          <picture>
-            <source type="image/avif" data-srcset="/src/images/panels/blog-b2048.avif">
-            <img alt="" width="1366" height="2048" data-src="/src/images/panels/blog-b2048.webp" decoding="async" loading="lazy">
-          </picture>
-        </div>
         <div class="d-wash"></div>
       </div>
       <div class="d-text">
@@ -341,12 +315,6 @@
           <picture>
             <source type="image/avif" srcset="/src/images/panels/contact-fig1800.avif">
             <img alt="" width="1200" height="1800" src="/src/images/panels/contact-fig1800.webp" decoding="async" loading="lazy">
-          </picture>
-        </div>
-        <div class="d-photo">
-          <picture>
-            <source type="image/avif" data-srcset="/src/images/panels/contact-b2048.avif">
-            <img alt="" width="1366" height="2048" data-src="/src/images/panels/contact-b2048.webp" decoding="async" loading="lazy">
           </picture>
         </div>
         <div class="d-wash"></div>
@@ -422,12 +390,5 @@
   </svg>
 
   <script src="/src/script.js"></script>
-<!-- Boton A/B: el dueno decide el tratamiento fotografico VIENDOLO, no
-     discutiendolo. La eleccion persiste en localStorage para poder vivir
-     con una durante dias. Por defecto A: es la unica que da HD real. -->
-<div class="ver-toggle" role="group" aria-label="Photographic treatment">
-  <button type="button" data-ver="a" aria-pressed="true">A</button>
-  <button type="button" data-ver="b" aria-pressed="false">B</button>
-</div>
 </body>
 </html>

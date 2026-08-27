@@ -7,8 +7,8 @@
 // zona MAS CLARA que toca ese texto (percentil 92 — una mancha clara puntual
 // rompe el contraste aunque la media pase).
 //
-// Version A = fondo desenfocado + figura recortada.  Version B = la foto entera.
-// El resultado es el numero que T5 tiene que poner en el scrim.
+// Solo la Version A: el dueno eligio ese tratamiento y la B ya no se sirve.
+// El resultado es el numero que va en el scrim.
 //
 //   node tasks/contrast.mjs
 
@@ -75,17 +75,15 @@ async function panelA(slug) {
   return sharp(l1).composite([{ input: fig, left: Math.round(PW * 0.68 - fm.width / 2), top: 0 }])
     .removeAlpha().raw().toBuffer({ resolveWithObject: true });
 }
-const panelB = (slug) => sharp(path.join(DIR, `${slug}-b2048.avif`))
-  .resize(PW, PH, { fit: 'cover' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
 
 console.log(`\n  Alpha minimo del scrim para cumplir WCAG sobre la foto real`);
 console.log(`  texto ${TEXTO}   scrim ${SCRIM}   (percentil 92 = la zona mas clara que toca el texto)\n`);
 
 let fallos = 0;
-const peorPorVersion = { A: 0, B: 0 };
+const peorPorVersion = { A: 0 };
 for (const fig of geo.figuras) {
   const slug = fig.slug;
-  const versiones = { A: await panelA(slug), B: await panelB(slug) };
+  const versiones = { A: await panelA(slug) };
   console.log(`  ${slug.toUpperCase()}`);
   for (const [zn, [x0, y0, x1, y1]] of Object.entries(ZONAS[slug])) {
     const grande = zn.includes('grande');
@@ -107,7 +105,7 @@ for (const fig of geo.figuras) {
   }
   console.log('');
 }
-console.log(`  scrim que hay que usar:  Version A ${peorPorVersion.A.toFixed(2)}   Version B ${peorPorVersion.B.toFixed(2)}`);
+console.log(`  scrim que hay que usar: ${peorPorVersion.A.toFixed(2)}`);
 console.log(`  (tope ${ALPHA_MAX}: por encima ya no es un scrim, es tapar la foto)`);
-console.log(fallos ? `\n  ${fallos} ZONAS SIN CUMPLIR` : `\n  TODAS LAS ZONAS CUMPLEN AA EN LAS DOS VERSIONES`);
+console.log(fallos ? `\n  ${fallos} ZONAS SIN CUMPLIR` : `\n  TODAS LAS ZONAS CUMPLEN AA`);
 process.exit(fallos ? 1 : 0);

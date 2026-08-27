@@ -152,6 +152,12 @@ ul { list-style: none; }
 }
 
 .panel {
+  /* El aire lateral del contenido. Un solo numero para los cinco paneles: la
+     queja del dueno fue exactamente que el hero respiraba y las demas secciones
+     no. Al ser porcentaje escala con la pantalla, que es lo que mantiene la
+     misma PROPORCION en movil y en escritorio. */
+  --gutter: 8%;
+
   /* El alto disponible NO se recalcula en ningun sitio: los paneles con scroll
      interno usan `max-height: 100%`, que resuelve contra su contenedor real.
      Antes habia TRES contabilidades del mismo espacio que no cuadraban — el
@@ -497,7 +503,12 @@ ul { list-style: none; }
   z-index: 2;
   max-width: 900px;
   width: 100%;
-  padding: 0 8%;
+  /* Sin padding horizontal: la caja la da .d-text, una sola vez. Tenerlo aqui
+     tambien sumaba 16% en escritorio o 0 en movil, segun que regla ganase.
+     El max-width se conserva —una linea de 900 px es lo que se lee comodo— pero
+     la columna se ancla a la izquierda, no se centra. */
+  padding: 0;
+  margin-inline-end: auto;
 }
 
 .panel-title {
@@ -1046,16 +1057,20 @@ ul { list-style: none; }
     padding: 14px 20px;
   }
 
+  /* EN FLUJO tambien aqui. En absoluto con `left/right: 20px` se saltaba el
+     gutter de .d-text: medido en 744 px, las stats empezaban en 20 px mientras
+     el resto del texto empezaba en 60. El hueco para la pildora de puntos lo da
+     ahora el padding inferior de la capa, no un `bottom` magico. */
   .hero-stats {
-    position: absolute;
-    /* deja hueco para la píldora de puntos, que en móvil va abajo centrada */
-    bottom: 56px;
-    left: 20px;
-    right: 20px;
+    position: static;
     display: flex;
-    justify-content: space-between;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 8px 18px;
   }
+  /* 64 px no bastan cuando las stats envuelven a dos filas: la tercera quedaba
+     cortada contra el borde inferior. Se mide desde la pildora de puntos (~32 px)
+     mas dos filas de stat (~48 px) mas aire. */
+  .hero-panel .d-text { padding-bottom: 96px; }
 
   .stat-item { text-align: center; flex: 1; }
   .stat-num { font-size: 1.6rem; }
@@ -1501,10 +1516,9 @@ ul { list-style: none; }
 
 .depth { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 
-.d-far, .d-fig, .d-photo { position: absolute; top: 0; height: 100%; }
+.d-far, .d-fig { position: absolute; top: 0; height: 100%; }
 .d-far   { left: -3%; width: 106%; z-index: 0; }
 .d-fig   { left: -2%; width: 104%; z-index: 1; }
-.d-photo { left: -2%; width: 104%; z-index: 1; display: none; }
 
 /* <picture> NECESITA altura definida. Un porcentaje de altura resuelve contra
    el padre, y el padre del <img> es el <picture>, no la capa. En .d-fig el
@@ -1512,7 +1526,7 @@ ul { list-style: none; }
    `height:100%` en el <img> no resolvia contra nada y la figura salia a tamano
    INTRINSECO: 1200x1800 dentro de un panel de 656 px. Medido, no deducido. */
 .depth picture { display: block; width: 100%; height: 100%; }
-.d-far img, .d-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.d-far img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* La figura se ajusta por ALTURA y se ancla a la derecha: su lienzo es 2:3 y el
    panel apaisado, asi que con object-fit:cover se le cortaria la cabeza o los
@@ -1529,8 +1543,7 @@ ul { list-style: none; }
    escala y opacidad llevan easing. Transforms 2D: un transform 3D promueve
    siempre y quita el control del presupuesto de capas. */
 .d-far   { transform: translateX(var(--d-far))  scale(calc(1.03 - 0.03 * var(--a, 0))); }
-.d-fig,
-.d-photo { /* El escalado crece HACIA ARRIBA desde la linea de base. Con origen
+.d-fig { /* El escalado crece HACIA ARRIBA desde la linea de base. Con origen
              centrado, scale(1.06) en reposo corta los pies ~20 px, que es justo
              lo que T2 se molesto en alinear. */
            transform-origin: bottom center;
@@ -1551,7 +1564,14 @@ ul { list-style: none; }
      margen: se pegaba al borde izquierdo. Los hijos posicionados en absoluto
      (.hero-stats, .scroll-hint) siguen igual porque la capa ocupa inset:0.
      Los mismos valores que .panel, y debajo las dos excepciones que ya existian. */
-  display: flex; align-items: center; justify-content: center;
+  /* justify-content: flex-start, no center. El hero es una composicion ALINEADA
+     A LA IZQUIERDA con la figura a la derecha, y los otros cuatro paneles
+     centraban una columna de 900 px: a 2560 px eso son 780 px de margen contra
+     los 205 del hero. No es una diferencia de detalle, es otra composicion — y
+     ademas empujaba el texto justo debajo de la figura, que en todos los
+     paneles esta a la derecha. `align-items: center` se queda: en fila es el
+     centrado VERTICAL, que si se quiere. */
+  display: flex; align-items: center; justify-content: flex-start;
   transform: translateX(var(--d-text));
   opacity: clamp(0, calc(1 - 1.45 * var(--a, 0)), 1);
   /* El scrim va como BACKGROUND de esta capa, no como elemento suelto: medido,
@@ -1567,10 +1587,26 @@ ul { list-style: none; }
 }
 
 /* Las dos excepciones de caja que ya tenian sus paneles, trasladadas a la capa. */
+/* LA CAJA DE CONTENIDO SE DEFINE UNA VEZ, AQUI.
+   Antes vivia en cuatro sitios: .panel-content con `0 8%`, .panel con
+   `80px 20px 20px`, .about-content con `padding: 0`, y el hero con la suya
+   propia. Y `.d-text` es position:absolute con inset:0, asi que IGNORA el
+   padding del panel — o sea que al meter el contenido en esta capa (T5), los
+   cuatro paneles que no son el hero se quedaron con el texto pegado al borde:
+   medido en 390 px, 0 px de margen contra los 20 del hero. Una sola fuente. */
+.d-text { padding-inline: var(--gutter); }
+
 /* El contenido se centra en el espacio QUE SOBRA (margin-block:auto), no sobre
    la altura completa. El padding inferior es el sitio del pie. */
-.hero-panel  .d-text { flex-direction: column; justify-content: flex-start; padding: 0 8% 28px; }
-.hero-panel  .hero-content { margin-block: auto; }
+/* align-items: flex-start, no el `center` que hereda de .d-text: con
+   flex-direction:column, `center` centra HORIZONTALMENTE, y el titular del hero
+   se iba al medio de la pantalla (medido: empezaba en 453 px de 1440 en vez de
+   en el gutter). El hero es una composicion a la izquierda con la figura a la
+   derecha; centrarlo la destruye. */
+.hero-panel  .d-text { flex-direction: column; align-items: flex-start;
+                       justify-content: flex-start; padding-bottom: 28px; }
+.hero-panel  .hero-content { margin-block: auto; width: 100%; max-width: 620px; }
+.hero-panel  .hero-stats { width: auto; max-width: 100%; }
 .about-panel .d-text { align-items: flex-start; padding-top: 40px; }
 
 /* Cada panel conserva su scrim propio: estaban afinados uno a uno y el gradiente
@@ -1587,37 +1623,14 @@ ul { list-style: none; }
    esto NUNCA se toca dentro del rAF. */
 .panel.depth-live .d-far,
 .panel.depth-live .d-fig,
-.panel.depth-live .d-photo,
 .panel.depth-live .d-wash,
 .panel.depth-live .d-text { will-change: transform, opacity; }
 
-/* --- Version B: la foto entera, con los bordes disueltos ---
-   No es un recorte de sujeto: es la foto completa, y el borde se deshace en el
-   campo de color con mask-image en vez de cortarse. */
-:root[data-version="b"] .d-far,
-:root[data-version="b"] .d-fig { display: none; }
-:root[data-version="b"] .d-photo { display: block; }
-.d-photo img {
-  -webkit-mask-image: radial-gradient(ellipse 82% 92% at 62% 42%, #000 40%, transparent 92%);
-          mask-image: radial-gradient(ellipse 82% 92% at 62% 42%, #000 40%, transparent 92%);
-}
+/* La Version B (foto entera con los bordes disueltos) se retira: el dueno
+   comparo las dos en su Mac y en el telefono y eligio la A. Sigue en el
+   historial (tasks/pipeline/stage_e_background.mjs la genera) por si alguna
+   vez se quiere volver a mirar, pero no se sirve. */
 
-/* --- Boton A/B --- */
-.ver-toggle {
-  position: fixed; right: 1rem; bottom: 1rem; z-index: 60;
-  display: inline-flex; gap: 1px; padding: 2px;
-  background: rgb(var(--bg-rgb) / 0.72);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  font-family: var(--font-body); font-size: 0.72rem; letter-spacing: 0.06em;
-}
-.ver-toggle button {
-  appearance: none; border: 0; cursor: pointer; padding: 0.35rem 0.6rem;
-  background: transparent; color: var(--gray-dark);
-  font: inherit; text-transform: uppercase; border-radius: 1px;
-  transition: color var(--transition), background var(--transition);
-}
-.ver-toggle button[aria-pressed="true"] { background: var(--surface); color: var(--white); }
-.ver-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* --- reduced-motion (plan §2.5) ---
    Fuera traslacion Y escala. Las rampas de opacidad se RECORTAN a ~1/4, no se
@@ -1625,13 +1638,12 @@ ul { list-style: none; }
    recomienda Apple. El rAF sigue corriendo porque hace falta para calcular --a:
    se apaga el movimiento, no el motor. */
 @media (prefers-reduced-motion: reduce) {
-  .d-far, .d-fig, .d-photo, .d-wash, .d-text { transform: none; }
-  .d-fig, .d-photo { opacity: calc(1 - 0.18 * var(--a, 0)); }
+  .d-far, .d-fig, .d-wash, .d-text { transform: none; }
+  .d-fig { opacity: calc(1 - 0.18 * var(--a, 0)); }
   .d-wash { opacity: calc(0.12 * var(--a, 0)); }
   .d-text { opacity: clamp(0, calc(1 - 0.10 * var(--a, 0)), 1); }
   .panel.depth-live .d-far,
   .panel.depth-live .d-fig,
-  .panel.depth-live .d-photo,
   .panel.depth-live .d-wash,
   .panel.depth-live .d-text { will-change: opacity; }
 }
@@ -1642,10 +1654,9 @@ ul { list-style: none; }
    en su pose de "ya llegue". El BOTON A/B si se queda: la eleccion estetica se
    decide viendo el sitio, y el dueno lo mira tanto en el telefono como en el Mac. */
 @media not all and (hover: hover) and (pointer: fine) {
-  .d-far, .d-fig, .d-photo, .d-wash, .d-text { transform: none; opacity: 1; }
+  .d-far, .d-fig, .d-wash, .d-text { transform: none; opacity: 1; }
   .panel.depth-live .d-far,
   .panel.depth-live .d-fig,
-  .panel.depth-live .d-photo,
   .panel.depth-live .d-wash,
   .panel.depth-live .d-text { will-change: auto; }
 }
@@ -1675,10 +1686,12 @@ ul { list-style: none; }
   .skills-panel .d-text,
   .blog-panel .d-text,
   .contact-panel .d-text {
+    /* 0.58 dejaba el subtitulo del hero en 4.50:1 exacto, justo en el filo de
+       AA. 0.63 le da margen sin apagar la foto: medido con mobile-contrast. */
     background: linear-gradient(180deg,
-      rgb(var(--bg-rgb) / 0.58) 0%,
-      rgb(var(--bg-rgb) / 0.54) 42%,
-      rgb(var(--bg-rgb) / 0.78) 100%);
+      rgb(var(--bg-rgb) / 0.63) 0%,
+      rgb(var(--bg-rgb) / 0.58) 42%,
+      rgb(var(--bg-rgb) / 0.80) 100%);
   }
   /* El campo de color no se apaga: es lo que unifica la foto con la UI cuando
      no hay paralaje que haga ese trabajo. */
@@ -1697,11 +1710,6 @@ ul { list-style: none; }
   }
 }
 
-/* El boton A/B, en movil, arriba a la derecha: abajo choca con los puntos de
-   panel y con la barra del navegador. */
-@media (max-width: 699px) {
-  .ver-toggle { right: 0.6rem; bottom: auto; top: calc(64px + 0.6rem); }
-}
 
 /* El .docx como enlace SECUNDARIO: el PDF es lo que se descarga por defecto
    porque abre igual en cualquier sitio; el .docx esta para quien lo pida en
@@ -1720,12 +1728,11 @@ ul { list-style: none; }
 
 
 /* --- Objetivos tactiles: 24x24 CSS px minimo (WCAG 2.2 AA, SC 2.5.8) ---
-   Los enlaces de navegacion, el .docx y los botones A/B se quedaban por debajo.
-   Se crece con padding, no con font-size, para no mover la tipografia. */
+   Los enlaces de navegacion y el .docx se quedaban por debajo. Se crece con
+   padding, no con font-size, para no mover la tipografia. */
 .header-nav a,
 .lang-toggle,
-.cv-alt,
-.ver-toggle button {
+.cv-alt {
   min-height: 24px;
   display: inline-flex;
   align-items: center;
@@ -1734,7 +1741,6 @@ ul { list-style: none; }
 /* 22 px de ancho medidos: el texto ".docx" es estrecho. El minimo de WCAG es
    24x24, no solo el alto. */
 .cv-alt { padding-block: 4px; padding-inline: 8px; min-width: 44px; justify-content: center; }
-.ver-toggle button { min-width: 32px; justify-content: center; }
 
 
 /* Piezas pequenas que se apoyan en la foto: se resuelven con fondo PROPIO, no
@@ -1749,4 +1755,50 @@ ul { list-style: none; }
 .blog-index-tag,
 .blog-entry-tag {
   background: rgb(var(--bg-rgb) / 0.82);
+}
+
+
+/* --- Botones en movil: son botones, no barras ---
+   `width: 100%` los estiraba de borde a borde. Con la caja de .d-text ya
+   respiran, pero seguian ocupando el 100% de ella. Se dimensionan por su
+   contenido con un minimo comodo para el pulgar, y caben dos por fila. */
+@media (max-width: 699px) {
+  .hero-buttons,
+  .about-actions {
+    display: flex;
+    /* `flex-direction: row` explicito: las reglas anteriores los ponian en
+       COLUMNA, y en una columna el estirado a todo lo ancho lo hace el eje
+       cruzado (align-items: stretch), no el `flex` de los hijos. Por eso
+       cambiar a `flex: 0 1 auto` no servia de nada por si solo. */
+    flex-direction: row;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    width: 100%;
+  }
+  .hero-buttons .btn,
+  .about-actions .btn {
+    width: auto;
+    /* `1 1 auto` los hacia CRECER hasta llenar la caja, asi que un boton solo en
+       su fila volvia a ocupar todo el ancho. `0 1 auto` los deja del tamano de
+       su contenido: pueden encoger si no caben, nunca estirarse. */
+    flex: 0 1 auto;
+    min-width: 132px;
+    max-width: 100%;
+    padding-inline: 20px;
+  }
+}
+
+
+/* Las stats se salian del gutter en movil: tres bloques con `gap: 32px` mas los
+   separadores no caben en 328 px, y la fila desbordaba hacia los dos lados
+   (medido: el texto empezaba en 20 px, por dentro del gutter de 31). Se dejan
+   envolver y se quita el separador cuando pasan a dos filas. */
+@media (max-width: 699px) {
+  .hero-stats { flex-wrap: wrap; gap: 10px 20px; width: 100%; }
+  .hero-stats .stat-divider { display: none; }
+  /* `flex: 0 0 auto` para que ENVUELVAN en vez de comprimirse: con min-width:0
+     los tres se apretaban en una sola fila y "Audit Analytics @ 25" quedaba
+     cortado. */
+  .hero-stats .stat-item { flex: 0 0 auto; min-width: 0; }
 }

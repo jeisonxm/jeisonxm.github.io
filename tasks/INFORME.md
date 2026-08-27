@@ -175,10 +175,49 @@ renderiza, oculta el texto conservando el layout, captura y mide el fondo bajo c
 ella se encontró el punto medio: el primer scrim móvil que puse dejaba leer pero **borraba la
 foto**, y la foto es la mitad del diseño.
 
+## 5 ter. La Versión A gana, y el espaciado se unifica
+
+**Decisión del dueño: se queda la A.** La Versión B se retira del sitio — marcado, CSS, JS y
+los 10 assets `-b2048` (317 KB). El generador sigue en `stage_e_background.mjs` y todo está a
+un `git revert` de volver, pero no se sirve. Con ella se va el botón A/B, que existía solo
+para tomar esta decisión.
+
+**Segunda ronda de espaciado**, con sus cinco porqués:
+
+1. El texto tocaba el borde porque `.d-text` tenía padding horizontal **0** en los cuatro
+   paneles que no son el hero.
+2. Su aire venía de `.panel { padding: … 20px }` — y `.d-text` es `position:absolute; inset:0`,
+   así que **ignora el padding de su contenedor**.
+3. Se perdió porque T5 metió el contenido en esa capa y yo restauré la caja **solo en el hero**,
+   el único panel que miré mientras construía el molde.
+4. T6 replicó la **estructura** a los otros cuatro sin re-verificar sus **cajas**: se copiaron
+   las capas, no el contrato de espaciado.
+5. Ninguna puerta lo cazó porque **texto pegado al borde no es ni solape ni desborde**, que era
+   todo lo que `layout-check` sabía comprobar.
+
+**Causa raíz: la caja de contenido se definía en cuatro sitios** (`.panel-content` con `0 8%`,
+`.panel` con `80px 20px 20px`, `.about-content` con `padding: 0`, y el hero con la suya) **y
+ninguna puerta comparaba paneles entre sí.** Ahora hay **un solo `--gutter`** en `.d-text` y
+`layout-check` afirma dos cosas nuevas: que el texto respira contra el borde (≥ 16 px) y que
+**la caja es la misma en los cinco paneles** (dispersión ≤ 12 px).
+
+Eso destapó que los cuatro paneles no compartían siquiera la composición del hero: centraban
+una columna de 900 px, o sea **780 px de margen a 2560** contra los 205 del hero. No era una
+diferencia de detalle: además empujaba el texto justo debajo de la figura, que en todos los
+paneles está a la derecha. Ahora los cinco se alinean a la izquierda, como el hero.
+
+Y tres defectos de la misma familia, cada uno encontrado midiendo:
+- **Los botones no eran botones sino barras.** `flex: 1 1 auto` los hacía crecer, y sus
+  contenedores estaban en `flex-direction: column`, donde el estirado a todo lo ancho lo hace el
+  eje cruzado — por eso cambiar el `flex` solo no servía de nada. De **84 %** a **34–40 %**.
+- **El titular del hero se centraba** en escritorio (empezaba en 453 px de 1440) porque
+  `align-items: center` con `flex-direction: column` centra en horizontal.
+- **Las stats se saltaban el gutter** porque una media query las devolvía a `position: absolute`
+  con `left/right: 20px`. También pasan al flujo.
+
 ## 6. Pendiente del dueño
 
-- **Abrirlo en su Mac** y decidir A o B con el botón. Es lo único que cierra la pregunta
-  estética, y es lo que el botón existe para permitir.
+- ~~Decidir A o B~~ **hecho: se queda la A.**
 - **Versión exacta de su Safari** (Safari → Acerca de Safari). Decide si ve el portal: necesita
   18.2+. Por debajo degrada a corte instantáneo, verificado en Firefox.
 - **Endpoint real de Formspree.**

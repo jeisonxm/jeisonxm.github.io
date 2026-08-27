@@ -33,11 +33,12 @@ for (const f of ['index.html', 'en/index.html']) {
     const sec = s.match(new RegExp(`<section id="${slug}"[\\s\\S]*?</section>`));
     if (!sec) { console.log(`FALTA el panel ${slug} en ${f}`); fallos++; continue; }
     const cuerpo = sec[0];
-    const capas = ['d-far', 'd-fig', 'd-photo', 'd-wash', 'd-text'];
+    // Sin 'd-photo': la Version B se retiro cuando el dueno eligio la A.
+    const capas = ['d-far', 'd-fig', 'd-wash', 'd-text'];
     const faltan = capas.filter((c) => !cuerpo.includes(`class="${c}"`));
     // Las capas visibles NO pueden estar gateadas por data-src; la Version B si,
     // porque es opt-in y no debe competir por el LCP.
-    const visible = cuerpo.slice(cuerpo.indexOf('d-far'), cuerpo.indexOf('d-photo'));
+    const visible = cuerpo.slice(cuerpo.indexOf('d-far'), cuerpo.indexOf('d-wash'));
     const gateadas = /data-src|data-srcset/.test(visible);
     const usaFoto = cuerpo.includes(`${slug}-fig1800`) && cuerpo.includes(`${slug}-l1`);
     if (faltan.length || gateadas || !usaFoto) fallos++;

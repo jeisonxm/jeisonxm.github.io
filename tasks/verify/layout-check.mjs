@@ -12,6 +12,13 @@
 //   2. nada desborda su panel por abajo
 //   3. la pagina no scrollea en horizontal
 //   4. los objetivos tactiles llegan a 24x24 CSS px (WCAG 2.2 AA)
+//   5. el texto respira contra el borde, y TODOS los paneles respiran IGUAL
+//
+// El punto 5 se anadio despues de que el dueno dijera "no hay padding entre el
+// borde y el texto, se ve muy apretado, y el hero no comparte esa proporcion con
+// las otras secciones". Ni el solape ni el desborde lo cazaban: texto pegado al
+// borde no es ninguna de las dos cosas. Sin esta afirmacion, la caja de
+// contenido puede divergir entre paneles sin que nada se entere.
 //
 //   node layout-check.mjs [--json]
 
@@ -107,6 +114,41 @@ for (const d of DISPOSITIVOS) {
     for (const x of r) problemas.push({ panel: PANELES[i], ...x });
   }
 
+  // --- 5. margen contra el borde, y el MISMO en los cinco paneles ---
+  const margenes = [];
+  for (let i = 0; i < PANELES.length; i++) {
+    await page.evaluate((n) => {
+      const c = document.getElementById('container');
+      c.scrollTo({ left: c.clientWidth * n, behavior: 'auto' });
+    }, i);
+    await page.waitForTimeout(300);
+    const m = await page.evaluate((slug) => {
+      const panel = document.getElementById(slug);
+      let izq = Infinity, der = Infinity;
+      for (const e of panel.querySelectorAll('.d-text *')) {
+        const tiene = Array.from(e.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim());
+        if (!tiene) continue;
+        const cs = getComputedStyle(e);
+        if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.1) continue;
+        const b = e.getBoundingClientRect();
+        if (b.width < 4 || b.height < 4) continue;
+        izq = Math.min(izq, b.left); der = Math.min(der, innerWidth - b.right);
+      }
+      return { slug, izq: Math.round(izq), der: Math.round(der) };
+    }, PANELES[i]);
+    if (Number.isFinite(m.izq)) margenes.push(m);
+  }
+  // Minimo absoluto: por debajo de esto se lee apretado en cualquier pantalla.
+  const MIN = 16;
+  const apretados = margenes.filter((m) => m.izq < MIN || m.der < MIN);
+  if (apretados.length) problemas.push({ tipo: 'texto pegado al borde',
+    a: apretados.map((m) => `${m.slug} ${m.izq}/${m.der}px`).join(', ') });
+  // Coherencia entre paneles: la caja tiene que ser la MISMA, no parecida.
+  const izqs = margenes.map((m) => m.izq);
+  const dispersion = Math.max(...izqs) - Math.min(...izqs);
+  if (dispersion > 12) problemas.push({ tipo: 'la caja de contenido no es la misma en todos los paneles',
+    a: margenes.map((m) => `${m.slug} ${m.izq}px`).join(', ') });
+
   const global = await page.evaluate(() => {
     // WCAG 2.2 SC 2.5.8 exime los objetivos EN LINEA dentro de un bloque de
     // texto: un enlace en medio de una frase no puede crecer sin romper la
@@ -124,9 +166,19 @@ for (const d of DISPOSITIVOS) {
       if (b.width >= 24 && b.height >= 24) return false;
       return !enLinea(e);
     }).map((e) => (e.textContent || '').trim().slice(0, 18) || e.className);
-    return { scrollH: document.documentElement.scrollWidth > innerWidth + 1, chicos: chicos.slice(0, 4) };
+    const botonesAnchos = Array.from(document.querySelectorAll('.btn')).filter((e) => {
+      const cs = getComputedStyle(e);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+      return e.getBoundingClientRect().width > innerWidth * 0.9;
+    }).map((e) => (e.textContent || '').trim().slice(0, 16) + ' ' +
+        Math.round(100 * e.getBoundingClientRect().width / innerWidth) + '%');
+    return { scrollH: document.documentElement.scrollWidth > innerWidth + 1,
+             chicos: chicos.slice(0, 4), botonesAnchos: botonesAnchos.slice(0, 3) };
   });
   if (global.scrollH) problemas.push({ tipo: 'scroll horizontal en la pagina' });
+  // Un boton que ocupa casi toda la pantalla deja de leerse como boton.
+  if (global.botonesAnchos.length) problemas.push({ tipo: 'boton casi de borde a borde',
+    a: global.botonesAnchos.join(', ') });
   if (global.chicos.length) problemas.push({ tipo: 'objetivo tactil < 24px', a: global.chicos.join(', ') });
 
   if (problemas.length) fallos++;
