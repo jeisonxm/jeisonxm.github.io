@@ -1,0 +1,283 @@
+{
+  "que": "Linea base del sitio ANTES del rediseno de profundidad. Congelada por tasks/verify/run.sh baseline.",
+  "como": "salida literal de probe.mjs en webkit 26.5 / firefox 153 / chromium 151, viewport 1440x900",
+  "commit": "43f2a36",
+  "capturado": "2026-08-27",
+  "contra_que_se_compara": [
+    "transform.changed debe pasar de false a true en los 3 motores (T5)",
+    "transform.before debe pasar de -41.9327 a 0 exacto en p=0 (T5)",
+    "wheelSynthetic.panelReached debe pasar de 1 a 3 con 3 gestos @120ms (T7). La via sintetica es la que mide el gesto: la confiable no gobierna su propio timing"
+  ],
+  "resultados": [
+    {
+      "engine": "webkit",
+      "launched": true,
+      "version": "26.5",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "knownTypeError": false,
+      "knownTypeErrorText": null,
+      "cssSupportsScrollTimeline": true,
+      "documento": {
+        "url": "http://127.0.0.1:43293/",
+        "pathname": "/",
+        "lang": "es",
+        "container": true,
+        "heroImg": true,
+        "pedido": "/",
+        "locale": "es-ES"
+      },
+      "finePointer": true,
+      "reducedMotion": false,
+      "transform": {
+        "enPanel0": "matrix(1, 0, 0, 1, -41.932716, 0)",
+        "enPanel1": "matrix(1, 0, 0, 1, -41.932716, 0)",
+        "enPanel2": "matrix(1, 0, 0, 1, -41.932716, 0)",
+        "pxPanel0": "0px",
+        "pxPanel1": "0px",
+        "pxPanel2": "0px",
+        "scrollLeft": [
+          0,
+          1440,
+          2880
+        ],
+        "changed": false,
+        "measurable": true
+      },
+      "wheel": {
+        "modo": "confiable",
+        "intentos": 1,
+        "gapObjetivoMs": 120,
+        "gapsMs": [
+          208,
+          177
+        ],
+        "timingFiel": false,
+        "scrollLeft": 1440,
+        "clientWidth": 1440,
+        "panelReached": 1,
+        "error": null
+      },
+      "wheelSynthetic": {
+        "modo": "sintetico",
+        "intentos": 1,
+        "gapObjetivoMs": 120,
+        "gapsMs": [
+          160,
+          165
+        ],
+        "timingFiel": true,
+        "scrollLeft": 1440,
+        "clientWidth": 1440,
+        "panelReached": 1,
+        "error": null
+      },
+      "forcedSafari18": {
+        "pageErrors": [],
+        "knownTypeError": false,
+        "text": null,
+        "scrollLeft": 1440,
+        "wheel": {
+          "modo": "sintetico",
+          "intentos": 2,
+          "gapObjetivoMs": 120,
+          "gapsMs": [
+            122,
+            145
+          ],
+          "timingFiel": true,
+          "scrollLeft": 1440,
+          "clientWidth": 1440,
+          "panelReached": 1,
+          "error": null
+        },
+        "clientWidth": 1440,
+        "panelReached": 1
+      },
+      "error": null,
+      "panels": 5,
+      "clientWidth": 1440
+    },
+    {
+      "engine": "firefox",
+      "launched": true,
+      "version": "153.0",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "knownTypeError": false,
+      "knownTypeErrorText": null,
+      "cssSupportsScrollTimeline": false,
+      "documento": {
+        "url": "http://127.0.0.1:43293/",
+        "pathname": "/",
+        "lang": "es",
+        "container": true,
+        "heroImg": true,
+        "pedido": "/",
+        "locale": "es-ES"
+      },
+      "finePointer": true,
+      "reducedMotion": false,
+      "transform": {
+        "enPanel0": "matrix(1, 0, 0, 1, 0, 0)",
+        "enPanel1": "matrix(1, 0, 0, 1, 40, 0)",
+        "enPanel2": "matrix(1, 0, 0, 1, 40, 0)",
+        "pxPanel0": "0px",
+        "pxPanel1": "0px",
+        "pxPanel2": "0px",
+        "scrollLeft": [
+          0,
+          1440,
+          2880
+        ],
+        "changed": true,
+        "measurable": true
+      },
+      "wheel": {
+        "modo": "confiable",
+        "intentos": 1,
+        "gapObjetivoMs": 120,
+        "gapsMs": [
+          161,
+          177
+        ],
+        "timingFiel": true,
+        "scrollLeft": 1440,
+        "clientWidth": 1440,
+        "panelReached": 1,
+        "error": null
+      },
+      "wheelSynthetic": {
+        "modo": "sintetico",
+        "intentos": 1,
+        "gapObjetivoMs": 120,
+        "gapsMs": [
+          127,
+          134
+        ],
+        "timingFiel": true,
+        "scrollLeft": 1440,
+        "clientWidth": 1440,
+        "panelReached": 1,
+        "error": null
+      },
+      "forcedSafari18": {
+        "pageErrors": [],
+        "knownTypeError": false,
+        "text": null,
+        "scrollLeft": 1440,
+        "wheel": {
+          "modo": "sintetico",
+          "intentos": 1,
+          "gapObjetivoMs": 120,
+          "gapsMs": [
+            122,
+            121
+          ],
+          "timingFiel": true,
+          "scrollLeft": 1440,
+          "clientWidth": 1440,
+          "panelReached": 1,
+          "error": null
+        },
+        "clientWidth": 1440,
+        "panelReached": 1
+      },
+      "error": null,
+      "panels": 5,
+      "clientWidth": 1440
+    },
+    {
+      "engine": "chromium",
+      "launched": true,
+      "version": "151.0.7922.34",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "knownTypeError": false,
+      "knownTypeErrorText": null,
+      "cssSupportsScrollTimeline": true,
+      "documento": {
+        "url": "http://127.0.0.1:43293/",
+        "pathname": "/",
+        "lang": "es",
+        "container": true,
+        "heroImg": true,
+        "pedido": "/",
+        "locale": "es-ES"
+      },
+      "finePointer": true,
+      "reducedMotion": false,
+      "transform": {
+        "enPanel0": "matrix(1, 0, 0, 1, -41.9327, 0)",
+        "enPanel1": "matrix(1, 0, 0, 1, -41.9327, 0)",
+        "enPanel2": "matrix(1, 0, 0, 1, -41.9327, 0)",
+        "pxPanel0": "0px",
+        "pxPanel1": "0px",
+        "pxPanel2": "0px",
+        "scrollLeft": [
+          0,
+          1440,
+          2880
+        ],
+        "changed": false,
+        "measurable": true
+      },
+      "wheel": {
+        "modo": "confiable",
+        "intentos": 1,
+        "gapObjetivoMs": 120,
+        "gapsMs": [
+          199,
+          136
+        ],
+        "timingFiel": false,
+        "scrollLeft": 1440,
+        "clientWidth": 1440,
+        "panelReached": 1,
+        "error": null
+      },
+      "wheelSynthetic": {
+        "modo": "sintetico",
+        "intentos": 1,
+        "gapObjetivoMs": 120,
+        "gapsMs": [
+          122,
+          120
+        ],
+        "timingFiel": true,
+        "scrollLeft": 1440,
+        "clientWidth": 1440,
+        "panelReached": 1,
+        "error": null
+      },
+      "forcedSafari18": {
+        "pageErrors": [],
+        "knownTypeError": false,
+        "text": null,
+        "scrollLeft": 1440,
+        "wheel": {
+          "modo": "sintetico",
+          "intentos": 1,
+          "gapObjetivoMs": 120,
+          "gapsMs": [
+            121,
+            120
+          ],
+          "timingFiel": true,
+          "scrollLeft": 1440,
+          "clientWidth": 1440,
+          "panelReached": 1,
+          "error": null
+        },
+        "clientWidth": 1440,
+        "panelReached": 1
+      },
+      "error": null,
+      "panels": 5,
+      "clientWidth": 1440
+    }
+  ]
+}
