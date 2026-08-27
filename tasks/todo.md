@@ -179,20 +179,65 @@ buffers se **afirma** (`toColourspace('b-w')` + comprobación de `info.channels`
 
 ---
 
-### [ ] T3 · Capas de fondo y fotos de la Versión B
+### [x] T3 · Capas de fondo y fotos de la Versión B
 
 **Acceptance criteria**
-- [ ] L1 (fondo desenfocado): 320 px de ancho, q35, con blur **horneado** (sigma ~6) y también
-      horneados `brightness .92 / contrast 1.05 / saturate .9`. ≤ 26 KB **los 5 paneles juntos**.
-- [ ] Versión B: foto entera a **2048 px máx**, con `mask-image` para disolver los bordes.
-- [ ] Escribir en el commit, tal cual: **la Versión B no puede ser HD real a pantalla completa
-      sin duplicar el peso.** A 2048 sigue 1,58× escalada en un Retina.
+- [x] L1: 320 px de ancho, q35, blur **horneado** (sigma 6) y también horneados
+      `brightness .92 / contrast 1.05 / saturate .9`. **8.327 B los 5 juntos** contra 26 KB
+      de presupuesto — tres veces por debajo.
+- [x] Versión B: foto entera a **2048 px máx** (1366×2048). El `mask-image` es CSS y lo pone T5.
+- [x] Escrito en el commit tal cual: **la Versión B no puede ser HD real a pantalla completa
+      sin duplicar el peso.** A 2048 sigue **1,58×** escalada sobre un panel de 3226 px de
+      dispositivo, y pesa **+82 %** sobre la Versión A.
 
 **Verification**
-- [ ] Peso total Versión A ≤ 266.140 B (hoy el sitio pesa 275.430 B: debe **bajar**).
-- [ ] Panel 1 en Versión A ≤ 46.375 B. Techo duro de LCP: 185.080 B con margen.
-- [ ] Comparar L1 a 320 px contra la de 1536 px bajo `blur(40px)`: la diferencia debe ser
-      invisible (medido: `maxΔ 4/255`, SSIM 0.997).
+- [x] Peso total Versión A = **178.839 B** ≤ 266.140 B, y **−35,1 %** contra los 275.430 B de
+      hoy. El plan preveía −3,4 %; sale mucho mejor porque L1 costó un tercio de lo estimado.
+- [x] Panel 1 = **42.099 B** ≤ 46.375 B. **4.276 B de margen.**
+- [x] L1 a 320 px vs 1536 px bajo `blur(40px)`: **maxΔ 5–13/255, meanΔ 0,37–0,56, SSIM ≥ 0,9998.**
+      La premisa se reproduce. *(El plan decía maxΔ 4; en `285` sale 13. Sigue siendo invisible
+      —meanΔ 0,56— pero el número del plan era optimista.)*
+- [x] `tasks/pipeline/checkbg.mjs` → exit 0, con control negativo: la foto sin desenfocar
+      tiene que **fallar** la comprobación de blur, y falla.
+
+**El hallazgo que obligó a rehacer L1: el fantasma es real**
+
+El plan (§T5) pedía «verificar el fantasma entre L1 y L2 … se supone que el blur de L1 lo
+destruye, pero **eso es un juicio, no una medición**». Medido: **no lo destruye.** Montada la
+Versión A y mirada, se veía la misma persona borrosa al lado de la nítida, en los cinco paneles.
+
+La causa es de T2: normalizar las cabezas movió y reescaló cada figura, así que un fondo
+encuadrado «como en la foto original» ya no cae donde cae su figura. La corrección es que L1
+use **la misma transformación que su figura**, leída de `tasks/pipeline/figs-geometry.json`
+—que `stage_d` ahora publica como contrato—. Con eso la figura nítida tapa su propio borroso
+en `p=0` y el paralaje los separa después, que es justamente el efecto buscado.
+
+**Y una segunda vuelta, también por mirar:** donde la figura se redujo (`285` va a 0,629×) el
+cuadro no cubre el lienzo — le faltan 445 px por la izquierda y 792 por abajo, dos tercios del
+área. Rellenar espejando producía un **caleidoscopio** con la cara y el dorsal repetidos en
+simetría: se leía como error, no como bokeh. Se replica el píxel del borde, que bajo sigma 6
+es un degradado suave.
+
+**El color horneado se verificó contra un navegador real**, no contra la fórmula. `checkbake.mjs`
+compara el asset horneado contra `filter: brightness(.92) contrast(1.05) saturate(.9)` pintado
+por Chromium:
+
+| vía | maxΔ |
+|---|---|
+| `recomb` + acotado entre pasos ← **lo que se hornea** | **2/255** |
+| `recomb` con la lineal fusionada | 7/255 |
+| `modulate` LCh de libvips *(control negativo)* | 23/255 |
+
+Dos cosas que no eran obvias: `saturate()` del navegador es la matriz de `feColorMatrix`, no el
+LCh de `libvips.modulate`; y **CSS acota a [0,255] después de cada función de filtro**, así que
+fusionar `brightness`+`contrast` en una sola lineal y saturar después *no* es equivalente.
+
+**`tasks/picks.json` quedó obsoleto respecto a §2.6:** asigna a skills la foto `763`, que §2.6
+marca **NO publicable**, y a blog la `886`. L1 ya no lo usa —toma la asignación de §2.6, la
+misma que las figuras—. Cuando T6 retire los fondos actuales, hay que retirar o actualizar
+también `picks.json` y `tasks/build.mjs`.
+
+**Pendiente para T5:** el `mask-image` que disuelve los bordes de la Versión B.
 
 **Dependencies:** ninguna. **Scope:** M.
 
@@ -274,8 +319,10 @@ tarea. El hero es el molde; hasta que no esté verificado, replicarlo 4 veces mu
       `k_far 0.2200 · k_fig 0.1000 · k_wash 0.0500 · k_txt −0.0800`.
 - [ ] `transform` es **0 exacto** en `p=0` (hoy hay 41,93 px de descentrado permanente).
 - [ ] Cero errores de consola en escenario normal **y forzado**.
-- [ ] Verificar el **fantasma entre L1 y L2** con las fotos reales: 86,4 px de desalineación a
-      `|p|=0.5`. Se supone que el blur de L1 lo destruye, pero **eso es un juicio, no una medición**.
+- [ ] El **fantasma entre L1 y L2 ya se midió en T3** y el blur **no** lo destruye: se
+      resolvió dando a L1 la misma transformación que su figura (`figs-geometry.json`), así que
+      en `p=0` la figura tapa su propio borroso. Aquí solo queda comprobar que el paralaje los
+      separa como se espera (86,4 px a `|p|=0.5`) sin reabrirlo.
 - [ ] Sin escalón duro de luminancia dentro del panel (salto máx. ~1.9, el ruido de fondo).
       Cerrar el último stop del gradiente en **84 %**, no en 100 %.
 - [ ] Probado a 2560 px de ancho.

@@ -546,7 +546,8 @@ Detalle completo por tarea en `tasks/todo.md`. Resumen del alcance y el orden:
   dispersión; recompuesto desde los originales porque reescalar el h1800 costaba −16 %/−29 %
   de nitidez.
 - **T3** Producir las capas de fondo desenfocado (320 px q35) y las fotos enteras de la
-  Versión B (2048 máx). *(M)*
+  Versión B (2048 máx). *(M)* **HECHO.** L1 pesa 8.327 B los 5 (un tercio de lo previsto) y va
+  alineada con la transformación de su figura: sin eso el fantasma L1/L2 se ve, medido.
 - **T4** Derivar la paleta única de las 5 fotos y escribir el archivo de tokens. *(M)*
 - **T2c** Unificar los tres `:root` en uno; eliminar `obsidiana.css`; migrar los 82 colores
   hardcodeados. *(L — dividir si hace falta)*
@@ -606,7 +607,7 @@ Detalle completo por tarea en `tasks/todo.md`. Resumen del alcance y el orden:
 | **La versión de Safari decide si hay portal.** 18.0 y 18.1 **no** tienen cross-document VT | Medio | Degradación limpia y verificada (corte instantáneo). **Pendiente de confirmar con el dueño**: Safari > Acerca de Safari. |
 | El matting muere por memoria | Medio | `enable_cpu_mem_arena=False` + `enable_mem_pattern=False` es **obligatorio** (sin él, 6.9 GB RSS y SIGTERM). Una foto por subproceso, verificar que el archivo existe, reintentar. El pico queda cerca del umbral en una máquina de 7.8 GB. |
 | El filtro de componente mayor **empeora** 2 de las 8 fotos | Medio | No es un default ciego: es una decisión por foto. En `763` y `764` deja zapatillas desmembradas donde había un corredor entero. Ya está resuelto eligiendo otras 5. |
-| Fantasma entre L1 y L2 (86,4 px de desalineación a `\|p\|=0.5`) | Medio | Se da por aceptable porque el blur de L1 destruye los bordes de alta frecuencia — **pero no está validado con las fotos reales**. Verificar en T5. |
+| Fantasma entre L1 y L2 (86,4 px de desalineación a `\|p\|=0.5`) | ~~Medio~~ **medido en T3** | **El blur NO lo destruye**: montada la Versión A y mirada, se veía la misma persona borrosa junto a la nítida en los 5 paneles. La causa era T2 — normalizar las cabezas movió las figuras y el fondo dejó de caer donde cae la suya. Resuelto dando a L1 la misma transformación que su figura (`figs-geometry.json`). En T5 solo queda comprobar que el paralaje los separa sin reabrirlo. |
 | Factores sin tope en monitores anchos | Bajo | `min(k·vw, 340px)`, §2.2. Verificar a 2560 px. |
 | El sysroot vive en `/tmp` y se pierde | Bajo | Se reconstruye en < 1 min con §3.2. Los navegadores (984 MB) sí sobreviven en `~/.cache`. |
 | Quitar `@view-transition` de `blog.css` es una **regresión deliberada** | Bajo | El toggle ES/EN dentro de un post pierde su barrido actual. Es coherente con «dentro del post se prioriza leer», pero es un cambio de comportamiento. |
