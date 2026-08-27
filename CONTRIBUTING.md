@@ -29,11 +29,14 @@ Cada post existe en dos idiomas. Si publicas uno solo, el toggle queda inerte. S
 
 3. **Crear archivo EN** en `/en/blog/<slug-en>.html`
    - Copiar la estructura de cualquier post EN existente.
-   - Cargar `obsidiana.css` además de `blog.css`:
+   - Cargar `tokens.css` **antes** de `blog.css`:
      ```html
+     <link rel="stylesheet" href="/src/styles/tokens.css">
      <link rel="stylesheet" href="/blog/blog.css">
-     <link rel="stylesheet" href="/src/styles/obsidiana.css">
      ```
+     `obsidiana.css` ya no existe: ES y EN comparten paleta, y la única fuente de
+     color es `src/styles/tokens.css`, generado desde las fotos por
+     `tasks/pipeline/maketokens.mjs`. No escribas colores a mano en el HTML.
    - Hreflang invertidos (ES y EN apuntan a sus URLs absolutas, x-default al ES).
    - Toggle apunta a `/blog/<slug-es>.html`, con `lang-active` sobre `EN`.
    - Back link va a `/en/blog/`.

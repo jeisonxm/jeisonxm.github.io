@@ -281,25 +281,43 @@ también `picks.json` y `tasks/build.mjs`.
 
 ---
 
-### [ ] T2c · Unificar los tres `:root`
-
-**Descripción.** Hoy la paleta está triplicada en `style.css`, `obsidiana.css` y `blog.css`,
-y `blog.css` ni siquiera importa `style.css`.
+### [x] T2c · Unificar los tres `:root`
 
 **Acceptance criteria**
-- [ ] Una sola fuente de tokens. `obsidiana.css` **eliminado**.
-- [ ] Resueltos los **5 tokens con mismo nombre y valor distinto** entre `style.css` y
-      `blog.css`: `--accent`, `--gray`, `--gray-dark`, `--gray-light`, `--transition`.
-- [ ] Borrados los 4 huérfanos: `--accent-dim`, `--accent-light`, `--marble-darkest`, `--marble-deep`.
-- [ ] Los **82 colores hardcodeados** fuera de `:root` migrados a tokens, o justificados uno a uno.
-- [ ] Todo `color-mix()` con declaración de respaldo **delante** (defecto 3).
+- [x] Una sola fuente de tokens: `src/styles/tokens.css`, cargado por **los 38 HTML**.
+      `obsidiana.css` **eliminado**; retirado de las 19 páginas EN. ES y EN comparten paleta.
+- [x] Resueltos los tokens con el mismo nombre y valor distinto: ya no hay tres `:root`.
+- [x] Borrados los huérfanos: toda la escala `--marble-*` desaparece.
+- [x] Colores hardcodeados migrados. **El número del plan no se reproduce**: no eran 82 sino
+      **88** en `style.css`+`blog.css` (los 56 de `obsidiana.css` se van con el archivo).
+      Quedan **7**, todos `rgba(0,0,0,α)` de `box-shadow`: una sombra es negra
+      independientemente de la paleta. Justificados, no migrados.
+- [x] Cero `color-mix()`, así que no hace falta declaración de respaldo delante (defecto 3).
+      En su lugar, cuatro tripletes (`--white-rgb`, `--gray-rgb`, `--bg-rgb`, `--surface-rgb`)
+      y `rgb(R G B / α)`, soportado desde Safari 12.1.
+
+**Cómo se migraron los 30 `var(--marble-*)`:** por **luminosidad OKLCh al token nuevo más
+cercano**, mecánicamente. Preserva la jerarquía visual exacta sin que yo invente decisiones de
+diseño que no podría verificar. `--marble-warm` → `--gray` (L 0,790 → 0,814), etc.
 
 **Verification**
-- [ ] Los 38 HTML renderizan sin cambio de color no intencionado (comparación de capturas).
-- [ ] `grep` de `#[0-9a-f]{3,6}` fuera del archivo de tokens: cada superviviente justificado.
+- [x] `tasks/verify/tokens-check.mjs`: **114 cargas** (38 páginas × 3 motores), todas resuelven
+      todos sus tokens y ninguna da `pageError`.
+- [x] `run.sh` → exit 0. Cero `consoleErrors` en los tres motores.
+- [x] Cero literales hex en los 38 HTML.
 
-**Dependencies:** T4 (necesita saber los valores finales). **Scope:** L — **divídela** si toca
-más de 5 archivos por paso.
+**Dos defectos preexistentes que la comprobación destapó**
+1. **`--accent-glow` se usaba en la portada ES y no existía en `style.css`** (sí en las otras
+   dos hojas). Caía siempre al respaldo. Ahora está definido una sola vez.
+2. **`--marble-cream` en un `<style>` en línea de `blog/index.html`**, que ninguna migración de
+   hojas externas habría tocado.
+
+**Y un fallo mío que solo se vio por tener control:** la primera versión de `tokens-check`
+encontraba **2 tokens en todo el sitio** y parecía verde. Desde CSS Nesting un `CSSStyleRule`
+también tiene `.cssRules` (vacío pero *truthy*), así que `if (x.cssRules) recurse; else leer
+cssText` no leía ni una declaración. Corregido: ahora ve 28 por página.
+
+**Dependencies:** T4. **Scope:** L.
 
 ---
 

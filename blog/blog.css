@@ -1,3 +1,5 @@
+/* La paleta ya no vive aqui: src/styles/tokens.css es la unica fuente.
+   Generada por tasks/pipeline/maketokens.mjs a partir de las 5 fotos. */
 /* Iconos SVG inline (FontAwesome Free) — sustituyen a los emojis que
    marcaban la voz de Archy. */
 .icon {
@@ -34,37 +36,6 @@
   src: url('/src/fonts/space-grotesk-latin-wght-normal.woff2') format('woff2-variations');
 }
 
-/* =====================================================
-   BLOG POST — Inherits marble palette from main site
-   ===================================================== */
-
-:root {
-  --marble-white: #EDEAE6;
-  --marble-cream: #D9D2C7;
-  --marble-warm: #C4B9A8;
-  --marble-mid: #B0A99F;
-  --marble-shadow: #9C9486;
-  --marble-vein: #7B7468;
-  --marble-deep: #4A4640;
-  --marble-darkest: #3A3632;
-
-  --bg: #2C2824;
-  --bg-alt: #332F2A;
-  --surface: #3D3831;
-  --surface-hover: #4A4640;
-  --white: #EDEAE6;
-  --gray: #B0A99F;
-  --gray-light: #C4B9A8;
-  --gray-dark: #8A8078;
-  --border: rgba(237, 234, 230, 0.08);
-  --radius: 2px;
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', sans-serif;
-
-  --accent: #C4B9A8;
-  --accent-glow: rgba(196, 185, 168, 0.1);
-  --transition: 0.2s ease;
-}
 
 *, *::before, *::after {
   margin: 0;
@@ -87,7 +58,7 @@ body {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
-a { color: var(--marble-cream); text-decoration: none; }
+a { color: var(--gray-light); text-decoration: none; }
 a:hover { color: var(--white); }
 
 /* ===== Header ===== */
@@ -101,10 +72,10 @@ a:hover { color: var(--white); }
   justify-content: space-between;
   align-items: center;
   padding: 0 5%;
-  background: rgba(44, 40, 36, 0.92);
+  background: rgb(var(--bg-rgb) / 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(196, 185, 168, 0.1);
+  border-bottom: 1px solid rgb(var(--gray-rgb) / 0.1);
   z-index: 1000;
 }
 
@@ -116,7 +87,7 @@ a:hover { color: var(--white); }
   letter-spacing: -0.5px;
 }
 
-.blog-header-logo span { color: var(--marble-warm); }
+.blog-header-logo span { color: var(--gray); }
 
 .blog-header-back {
   font-size: 1.3rem;
@@ -149,10 +120,10 @@ a:hover { color: var(--white); }
 .blog-tag-pill {
   display: inline-block;
   padding: 4px 12px;
-  border: 1px solid rgba(196, 185, 168, 0.2);
-  background: rgba(196, 185, 168, 0.06);
+  border: 1px solid rgb(var(--gray-rgb) / 0.2);
+  background: rgb(var(--gray-rgb) / 0.06);
   border-radius: 100px;
-  color: var(--marble-warm);
+  color: var(--gray);
   font-size: 1.1rem;
   font-weight: 600;
   letter-spacing: 1px;
@@ -189,7 +160,7 @@ a:hover { color: var(--white); }
 .blog-divider {
   width: 60px;
   height: 2px;
-  background: var(--marble-warm);
+  background: var(--gray);
   opacity: 0.4;
   margin-bottom: 40px;
 }
@@ -209,7 +180,7 @@ a:hover { color: var(--white); }
   font-size: 1.9rem;
   font-weight: 600;
   margin: 36px 0 12px;
-  color: var(--marble-cream);
+  color: var(--gray-light);
 }
 
 .blog-content p {
@@ -225,12 +196,12 @@ a:hover { color: var(--white); }
 }
 
 .blog-content em {
-  color: var(--marble-warm);
+  color: var(--gray);
   font-style: italic;
 }
 
 .blog-content blockquote {
-  border-left: 3px solid var(--marble-warm);
+  border-left: 3px solid var(--gray);
   padding: 16px 24px;
   margin: 32px 0;
   background: var(--surface);
@@ -240,14 +211,14 @@ a:hover { color: var(--white); }
 }
 
 .blog-content blockquote p {
-  color: var(--marble-cream);
+  color: var(--gray-light);
   font-size: 1.5rem;
   margin-bottom: 0;
 }
 
 /* ===== Archy note — la voz del agente, intercalada ===== */
 .archy-note {
-  border: 1px dashed var(--marble-vein);
+  border: 1px dashed var(--gray-dark);
   border-radius: var(--radius);
   background: var(--bg-alt);
   padding: 18px 22px 20px;
@@ -260,14 +231,14 @@ a:hover { color: var(--white); }
   font-size: 1.15rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--marble-shadow);
+  color: var(--gray-dark);
   margin-bottom: 10px;
 }
 
 .archy-note p {
   font-size: 1.45rem;
   line-height: 1.75;
-  color: var(--marble-mid);
+  color: var(--gray-dark);
   margin-bottom: 0;
 }
 
@@ -358,8 +329,8 @@ a:hover { color: var(--white); }
   background: linear-gradient(
     to right,
     transparent,
-    rgba(196, 185, 168, 0.25) 30%,
-    rgba(196, 185, 168, 0.25) 70%,
+    rgb(var(--gray-rgb) / 0.25) 30%,
+    rgb(var(--gray-rgb) / 0.25) 70%,
     transparent
   );
 }
@@ -368,8 +339,8 @@ a:hover { color: var(--white); }
   background: linear-gradient(
     to left,
     transparent,
-    rgba(196, 185, 168, 0.25) 30%,
-    rgba(196, 185, 168, 0.25) 70%,
+    rgb(var(--gray-rgb) / 0.25) 30%,
+    rgb(var(--gray-rgb) / 0.25) 70%,
     transparent
   );
 }
@@ -380,7 +351,7 @@ a:hover { color: var(--white); }
   font-weight: 600;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--marble-vein);
+  color: var(--gray-dark);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -402,7 +373,7 @@ a:hover { color: var(--white); }
 }
 
 .blog-voice a {
-  color: var(--marble-cream);
+  color: var(--gray-light);
   text-decoration: none;
 }
 
@@ -468,7 +439,7 @@ a:hover { color: var(--white); }
   font-size: 1.4rem !important;
   color: var(--gray) !important;
   font-style: italic;
-  border-left: 2px solid var(--marble-vein);
+  border-left: 2px solid var(--gray-dark);
   padding-left: 16px;
   margin-top: 16px !important;
 }
@@ -498,9 +469,9 @@ a:hover { color: var(--white); }
 
 .blog-index-card:hover {
   background-color: var(--surface-hover);
-  border-color: rgba(196, 185, 168, 0.2);
+  border-color: rgb(var(--gray-rgb) / 0.2);
   box-shadow:
-    inset 0 1px 0 rgba(196,185,168,0.06),
+    inset 0 1px 0 rgb(var(--gray-rgb) / 0.06),
     inset 0 -1px 3px rgba(0,0,0,0.25),
     0 2px 8px rgba(0,0,0,0.3);
   transform: translateY(-2px);
@@ -509,10 +480,10 @@ a:hover { color: var(--white); }
 .blog-index-tag {
   display: inline-block;
   padding: 3px 10px;
-  border: 1px solid rgba(196, 185, 168, 0.2);
-  background: rgba(196, 185, 168, 0.06);
+  border: 1px solid rgb(var(--gray-rgb) / 0.2);
+  background: rgb(var(--gray-rgb) / 0.06);
   border-radius: 100px;
-  color: var(--marble-warm);
+  color: var(--gray);
   font-size: 1rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -560,7 +531,7 @@ a:hover { color: var(--white); }
 .blog-index-quote p {
   font-family: var(--font-display);
   font-size: 2rem;
-  color: var(--marble-cream);
+  color: var(--gray-light);
   font-style: italic;
   line-height: 1.5;
   margin-bottom: 12px;
@@ -682,7 +653,7 @@ a:hover { color: var(--white); }
 }
 
 .lang-toggle .lang-sep {
-  color: var(--marble-vein);
+  color: var(--gray-dark);
   font-weight: 300;
 }
 

@@ -10,6 +10,7 @@
   <link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/">
   <link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/">
 
+  <link rel="stylesheet" href="/src/styles/tokens.css">
   <link rel="stylesheet" href="./blog.css">
   <link rel="preload" href="/src/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/src/fonts/space-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -47,14 +48,14 @@
 
     .blog-page-btn:hover {
       background: var(--surface-hover);
-      border-color: rgba(196, 185, 168, 0.2);
+      border-color: rgb(var(--gray-rgb) / 0.2);
       color: var(--white);
     }
 
     .blog-page-btn.active {
-      background: rgba(196, 185, 168, 0.12);
-      border-color: rgba(196, 185, 168, 0.3);
-      color: var(--marble-cream);
+      background: rgb(var(--gray-rgb) / 0.12);
+      border-color: rgb(var(--gray-rgb) / 0.3);
+      color: var(--gray-light);
     }
 
     .blog-page-btn:disabled {

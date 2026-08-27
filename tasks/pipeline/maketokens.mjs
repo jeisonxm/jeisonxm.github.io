@@ -140,9 +140,23 @@ const css = `/* tokens.css — UNA sola fuente de verdad para el color.
 :root {
 ${Object.entries(T).map(([k, v]) => `  ${k}: ${v};`).join('\n')}
 
+  /* Tripletes para componer con alfa sin duplicar el color.
+   * Los 88 literales rgba() que vivian fuera de :root se reducian a cinco
+   * colores base; ahora salen todos de estos cuatro tokens mas negro puro
+   * (sombras, justificado). Nada de color-mix: rgb(R G B / a) funciona desde
+   * Safari 12.1 y no necesita declaracion de respaldo delante (defecto 3). */
+  --white-rgb: ${parse(T['--white']).join(' ')};
+  --gray-rgb: ${parse(T['--gray']).join(' ')};
+  --bg-rgb: ${parse(T['--bg']).join(' ')};
+  --surface-rgb: ${parse(T['--surface']).join(' ')};
+
   /* Bordes: sobre --white, para que sigan al texto y no al fondo. */
-  --border: rgba(247, 248, 250, 0.08);
-  --border-hover: rgba(247, 248, 250, 0.16);
+  --border: rgb(var(--white-rgb) / 0.08);
+  --border-hover: rgb(var(--white-rgb) / 0.16);
+  /* Existia en obsidiana.css y en blog.css pero NO en style.css: la portada ES
+   * lo usaba y caia siempre al respaldo. Ahora esta definido una sola vez. */
+  --accent-glow: rgb(var(--accent-rgb) / 0.12);
+  --accent-rgb: ${parse(T['--accent']).join(' ')};
 
   /* Campo de color de cada panel, sacado de su propio fondo desenfocado. */
 ${Object.entries(paneles).map(([k, v]) => `  --panel-${k}: ${v.hex};`).join('\n')}

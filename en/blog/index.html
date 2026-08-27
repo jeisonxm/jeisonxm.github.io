@@ -10,10 +10,10 @@
   <link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/">
   <link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/">
 
+  <link rel="stylesheet" href="/src/styles/tokens.css">
   <link rel="stylesheet" href="/blog/blog.css">
   <link rel="preload" href="/src/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/src/fonts/space-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/src/styles/obsidiana.css">
   <link rel="icon" href="/src/icons/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/src/icons/favicon.ico" sizes="16x16 32x32 48x48">
   <link rel="apple-touch-icon" href="/src/icons/apple-touch-icon.png">
@@ -48,13 +48,13 @@
 
     .blog-page-btn:hover {
       background: var(--surface-hover);
-      border-color: rgba(0, 212, 255, 0.2);
+      border-color: rgb(var(--accent-rgb) / 0.2);
       color: var(--white);
     }
 
     .blog-page-btn.active {
-      background: rgba(0, 212, 255, 0.12);
-      border-color: rgba(0, 212, 255, 0.3);
+      background: rgb(var(--accent-rgb) / 0.12);
+      border-color: rgb(var(--accent-rgb) / 0.3);
       color: var(--accent);
     }
 
