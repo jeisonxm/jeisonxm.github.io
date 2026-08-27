@@ -135,25 +135,32 @@ for (const eng of ENGINES) {
       // gestos, asi que un solo hueco por encima de eso parte el gesto en dos y
       // el resultado deja de ser el escenario que se pidio medir. La mediana
       // esconde justo ese pico.
+      // Un hueco solo es infiel SI CRUZA IDLE_MS donde el escenario pedia menos.
+      // Compararlo contra el gap maximo PEDIDO era demasiado grueso: en "3
+      // flicks + inercia" el maximo pedido es 120 (la separacion entre flicks),
+      // asi que un hueco de 179 ms DENTRO de un flick — donde se pedian 16 —
+      // pasaba por bueno y partia el gesto en dos.
+      const IDLE = 120;
+      const inventados = gaps.filter((g, i) => pedidos[i] < IDLE && g >= IDLE).length;
       const pedidoMax = Math.max(...pedidos.filter((x) => x > 0), 0);
       return { panel: Math.round(c.scrollLeft / c.clientWidth), intervenido, eventos: pasos.length,
                desvioMediano: desvio.length ? +desvio[Math.floor(desvio.length / 2)].toFixed(2) : 0,
                gapMedio: gaps.length ? +(gaps.reduce((a, b) => a + b, 0) / gaps.length).toFixed(0) : 0,
-               gapMax: gaps.length ? +Math.max(...gaps).toFixed(0) : 0, pedidoMax };
+               gapMax: gaps.length ? +Math.max(...gaps).toFixed(0) : 0, pedidoMax, inventados };
     }, esc);
 
     // Fiel = el motor entrego los eventos a la separacion pedida (mediana
     // dentro del 50%). Si no, el escenario no se reprodujo.
     // IDLE_MS del sitio. Si el motor mete un silencio por encima, ha inventado
     // una separacion de gesto que el escenario no pedia.
-    const IDLE_MS = 120;
-    const fiel = r.desvioMediano <= 0.5 && (r.gapMax <= Math.max(IDLE_MS, r.pedidoMax * 1.5));
+    // Fiel = el motor no invento ni una sola separacion de gesto.
+    const fiel = r.desvioMediano <= 0.5 && r.inventados === 0;
     const acierta = r.panel === esc.espera && (!esc.horizontal || r.intervenido === 0);
     const ok = errs.length === 0 && (fiel ? acierta : true);
     if (!ok) fallos++;
     if (!fiel) noFieles++;
     console.log(`  ${ok ? (fiel ? 'OK  ' : 'n/i ') : 'FALLO'} ${esc.n.padEnd(32)} panel ${r.panel} (esperado ${esc.espera})` +
-      `   gap medio ${r.gapMedio} ms, max ${r.gapMax} ms, desvio ${(100 * r.desvioMediano).toFixed(0)}%` +
+      `   gap medio ${r.gapMedio} ms, max ${r.gapMax} ms, huecos inventados ${r.inventados}` +
       (fiel ? '' : ' <- NO INTERPRETABLE: el motor no entrega el gesto a tiempo') +
       (esc.horizontal ? `   preventDefault: ${r.intervenido}/${r.eventos}` : '') +
       (errs.length ? `   pageError: ${errs[0]}` : ''));

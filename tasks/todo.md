@@ -323,8 +323,8 @@ cssText` no leía ni una declaración. Corregido: ahora ve 28 por página.
 
 ### CHECKPOINT A — antes de tocar el motor
 - [x] Los 5 recortes revisados en hoja de contacto, escalas normalizadas (T2).
-- [ ] Paleta con contraste AA verificado sobre las fotos reales.
-- [ ] Presupuesto de bytes medido y por debajo del de hoy.
+- [x] Paleta con contraste AA verificado sobre las fotos reales (T4).
+- [x] Presupuesto de bytes medido y por debajo del de hoy: 178.839 B contra 275.430 B.
 
 ---
 
@@ -380,7 +380,7 @@ molestó en alinear.
 **Dependencies:** T2, T3, T4, T2c. **Scope:** L.
 
 ### CHECKPOINT B
-- [ ] Todo lo de arriba verde antes de pasar a T6.
+- [x] Todo verde antes de pasar a T6.
 
 ---
 
@@ -557,14 +557,15 @@ sabe dar rojo, así que su verde significa algo.
 
 **Dependencies:** T6, T8. **Scope:** M.
 
-### [ ] T11 · Verificación final e informe honesto
+### [x] T11 · Verificación final e informe honesto
 
-- [ ] Suite completa verde: 3 motores × escenario normal y forzado.
-- [ ] LCP ≤ 2,5 s medido.
-- [ ] **Escribir explícitamente lo NO verificable desde esta máquina** (§3.4 del plan):
-      frame-rate real, coste de blur en Safari, inercia real del trackpad, el camino nativo
-      horizontal de la regla 1, y que el WebKit de prueba es Safari 26.5 y no el del dueño.
-      **No lo vendas como equivalente a un Mac.**
+- [x] **Suite completa verde: las 15 puertas de aceptación, exit 0.** Tres motores, escenario
+      normal y forzado. `run.sh stability` → veredictos idénticos en 3 corridas.
+- [x] **LCP medido** con el mismo perfil con que el plan fijó el techo (1638,4 Kbps, RTT 150 ms,
+      CPU ×4): **1680 ms** portada ES, **1708 ms** EN, **968 ms** blog. Techo 2500 ms,
+      **820 ms de margen**.
+- [x] Escrito lo NO verificable desde esta máquina, y las **6 afirmaciones del plan que no se
+      reprodujeron**, en [`tasks/INFORME.md`](./INFORME.md).
 
 **Dependencies:** todas. **Scope:** S.
 

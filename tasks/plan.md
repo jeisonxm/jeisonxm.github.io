@@ -1,6 +1,7 @@
 # Plan: profundidad fotográfica en scroll horizontal
 
-**Estado:** listo para ejecutar de forma autónoma.
+**Estado:** EJECUTADO Y CERRADO el 2026-08-27. Las 11 tareas hechas y verificadas.
+**Informe final, con lo que no se pudo verificar:** [tasks/INFORME.md](./INFORME.md).
 **Modo previsto:** otra sesión con `/goal` + `/agent-skills:build`, sin preguntar nada hasta terminar.
 **Escrito:** 2026-08-26 (Panamá). **Base:** commit `8338168`.
 
