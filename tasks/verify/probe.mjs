@@ -34,6 +34,12 @@ const argv = Object.fromEntries(
 const SITE = argv.site || '/home/archy/jeisonxm.github.io';
 const ENGINES = String(argv.engines || 'webkit,firefox,chromium').split(',').map((s) => s.trim()).filter(Boolean);
 const VIEWPORT = { width: 1440, height: 900 };
+// src/lang.js:51 redirige `/` a `/en/` cuando navigator.language empieza por
+// 'en' y no hay preferencia guardada. El locale por defecto de Playwright es
+// en-US, asi que TODO el arnes estuvo midiendo /en/ creyendo medir /. Ahora la
+// eleccion es explicita y queda registrada en el JSON.
+const LOCALE = argv.locale || 'es-ES';
+const PATHNAME = argv.path || '/';
 
 // El launcher propio de WebKit: pw_run.sh pisa LD_LIBRARY_PATH, asi que no ve
 // el sysroot local con libgtk-4 / libevent / etc. wk_run.sh hace lo mismo pero
@@ -72,6 +78,130 @@ async function startServer(root) {
 
 // ---------- utilidades ----------
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// ---------- gestos de rueda ----------
+// El gesto que interesa es "3 notches a 120 ms". Sintetizarlo NO es gratis:
+// medido en esta maquina, page.mouse.wheel cuesta ~400 ms de ida y vuelta en
+// WebKit headless, asi que alli el gesto sale estirado y el resultado bailaba
+// entre panel 1 y panel 2 corrida a corrida. Por eso hay dos vias y se registra
+// el timing REAL en pagina en vez de suponerlo:
+//
+//   confiable  page.mouse.wheel. Camino de entrada real (evento trusted).
+//              Timing fiel en Firefox y Chromium; NO en WebKit.
+//   sintetico  WheelEvent despachado dentro de la pagina. Timing exacto
+//              (120-125 ms) en Firefox y Chromium. Ejercita la maquina de
+//              estados del sitio, no el scroll nativo.
+//
+// timingFiel dice si los gaps REALES reprodujeron el gesto pretendido. Si es
+// false, panelReached describe lo que paso, pero NO es "3 flicks a 120 ms".
+const WHEEL_N = 3;
+const WHEEL_GAP_MS = 120;
+const WHEEL_DELTA = 120;
+const GAP_TOL = 0.5;          // +-50% del gap pretendido
+// Reintentar solo tiene sentido donde el timing fiel es alcanzable. Medido en
+// esta maquina, page.mouse.wheel da gaps de 92-214 ms en Firefox, 134-176 en
+// Chromium y ~200-460 en WebKit: reintentar no lo arregla, lo sortea. La via
+// sintetica si da 120-125 ms, y ahi un reintento ocasional vale la pena.
+const ATTEMPTS = { confiable: 1, sintetico: 4 };
+
+// En captura y passive: observa sin alterar el comportamiento del sitio.
+function instrumentWheel() {
+  window.__wheelLog = [];
+  window.addEventListener('wheel', () => window.__wheelLog.push(performance.now()),
+    { capture: true, passive: true });
+}
+
+// Espera a que el scroll DEJE de moverse. `behavior: smooth` dura lo que dura
+// en cada motor; dormir un rato fijo es una carrera disfrazada de medicion.
+async function settleScroll(page, { quiet = 4, step = 100, max = 60 } = {}) {
+  let last = null, stable = 0, snap = { scrollLeft: null, clientWidth: null };
+  for (let i = 0; i < max; i++) {
+    snap = await page.evaluate(() => {
+      const c = document.getElementById('container');
+      return c ? { scrollLeft: c.scrollLeft, clientWidth: c.clientWidth }
+               : { scrollLeft: null, clientWidth: null };
+    });
+    if (last !== null && snap.scrollLeft === last) { if (++stable >= quiet) return snap; }
+    else { stable = 0; last = snap.scrollLeft; }
+    await sleep(step);
+  }
+  return snap;
+}
+
+async function measureWheel(page, mode) {
+  const maxAttempts = ATTEMPTS[mode] || 1;
+  const out = {
+    modo: mode, intentos: 0, gapObjetivoMs: WHEEL_GAP_MS, gapsMs: null,
+    timingFiel: false, scrollLeft: null, clientWidth: null,
+    panelReached: null, error: null,
+  };
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    out.intentos = attempt;
+    try {
+      // Cada reintento arranca de pagina limpia. Un simple scrollTo(0) NO basta:
+      // el sitio guarda `currentIndex` y un cooldown de 650 ms, asi que el
+      // segundo intento avanzaria desde el indice del primero. Hoy se salva de
+      // milagro porque el IntersectionObserver reescribe `currentIndex`
+      // (src/script.js:216) — justo la linea que T7 va a tocar. Recargar no
+      // depende de las tripas del sitio.
+      if (attempt > 1) {
+        await page.reload({ waitUntil: 'load', timeout: 45000 });
+        await page.evaluate(() => document.fonts.ready).catch(() => {});
+        await page.waitForTimeout(400);
+      }
+      await page.evaluate(() => {
+        document.getElementById('container').scrollTo({ left: 0, behavior: 'auto' });
+        if (window.__wheelLog) window.__wheelLog.length = 0;
+      });
+      await settleScroll(page);
+
+      if (mode === 'confiable') {
+        await page.mouse.move(VIEWPORT.width / 2, VIEWPORT.height / 2);
+        // Contra un deadline monotono: el coste de cada llamada se absorbe en la
+        // espera siguiente en vez de sumarse al gap.
+        const t0 = Date.now();
+        for (let i = 0; i < WHEEL_N; i++) {
+          await page.mouse.wheel(0, WHEEL_DELTA);
+          const rest = t0 + (i + 1) * WHEEL_GAP_MS - Date.now();
+          if (rest > 0) await sleep(rest);
+        }
+      } else {
+        await page.evaluate(async ({ n, gap, delta }) => {
+          const c = document.getElementById('container');
+          for (let i = 0; i < n; i++) {
+            if (i) await new Promise((r) => setTimeout(r, gap));
+            c.dispatchEvent(new WheelEvent('wheel',
+              { deltaY: delta, deltaMode: 0, bubbles: true, cancelable: true }));
+          }
+        }, { n: WHEEL_N, gap: WHEEL_GAP_MS, delta: WHEEL_DELTA });
+      }
+
+      const log = await page.evaluate(() => (window.__wheelLog || []).slice());
+      out.gapsMs = log.slice(1).map((t, i) => Math.round(t - log[i]));
+      out.timingFiel = log.length === WHEEL_N && out.gapsMs.every(
+        (g) => g >= WHEEL_GAP_MS * (1 - GAP_TOL) && g <= WHEEL_GAP_MS * (1 + GAP_TOL));
+
+      const end = await settleScroll(page);
+      out.scrollLeft = end.scrollLeft;
+      out.clientWidth = end.clientWidth;
+      out.panelReached = end.clientWidth ? +(end.scrollLeft / end.clientWidth).toFixed(2) : null;
+      out.error = null;
+      if (out.timingFiel) break;
+    } catch (e) {
+      out.error = String(e).split('\n')[0];
+      break;
+    }
+  }
+  return out;
+}
+
+function fmtWheel(w) {
+  if (!w) return 'sin medir';
+  const gaps = w.gapsMs ? w.gapsMs.join('/') + ' ms' : 'sin eventos';
+  const aviso = w.timingFiel ? '' : '  <- gesto estirado: el panel NO es "3 notches a 120 ms"';
+  return `panel ${w.panelReached}  scrollLeft ${w.scrollLeft}  gaps ${gaps}  ` +
+         `timingFiel=${w.timingFiel}  intentos ${w.intentos}${w.error ? '  ERROR ' + w.error : ''}${aviso}`;
+}
 
 function launcherFor(name) {
   if (name === 'chromium') return { type: chromium, opts: {} };
@@ -127,10 +257,12 @@ async function runEngine(name, base) {
     knownTypeError: false,
     knownTypeErrorText: null,
     cssSupportsScrollTimeline: null,
+    documento: null,
     finePointer: null,
     reducedMotion: null,
     transform: {},
     wheel: {},
+    wheelSynthetic: {},
     forcedSafari18: null,
     error: null,
   };
@@ -147,7 +279,7 @@ async function runEngine(name, base) {
   out.version = browser.version();
 
   try {
-    const ctx = await browser.newContext({ viewport: VIEWPORT });
+    const ctx = await browser.newContext({ viewport: VIEWPORT, locale: LOCALE });
     const page = await ctx.newPage();
 
     page.on('console', (m) => {
@@ -162,7 +294,12 @@ async function runEngine(name, base) {
       }
     });
 
-    await page.goto(base + '/', { waitUntil: 'load', timeout: 45000 });
+    await page.addInitScript(instrumentWheel);
+    await page.goto(base + PATHNAME, { waitUntil: 'load', timeout: 45000 });
+    // Barrera determinista. Sin esto Firefox aborta de vez en cuando la descarga
+    // de la fuente (NS_BINDING_ABORTED) y aparece un consoleError fantasma:
+    // medido, 1 de cada 8 corridas. Con la barrera, 0 de 8.
+    await page.evaluate(() => document.fonts.ready).catch(() => {});
     await page.waitForTimeout(900);
     for (const t of out.consoleErrors) {
       if (isKnownTypeError(t)) { out.knownTypeError = true; out.knownTypeErrorText ||= t; }
@@ -178,6 +315,28 @@ async function runEngine(name, base) {
       clientWidth: document.getElementById('container')?.clientWidth ?? null,
       scrollWidth: document.getElementById('container')?.scrollWidth ?? null,
     }));
+    // ¿Lo que se cargo ES el sitio? Sin esto, apuntar el arnes a un directorio
+    // equivocado da VERDE: querySelector devuelve null, todo queda undefined,
+    // `transform: {}` y `process.exit(0)`. Un probe que no encuentra nada tiene
+    // que gritar, no aprobar. Se registra tambien QUE documento se midio: la
+    // portada redirige a /en/ segun navigator.language (src/lang.js), asi que
+    // "el sitio" no es una sola pagina y el JSON tiene que decir cual fue.
+    out.documento = await page.evaluate(() => ({
+      url: location.href,
+      pathname: location.pathname,
+      lang: document.documentElement.lang || null,
+      container: !!document.getElementById('container'),
+      heroImg: !!document.querySelector('#hero .panel-bg img'),
+    }));
+    out.documento.pedido = PATHNAME;
+    out.documento.locale = LOCALE;
+    if (!out.documento.container || !caps.panels || !out.documento.heroImg) {
+      out.error = `el documento medido no es el sitio esperado: ${out.documento.pathname} ` +
+        `(container=${out.documento.container} paneles=${caps.panels} heroImg=${out.documento.heroImg})`;
+      await ctx.close();
+      return out;
+    }
+
     out.userAgent = caps.ua;
     out.cssSupportsScrollTimeline = caps.scrollTimeline;
     out.finePointer = caps.finePointer;
@@ -185,63 +344,47 @@ async function runEngine(name, base) {
     out.panels = caps.panels;
     out.clientWidth = caps.clientWidth;
 
-    // (e) transform ANTES / MITAD / DESPUES de scroll horizontal en #container
-    const before = await readTransform(page);
-    await page.evaluate(() => {
-      const c = document.getElementById('container');
-      c.scrollTo({ left: Math.round(c.clientWidth * 0.5), behavior: 'auto' });
-    });
-    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
-    await page.waitForTimeout(250);
-    const half = await readTransform(page);
-    await page.evaluate(() => {
-      const c = document.getElementById('container');
-      c.scrollTo({ left: c.clientWidth, behavior: 'auto' });
-    });
-    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
-    await page.waitForTimeout(250);
-    const after = await readTransform(page);
+    // (e) transform en TRES POSICIONES DE PANEL.
+    //
+    // Antes esto media "antes / a mitad / despues" con un scrollTo a
+    // clientWidth*0.5. Ese punto no existe: con `scroll-snap-type: x mandatory`
+    // (style.css:162) y `scroll-snap-align: center` (:198), 720 px queda
+    // EXACTAMENTE equidistante de los centros del panel 0 (720) y del panel 1
+    // (2160). Es un empate, cada motor lo rompe a su manera, y la medicion
+    // quedaba a 1 px de cambiar de significado. Bajo snap obligatorio no hay
+    // posiciones intermedias observables: solo hay paneles.
+    const posiciones = [0, 1, 2];
+    const lecturas = [];
+    for (const i of posiciones) {
+      if (i > 0) {
+        await page.evaluate((n) => {
+          const c = document.getElementById('container');
+          c.scrollTo({ left: c.clientWidth * n, behavior: 'auto' });
+        }, i);
+        await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+        await page.waitForTimeout(250);
+      }
+      lecturas.push(await readTransform(page));
+    }
+    const [l0, l1, l2] = lecturas;
 
     out.transform = {
-      before: before.transform, half: half.transform, after: after.transform,
-      pxBefore: before.px, pxHalf: half.px, pxAfter: after.px,
-      changed: !!(before.found && (before.transform !== half.transform || before.transform !== after.transform)),
-      measurable: !!before.found,
+      enPanel0: l0.transform, enPanel1: l1.transform, enPanel2: l2.transform,
+      pxPanel0: l0.px, pxPanel1: l1.px, pxPanel2: l2.px,
+      scrollLeft: lecturas.map((l) => l.scrollLeft),
+      changed: !!(l0.found && (l0.transform !== l1.transform || l0.transform !== l2.transform)),
+      measurable: !!l0.found,
     };
 
-    // (f) 3 gestos de rueda con 120 ms de separacion
-    await page.evaluate(() => { document.getElementById('container').scrollTo({ left: 0, behavior: 'auto' }); });
-    await page.waitForTimeout(700);
-    const wheelStart = await page.evaluate(() => document.getElementById('container').scrollLeft);
-    await page.mouse.move(VIEWPORT.width / 2, VIEWPORT.height / 2);
-    let wheelErr = null;
-    try {
-      for (let i = 0; i < 3; i++) {
-        await page.mouse.wheel(0, 120);
-        await page.waitForTimeout(120);
-      }
-    } catch (e) {
-      wheelErr = String(e).split('\n')[0];
-    }
-    await page.waitForTimeout(1200);
-    const wheelEnd = await page.evaluate(() => {
-      const c = document.getElementById('container');
-      return { scrollLeft: c.scrollLeft, clientWidth: c.clientWidth };
-    });
-    out.wheel = {
-      supported: wheelErr === null,
-      error: wheelErr,
-      start: wheelStart,
-      end: wheelEnd.scrollLeft,
-      clientWidth: wheelEnd.clientWidth,
-      panelReached: wheelEnd.clientWidth ? +(wheelEnd.scrollLeft / wheelEnd.clientWidth).toFixed(2) : null,
-    };
+    // (f) 3 gestos de rueda a 120 ms, por las dos vias.
+    out.wheel = await measureWheel(page, 'confiable');
+    out.wheelSynthetic = await measureWheel(page, 'sintetico');
 
     await ctx.close();
 
     // --- ESCENARIO FORZADO: Safari <= 18 / Firefox con raton ---
     // scroll-timeline NO soportado + puntero fino  => la rama que revienta.
-    const ctx2 = await browser.newContext({ viewport: VIEWPORT });
+    const ctx2 = await browser.newContext({ viewport: VIEWPORT, locale: LOCALE });
     const p2 = await ctx2.newPage();
     const forced = { pageErrors: [], knownTypeError: false, text: null, scrollLeft: null };
     p2.on('pageerror', (e) => {
@@ -264,16 +407,14 @@ async function runEngine(name, base) {
         return realMM(q);
       };
     });
-    await p2.goto(base + '/', { waitUntil: 'load', timeout: 45000 });
+    await p2.addInitScript(instrumentWheel);
+    await p2.goto(base + PATHNAME, { waitUntil: 'load', timeout: 45000 });
+    await p2.evaluate(() => document.fonts.ready).catch(() => {});
     await p2.waitForTimeout(900);
-    await p2.mouse.move(VIEWPORT.width / 2, VIEWPORT.height / 2);
-    try {
-      for (let i = 0; i < 3; i++) { await p2.mouse.wheel(0, 120); await p2.waitForTimeout(120); }
-    } catch { /* ya reportado arriba */ }
-    await p2.waitForTimeout(1200);
-    forced.scrollLeft = await p2.evaluate(() => document.getElementById('container').scrollLeft);
-    forced.clientWidth = await p2.evaluate(() => document.getElementById('container').clientWidth);
-    forced.panelReached = forced.clientWidth ? +(forced.scrollLeft / forced.clientWidth).toFixed(2) : null;
+    forced.wheel = await measureWheel(p2, 'sintetico');
+    forced.scrollLeft = forced.wheel.scrollLeft;
+    forced.clientWidth = forced.wheel.clientWidth;
+    forced.panelReached = forced.wheel.panelReached;
     out.forcedSafari18 = forced;
     await ctx2.close();
   } catch (e) {
@@ -297,7 +438,9 @@ for (const name of ENGINES) {
     console.log(`  ARRANQUE FALLIDO: ${r.error}\n`);
     continue;
   }
+  if (r.error) console.log(`  ERROR                    : ${r.error}`);
   console.log(`  version                  : ${r.version}`);
+  console.log(`  documento medido         : pedido ${r.documento ? r.documento.pedido : '?'} -> servido ${r.documento ? r.documento.pathname : '?'}  lang=${r.documento ? r.documento.lang : '?'}  locale=${r.documento ? r.documento.locale : '?'}`);
   console.log(`  userAgent                : ${r.userAgent}`);
   console.log(`  CSS.supports scroll()    : ${r.cssSupportsScrollTimeline}`);
   console.log(`  (hover:hover)+(pointer:fine): ${r.finePointer}`);
@@ -306,19 +449,20 @@ for (const name of ENGINES) {
   console.log(`  pageErrors               : ${r.pageErrors.length ? JSON.stringify(r.pageErrors) : 'ninguno'}`);
   console.log(`  consoleErrors            : ${r.consoleErrors.length ? JSON.stringify(r.consoleErrors) : 'ninguno'}`);
   console.log(`  TypeError conocido (34)  : ${r.knownTypeError}${r.knownTypeErrorText ? ' -> ' + r.knownTypeErrorText : ''}`);
-  console.log(`  transform  antes         : ${r.transform.before}`);
-  console.log(`  transform  mitad         : ${r.transform.half}`);
-  console.log(`  transform  despues       : ${r.transform.after}`);
-  console.log(`  --px antes/mitad/despues : ${r.transform.pxBefore} / ${r.transform.pxHalf} / ${r.transform.pxAfter}`);
+  console.log(`  transform  en panel 0    : ${r.transform.enPanel0}`);
+  console.log(`  transform  en panel 1    : ${r.transform.enPanel1}`);
+  console.log(`  transform  en panel 2    : ${r.transform.enPanel2}`);
+  console.log(`  --px  p0 / p1 / p2       : ${r.transform.pxPanel0} / ${r.transform.pxPanel1} / ${r.transform.pxPanel2}`);
+  console.log(`  scrollLeft p0 / p1 / p2  : ${(r.transform.scrollLeft || []).join(' / ')}`);
   console.log(`  >>> EL TRANSFORM CAMBIA  : ${r.transform.changed}`);
-  console.log(`  wheel x3 @120ms soportado: ${r.wheel.supported}${r.wheel.error ? ' (' + r.wheel.error + ')' : ''}`);
-  console.log(`  wheel scrollLeft         : ${r.wheel.start} -> ${r.wheel.end}  (panel ${r.wheel.panelReached})`);
+  console.log(`  rueda x3 @120ms confiable: ${fmtWheel(r.wheel)}`);
+  console.log(`  rueda x3 @120ms sintetica: ${fmtWheel(r.wheelSynthetic)}`);
   if (r.forcedSafari18) {
     const f = r.forcedSafari18;
     console.log(`  [forzado scroll-timeline=false + finePointer=true]`);
     console.log(`    pageErrors             : ${f.pageErrors.length ? JSON.stringify(f.pageErrors) : 'ninguno'}`);
     console.log(`    TypeError conocido     : ${f.knownTypeError}${f.text ? ' -> ' + f.text : ''}`);
-    console.log(`    wheel scrollLeft       : 0 -> ${f.scrollLeft}  (panel ${f.panelReached})`);
+    console.log(`    rueda sintetica        : ${fmtWheel(f.wheel)}`);
   }
   console.log('');
 }
@@ -331,5 +475,14 @@ if (argv.json) {
   console.log(`JSON -> ${dest}`);
 }
 
-const failed = results.filter((r) => !r.launched);
+// Un motor que arranco pero no pudo medir nada NO es un exito. Antes solo se
+// miraba `launched`, asi que un sitio sin #container salia con exit 0.
+// Tambien falla si el transform no fue medible: un sitio con #container pero
+// sin la capa que se mide produce changed:false SIN excepcion, o sea el mismo
+// veredicto que una medicion real. La linea base tiene measurable:true en los
+// tres motores, asi que esto no pone en rojo el sitio de verdad.
+const failed = results.filter((r) => !r.launched || r.error || r.transform?.measurable === false);
+if (failed.length) {
+  console.log('MOTORES CON FALLO: ' + failed.map((r) => `${r.engine} (${r.error || 'no arranco'})`).join(', '));
+}
 process.exit(failed.length ? 1 : 0);

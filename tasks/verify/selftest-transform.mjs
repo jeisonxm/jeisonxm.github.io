@@ -15,6 +15,10 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WK_RUN = path.join(HERE, 'wk_run.sh');
+// --control=<dir> deja apuntar a un fixture MUTADO. Lo usa selfcheck.mjs para
+// demostrar que este control positivo sabe dar rojo.
+const CONTROL = (process.argv.find((a) => a.startsWith('--control=')) || '').slice(10) ||
+  path.join(HERE, 'control');
 
 function wkDir() {
   if (process.env.WK_BROWSER_DIR) return process.env.WK_BROWSER_DIR;
@@ -24,17 +28,17 @@ function wkDir() {
   return d.length ? path.join(b, d[0]) : null;
 }
 
-const proc = spawn('python3', ['-u', '-m', 'http.server', '--bind', '127.0.0.1', '--directory', path.join(HERE, 'control'), '0'], { stdio: ['ignore', 'pipe', 'pipe'] });
+const proc = spawn('python3', ['-u', '-m', 'http.server', '--bind', '127.0.0.1', '--directory', CONTROL, '0'], { stdio: ['ignore', 'pipe', 'pipe'] });
 const port = await new Promise((r) => proc.stdout.on('data', (b) => { const m = String(b).match(/port (\d+)/); if (m) r(Number(m[1])); }));
 
 const IDS = ['a', 'b', 'c', 'd', 'e', 'js'];
 const LABEL = {
-  a: 'A  scroll(inline nearest) + overflow:hidden  == LA FORMA DEL SITIO',
-  b: 'B  scroll(inline nearest) SIN overflow:hidden',
-  c: 'C  scroll-timeline-name: --sc en el contenedor',
-  d: 'D  como B + animation-range: entry 0% exit 100%',
-  e: 'E  como C + animation-range: entry 0% exit 100%',
-  js: 'JS control: el JS escribe --px en cada scroll',
+  a: 'A  LA FORMA DEL SITIO: overflow:hidden + scroll(inline nearest) + range',
+  b: 'B  A sin overflow:hidden                        <- aisla la causa',
+  c: 'C  A con timeline por nombre --sc               <- aisla el arreglo',
+  d: 'D  A sin animation-range                        <- el rango NO era la causa',
+  e: 'E  C sin animation-range',
+  js: 'JS control: el JS escribe --prog en cada scroll',
 };
 
 let allOk = true;
@@ -58,15 +62,31 @@ for (const [name, type] of [['webkit', webkit], ['firefox', firefox], ['chromium
   const sup = await p.evaluate(() => CSS.supports('animation-timeline', 'scroll(inline nearest)'));
 
   const changed = Object.fromEntries(IDS.map((i) => [i, before[i] !== after[i]]));
-  // Reglas del control:
+
+  // Reglas del control.
+  //
+  // "A no cambia" NO sirve como prueba: es una aserción vacía. Si la regla #a se
+  // pudre (un typo, un selector que deja de casar), el img se queda sin
+  // animacion, lee siempre lo mismo, y "no cambia" se cumple igual. El control
+  // habria pasado con el fixture roto.
+  //
+  // La aserción tiene que ser POSITIVA: A esta CLAVADA en el primer keyframe.
+  // Se autocalibra contra B, que en reposo esta en progreso 0 -- o sea, en ese
+  // mismo primer keyframe -- y comparte caja exacta con A. Asi no hay que
+  // hardcodear ningun pixel ni depender del viewport.
+  const clavadaEnFrom = (id) =>
+    before[id] !== 'none' && before[id] === before.b && before[id] === after[id];
+  const aClavada = clavadaEnFrom('a');
+  const dClavada = clavadaEnFrom('d');   // quitar animation-range no descongela
+
   //  - el control JS debe cambiar SIEMPRE (si no, la medicion es ciega)
-  //  - si el motor soporta scroll(), C debe cambiar (positivo por CSS)
-  //  - A NO debe cambiar: es la forma del sitio, y ese es el defecto
-  const ok = changed.js && (!sup || (changed.c && !changed.a));
+  //  - si el motor soporta scroll(): C y E cambian, A y D siguen clavadas
+  const ok = changed.js && (!sup || (changed.c && changed.e && aClavada && dClavada));
   if (!ok) allOk = false;
 
   console.log(`\n=== ${name}  scroll-timeline=${sup} ===`);
-  for (const i of IDS) console.log(`  ${LABEL[i].padEnd(56)} ${before[i]} -> ${after[i]}  cambia=${changed[i]}`);
+  for (const i of IDS) console.log(`  ${LABEL[i].padEnd(62)} ${before[i]} -> ${after[i]}  cambia=${changed[i]}`);
+  if (sup) console.log(`  A clavada en el primer keyframe = ${aClavada}   D clavada = ${dClavada}`);
   console.log(`  => ${ok ? 'OK: la metrica detecta cambio real' : 'FALLO: la metrica es ciega en este motor'}`);
   await b.close();
 }
