@@ -511,15 +511,21 @@ que revisarlas.
 
 ## FASE 7 — Cierre
 
-### [ ] T9 · CV
+### [x] T9 · CV
 
-- [ ] Generar `JEISON_SANG_WU_MITRE_EN_AI_BUILDER.pdf` con
-      `soffice --headless --convert-to pdf --outdir <dir> <docx>`.
-- [ ] ES → `ES_2026.pdf`. EN → `EN_AI_BUILDER.pdf`. `.docx` como enlace secundario.
-- [ ] Fuente: `/home/archy/archy/cv/`. Copias ya en `src/` sin commitear.
-- [ ] Commitear los archivos (hoy están sin seguimiento).
+- [x] `JEISON_SANG_WU_MITRE_EN_AI_BUILDER.pdf` generado con
+      `soffice --headless --convert-to pdf`. **74.350 B, 3 páginas**, cabecera `%PDF-1.7`,
+      cierra en `%%EOF`.
+- [x] ES → `ES_2026.pdf`. EN → `EN_AI_BUILDER.pdf`. `.docx` como enlace secundario
+      (`.cv-alt`, discreto para no competir con el botón).
+- [x] Los 4 archivos commiteados. Antes estaban sin seguimiento.
 
-**Verification:** ambos enlaces descargan un PDF que abre bien. **Scope:** S.
+**Verification:** los 4 enlaces sirven `200` con la firma correcta —
+`25504446` (`%PDF`) y `504b0304` (zip/docx). Comprobado sobre el sitio servido, no sobre el
+disco: un enlace puede apuntar a un archivo que existe y aun así estar mal escrito.
+
+**Cambia el CV que se ofrecía.** ES pasaba de «curriculum final.pdf» (mayo) al de 2026, y EN
+del genérico al perfil **AI Builder**. Los antiguos siguen en `src/` pero ya no se enlazan.
 
 ### [ ] T10 · Contraste y accesibilidad
 

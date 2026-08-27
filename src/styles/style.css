@@ -1634,3 +1634,18 @@ ul { list-style: none; }
   .panel.depth-live .d-text { will-change: auto; }
   .ver-toggle { display: none; }
 }
+
+/* El .docx como enlace SECUNDARIO: el PDF es lo que se descarga por defecto
+   porque abre igual en cualquier sitio; el .docx esta para quien lo pida en
+   editable. Que no compita visualmente con el boton principal. */
+.cv-alt {
+  align-self: center;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--gray-dark);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2px;
+  transition: color var(--transition), border-color var(--transition);
+}
+.cv-alt:hover, .cv-alt:focus-visible { color: var(--accent); border-color: var(--accent); }

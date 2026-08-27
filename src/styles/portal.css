@@ -1,3 +1,5 @@
+/* Escrito antes de T2c: usaba la escala --marble-*, que ya no existe.
+   Migrado por luminosidad OKLCh al token nuevo mas cercano, igual que el resto. */
 /* =====================================================================
    portal.css  ->  se coloca en  /src/styles/portal.css
    Lo cargan EXACTAMENTE 4 archivos: /index.html, /en/index.html,
@@ -145,11 +147,11 @@
   font-size: 1.5rem;
   font-weight: 500;
   letter-spacing: 0.02em;
-  color: var(--marble-cream);    /* ES 8.61:1 · EN 12.32:1 — AAA */
+  color: var(--gray-light);    /* ES 8.61:1 · EN 12.32:1 — AAA */
   /* 0.55 es el minimo medido que pasa WCAG 1.4.11 (>=3:1) en LAS DOS
      paletas, contra el fondo de pagina y contra el relleno del boton.
      ES: 3.58:1 / 3.16:1 · EN: 3.39:1 / 3.13:1 */
-  border: 1px solid color-mix(in srgb, var(--marble-cream) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gray-light) 55%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--surface) 55%, transparent);
   transition: color 240ms ease, border-color 240ms ease, background 240ms ease;
@@ -168,8 +170,8 @@
   background:
     radial-gradient(closest-side ellipse at 50% 50%,
       transparent 46%,
-      color-mix(in srgb, var(--marble-cream) 17%, transparent) 63%,
-      color-mix(in srgb, var(--marble-cream)  5%, transparent) 78%,
+      color-mix(in srgb, var(--gray-light) 17%, transparent) 63%,
+      color-mix(in srgb, var(--gray-light)  5%, transparent) 78%,
       transparent 92%);
   filter: blur(11px);
   transform: scale(1);
@@ -185,27 +187,27 @@
   inset: 0;
   z-index: -1;
   border-radius: 999px;
-  box-shadow: inset 0 0 22px color-mix(in srgb, var(--marble-cream) 10%, transparent);
+  box-shadow: inset 0 0 22px color-mix(in srgb, var(--gray-light) 10%, transparent);
   transition: box-shadow 240ms ease;
   pointer-events: none;
 }
 
 .portal-back:hover,
 .portal-back:focus-visible {
-  color: var(--marble-white);
-  border-color: color-mix(in srgb, var(--marble-cream) 80%, transparent);
+  color: var(--white);
+  border-color: color-mix(in srgb, var(--gray-light) 80%, transparent);
   background: color-mix(in srgb, var(--surface-hover) 70%, transparent);
 }
 .portal-back:hover::before,
 .portal-back:focus-visible::before { transform: scale(1.12); opacity: 1; }
 .portal-back:hover::after,
 .portal-back:focus-visible::after {
-  box-shadow: inset 0 0 28px color-mix(in srgb, var(--marble-cream) 18%, transparent);
+  box-shadow: inset 0 0 28px color-mix(in srgb, var(--gray-light) 18%, transparent);
 }
 
 .portal-back:focus-visible {
   /* ES 12.19:1 · EN 17.67:1 sobre el fondo de pagina */
-  outline: 2px solid var(--marble-white);
+  outline: 2px solid var(--white);
   outline-offset: 4px;
 }
 
