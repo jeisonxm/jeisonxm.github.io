@@ -422,43 +422,51 @@ de `--p`, que es por panel). Ahora se comprueban donde de verdad viven.
 
 ## FASE 5 — Gestos
 
-### [ ] T7 · Las tres reglas
+### [x] T7 · Las tres reglas
 
 **Acceptance criteria**
-- [ ] **Regla 1:** gesto horizontal dominante → **cero intervención, ni `preventDefault`**.
-      Lo resuelve el scroll nativo + `scroll-snap-type: x mandatory`. Es el caso del Mac del dueño.
-- [ ] **Regla 2:** rueda discreta → 1 notch = 1 panel, sin acumulador y **sin cooldown**.
-- [ ] **Regla 3:** vertical continuo → acumulador + inercia detectada por **decaimiento
-      monótono**, no por temporizador. Constantes en §2.4 del plan.
-- [ ] El `IntersectionObserver` **ya no escribe `target`**. Solo pinta los puntos.
-- [ ] Guarda de convergencia al detenerse el scroll (máx. 2 reintentos).
-- [ ] `e.ctrlKey` sigue pasando sin tocar (pinch-to-zoom de macOS).
-- [ ] Las flechas no se roban con el foco en `INPUT`/`TEXTAREA`/`SELECT`/`contentEditable`.
-- [ ] Los scrollers anidados (`.about-content`, `.contact-panel .panel-content`) se quedan la
-      rueda si les queda recorrido.
+- [x] **Regla 1:** gesto horizontal dominante → **cero intervención, ni `preventDefault`**.
+      Medido: `0/5` eventos con `defaultPrevented`, en los 3 motores.
+- [x] **Regla 2:** rueda discreta → 1 notch = 1 panel, sin acumulador y sin cooldown.
+- [x] **Regla 3:** acumulador + inercia detectada por **decaimiento monótono**, no por
+      temporizador. Constantes de §2.4.
+- [x] El `IntersectionObserver` ya no escribe el índice de intención.
+- [x] Guarda de convergencia (máx. 2 reintentos).
+- [x] `e.ctrlKey` pasa sin tocar. Flechas no robadas en `INPUT/TEXTAREA/SELECT/contentEditable`.
+- [x] Los scrollers anidados se quedan la rueda si les queda recorrido.
 
-**Verification — los 8 escenarios, idénticos en los 3 motores**
-- [ ] 3 flicks + inercia @120 ms → **panel 3** *(hoy: panel 1 — es el defecto 4)*
-- [ ] 3 flicks @40 ms → panel 3
-- [ ] 1 flick fuerte + 30 eventos de inercia → **panel 1** (no 2)
-- [ ] 1 flick suave + 30 de inercia → panel 1
-- [ ] 3 notches de ratón @60 ms → panel 3
-- [ ] Arrastre continuo 1,2 s → **panel 3** *(hoy: panel 2)*
-- [ ] Gesto horizontal → 0 intervención, 0 avances
-- [ ] Desde panel 3, 2 flicks atrás → panel 1
+**Verification — `tasks/verify/gestures-check.mjs`**
+
+| escenario | esperado | Firefox | Chromium | WebKit |
+|---|---|---|---|---|
+| 3 flicks + inercia @120 ms | panel 3 *(antes: 1)* | ✓ | ✓ | no interpretable |
+| 3 flicks @40 ms | panel 3 | ✓ | ✓ | no interpretable |
+| 1 flick fuerte + 30 de inercia | panel 1 | ✓ | ✓ | no interpretable |
+| 1 flick suave + 30 de inercia | panel 1 | ✓ | ✓ | no interpretable |
+| 3 notches de ratón @60 ms | panel 3 | ✓ | ✓ | no interpretable |
+| arrastre continuo 1,2 s | panel 3 *(antes: 2)* | ✓ | ✓ | no interpretable |
+| gesto horizontal | 0 intervención | ✓ | ✓ | ✓ |
+| desde panel 3, 2 flicks atrás | panel 1 | ✓ | ✓ | ✓ |
+
+**No se cumple «idéntico en los 3 motores», y hay que decirlo.** WebKit headless mete
+silencios de **155–253 ms** entre eventos, por encima de `IDLE_MS = 120`, así que **inventa
+separaciones de gesto que el escenario no pedía**. No es un fallo del sitio: es el mismo límite
+que midió T1. La comprobación lo detecta sola (compara el gap **máximo**, no la mediana — la
+mediana escondía justo ese pico) y marca el escenario como no interpretable en vez de dar un
+rojo falso.
+
+**Un bug real que encontró el escenario 8.** Desde el panel 3 con `target = 0`, un flick hacia
+atrás saltaba al **panel 0**. Causa: la regla 1 deja el scroll horizontal al navegador, así que
+tras un scroll nativo `target` quedaba obsoleto. Ahora se sincroniza **al detenerse** un scroll
+ajeno. Eso **no** es el `IntersectionObserver` escribiendo el índice —lo que rompía los
+avances ocurría a mitad de un scroll suave *en vuelo*; esto ocurre cuando ya se detuvo.
+
+**Aviso que sigue vigente:** las constantes están calibradas contra perfiles **sintéticos**.
+Cuántos paneles avanza un arrastre depende de su velocidad —a 500 px/s da 3, a 700 px/s da 4—
+y eso es una propiedad real, no un ajuste. Contra deltas reales del trackpad del dueño habrá
+que revisarlas.
 
 **Dependencies:** T6. **Scope:** M.
-
-**Aviso 1:** las constantes están ajustadas contra un perfil de flick **sintético**. `DISCRETE=90`
-y `PEAK_SLOW=18` pueden necesitar reajuste contra deltas reales del trackpad del dueño.
-
-**Aviso 2 — con qué instrumento medir los 8 escenarios (medido en T1).** `page.mouse.wheel`
-**no** reproduce un gesto de 120 ms: cuesta ~200–460 ms por evento en WebKit headless, 92–214
-en Firefox, 134–176 en Chromium. Con `COOLDOWN_MS=650`, un gesto estirado deja pasar el tercer
-evento y el panel alcanzado cambia entre corridas. Usar la vía **sintética** de `probe.mjs`
-(`WheelEvent` despachado dentro de la página, 120–125 ms en los tres motores) y **exigir
-`timingFiel=true`**. Un panel medido con `timingFiel=false` no es el escenario que se pidió.
-La vía confiable se queda como humo: prueba que la rueda real llega y mueve, nada más.
 
 ---
 

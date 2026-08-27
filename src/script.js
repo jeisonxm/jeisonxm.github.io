@@ -90,89 +90,178 @@
       });
   }
 
-  // ---------- Wheel / trackpad ----------
-  var THRESHOLD = 42;        // delta acumulado (px equivalentes) para pasar de panel
-  var COOLDOWN_MS = 650;     // se traga la cola de inercia del trackpad
-  var GESTURE_GAP_MS = 200;  // sin eventos este rato => empieza gesto nuevo
-  var LINE_HEIGHT_PX = 16;   // DOM_DELTA_LINE -> px (Firefox con ratón)
+  // ---------- Wheel / trackpad: las tres reglas (plan §2.4) ----------
+  //
+  // El error anterior fue SECUESTRAR todos los eventos wheel, lo que obligaba a
+  // un cooldown de 650 ms que se comia los gestos: medido en produccion, 3
+  // flicks daban 1 panel. Ahora cada tipo de gesto tiene su camino.
+  //
+  //   1  horizontal dominante  -> CERO intervencion, ni preventDefault. Lo
+  //      resuelve el scroll nativo + scroll-snap-type: x mandatory, en el hilo
+  //      de scroll. 3 flicks = 3 paneles por construccion. Es el caso del Mac.
+  //   2  rueda discreta        -> 1 notch = 1 panel. Sin acumulador y SIN
+  //      cooldown: un notch ya es una intencion completa.
+  //   3  vertical continuo     -> acumulador + segmentacion de gesto. La
+  //      inercia NO se filtra con temporizador: se DETECTA, porque su magnitud
+  //      decae de forma monotona.
+  var THRESHOLD = 55;      // delta acumulado para pasar de panel
+  var IDLE_MS = 120;       // silencio que separa dos gestos
+  var DECAY_HITS = 2;      // caidas consecutivas que marcan inercia
+  var RISE = 1.35;         // crecimiento que puede desmentir la inercia
+  var PEAK_SLOW = 18;      // por debajo de este pico el gesto es "lento"
+  var LONG_MS = 350;       // a partir de aqui el gesto es "largo"
+  var REARM = 4;           // veces THRESHOLD para volver a avanzar en el mismo gesto
+  var LINE_HEIGHT_PX = 16; // DOM_DELTA_LINE -> px (Firefox con raton)
 
-  var accum = 0;
-  var lastWheelAt = 0;
-  var locked = false;
-  var lockTimer = null;
+  // Declarados ANTES de cualquier uso. La leccion de T0 fue exactamente esta
+  // clase de bug: una var usada por encima de su declaracion.
+  var programatico = false;
+  var reintentos = 0;
+  var quietoTimer = null;
 
-  // Normaliza deltaMode a píxeles y devuelve ambos ejes.
+  // `target` es INTENCION PURA. El IntersectionObserver ya NO lo escribe: antes
+  // si, y por eso 3 avances aterrizaban en el panel 2 — un gesto rapido durante
+  // un scroll suave en vuelo se sumaba sobre un indice intermedio.
+  var target = 0;
+  var acc = 0, lastAt = 0, lastMag = 0, lastDir = 0;
+  var decayRun = 0, riseRun = 0, peak = 0, gestureStart = 0;
+  var momentum = false, avancesEnGesto = 0;
+
   function normalize(e) {
-    var dx = e.deltaX;
-    var dy = e.deltaY;
-    if (e.deltaMode === 1) {            // DOM_DELTA_LINE
-      dx *= LINE_HEIGHT_PX;
-      dy *= LINE_HEIGHT_PX;
-    } else if (e.deltaMode === 2) {     // DOM_DELTA_PAGE
-      dx *= container.clientWidth;
-      dy *= container.clientHeight;
-    }
+    var dx = e.deltaX, dy = e.deltaY;
+    if (e.deltaMode === 1) { dx *= LINE_HEIGHT_PX; dy *= LINE_HEIGHT_PX; }
+    else if (e.deltaMode === 2) { dx *= container.clientWidth; dy *= container.clientHeight; }
     return { x: dx, y: dy };
   }
 
-  // ¿El puntero está sobre un scroller anidado (.about-content,
-  // .contact-panel .panel-content) que todavía tiene recorrido en la
-  // dirección del gesto? Si sí, la rueda es suya, no nuestra.
-  function nestedScrollerWantsIt(target, dy) {
+  // ¿El puntero esta sobre un scroller anidado (.about-content, el panel de
+  // contacto) que todavia tiene recorrido en la direccion del gesto? Si si, la
+  // rueda es suya, no nuestra.
+  function nestedScrollerWantsIt(node, dy) {
     for (var i = 0; i < nestedScrollers.length; i++) {
       var el = nestedScrollers[i];
-      if (!el.contains(target)) continue;
+      if (!el.contains(node)) continue;
       if (el.scrollHeight - el.clientHeight <= 1) continue;
-      var atTop = el.scrollTop <= 0;
-      var atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-      if (dy < 0 && !atTop) return true;
-      if (dy > 0 && !atBottom) return true;
+      var arriba = el.scrollTop <= 0;
+      var abajo = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+      if (dy < 0 && !arriba) return true;
+      if (dy > 0 && !abajo) return true;
     }
     return false;
   }
 
-  function unlock() {
-    locked = false;
-    accum = 0;
+  function nuevoGesto(now) {
+    acc = 0; peak = 0; decayRun = 0; riseRun = 0;
+    momentum = false; avancesEnGesto = 0; gestureStart = now;
+  }
+
+  function irA(i) {
+    target = Math.max(0, Math.min(panels.length - 1, i));
+    programatico = true;
+    goToIndex(target);
   }
 
   function handleWheel(e) {
-    // macOS sintetiza el pinch-to-zoom del trackpad como wheel + ctrlKey.
-    // Sin este guard el zoom se convierte en navegación.
+    // macOS sintetiza el pinch-to-zoom del trackpad como wheel + ctrlKey. Sin
+    // este guard el zoom se convierte en navegacion.
     if (e.ctrlKey) return;
 
     var d = normalize(e);
-    var horizontal = Math.abs(d.x) > Math.abs(d.y);
 
-    // Gesto vertical sobre texto con overflow propio: se lo cedemos.
-    if (!horizontal && nestedScrollerWantsIt(e.target, d.y)) return;
+    // REGLA 1 — gesto horizontal dominante: no se toca NADA. Ni preventDefault.
+    // No se hace swap manual por shiftKey: las plataformas que remapean
+    // Shift+rueda a deltaX lo hacen antes de llegar a JS, y volver a invertirlo
+    // aqui lo romperia.
+    if (Math.abs(d.x) > Math.abs(d.y)) return;
 
-    // Eje dominante. No se hace swap manual por shiftKey: las plataformas
-    // que remapean Shift+rueda a deltaX lo hacen antes de llegar a JS, y
-    // volver a invertirlo aquí lo rompería.
-    var delta = horizontal ? d.x : d.y;
-    if (delta === 0) return;
-
-    e.preventDefault();
+    var dy = d.y;
+    if (dy === 0) return;
+    if (nestedScrollerWantsIt(e.target, dy)) return;
 
     var now = (window.performance && performance.now) ? performance.now() : Date.now();
-    if (now - lastWheelAt > GESTURE_GAP_MS) accum = 0;
-    lastWheelAt = now;
+    var dir = dy > 0 ? 1 : -1;
 
-    if (locked) return;   // en cooldown: nos comemos la inercia
-
-    accum += delta;
-    if (Math.abs(accum) >= THRESHOLD) {
-      var dir = accum > 0 ? 1 : -1;
-      accum = 0;
-      locked = true;
-      clearTimeout(lockTimer);
-      lockTimer = setTimeout(unlock, COOLDOWN_MS);
-      goToIndex(currentIndex + dir);
+    // REGLA 2 — rueda discreta. deltaMode != 0 es rueda por lineas o paginas;
+    // un |deltaY| grande y entero es la firma de un raton en modo pixel.
+    var discreta = e.deltaMode !== 0 ||
+      (Math.abs(e.deltaY) >= 90 && Math.abs(e.deltaY) % 1 === 0);
+    if (discreta) {
+      e.preventDefault();
+      irA(target + dir);
+      nuevoGesto(now);
+      lastAt = now; lastMag = Math.abs(dy); lastDir = dir;
+      return;
     }
+
+    // REGLA 3 — vertical continuo de trackpad.
+    e.preventDefault();
+    var mag = Math.abs(dy);
+    var gap = lastAt ? now - lastAt : Infinity;
+
+    // Gesto nuevo por silencio o por cambio de signo.
+    if (gap > IDLE_MS || (lastAt && dir !== lastDir)) nuevoGesto(now);
+
+    // Deteccion de inercia por DECAIMIENTO MONOTONO, no por reloj.
+    if (lastAt && gap <= IDLE_MS) {
+      if (mag < lastMag) { decayRun++; } else { decayRun = 0; }
+      if (mag > lastMag * RISE) { riseRun++; } else { riseRun = 0; }
+    }
+    if (mag > peak) peak = mag;
+    if (!momentum && decayRun >= DECAY_HITS && peak > 12) momentum = true;
+
+    // Una cola de inercia decae de forma monotona, luego es FISICAMENTE INCAPAZ
+    // de crecer dos veces seguidas y disfrazarse de gesto nuevo. Con un solo
+    // evento creciente si fallaba: un pico aislado la rompia. Esta medido.
+    if (momentum && riseRun >= 2) nuevoGesto(now);
+
+    lastAt = now; lastMag = mag; lastDir = dir;
+
+    if (momentum) return;   // mientras haya inercia, ningun evento avanza
+
+    acc += dy;
+    if (Math.abs(acc) < THRESHOLD) return;
+
+    // Re-armado dentro de un mismo gesto: solo si el gesto es LENTO o LARGO. Un
+    // flick tiene picos altos y fase activa < 200 ms, asi que nunca entra aqui,
+    // y por eso un flick no se come dos paneles.
+    if (avancesEnGesto > 0) {
+      var puedeRearmar = peak < PEAK_SLOW || (now - gestureStart) > LONG_MS;
+      if (!puedeRearmar || Math.abs(acc) < THRESHOLD * REARM) return;
+    }
+
+    var paso = acc > 0 ? 1 : -1;
+    acc = 0;
+    avancesEnGesto++;
+    irA(target + paso);
   }
 
   container.addEventListener('wheel', handleWheel, { passive: false });
+
+  // ---------- Guarda de convergencia ----------
+  // Al detenerse el scroll, si el panel mas cercano no es `target` y el scroll
+  // era programatico, se reemite. Sin esto, Chromium y Firefox aterrizaban un
+  // panel corto al redirigir un scroll suave nativo con snap mandatory.
+  function alDetenerse() {
+    var cerca = Math.round(container.scrollLeft / (viewportW || 1));
+    if (!programatico) {
+      // El scroll NO lo pedimos nosotros: el usuario llego ahi por la regla 1
+      // (gesto horizontal nativo), arrastrando la barra o con un drag tactil.
+      // `target` tiene que ponerse al dia o el siguiente gesto teletransporta:
+      // medido, desde el panel 3 con target=0, un flick hacia atras saltaba al
+      // panel 0 en vez de al 2.
+      //
+      // Esto NO es el IntersectionObserver escribiendo el indice, que es lo que
+      // rompia los avances: aquello ocurria a mitad de un scroll suave EN VUELO
+      // y sumaba sobre un indice intermedio. Esto ocurre cuando el scroll ya se
+      // detuvo, asi que `cerca` es la posicion real y definitiva.
+      target = cerca;
+      reintentos = 0;
+      return;
+    }
+    if (cerca === target || reintentos >= 2) { programatico = false; reintentos = 0; return; }
+    reintentos++;
+    goToIndex(target);
+  }
 
   // ---------- Teclado ----------
   function isTyping(el) {
@@ -188,14 +277,14 @@
     switch (e.key) {
       case 'ArrowRight':
       case 'PageDown':
-        e.preventDefault(); goToIndex(currentIndex + 1); break;
+        e.preventDefault(); irA(target + 1); break;
       case 'ArrowLeft':
       case 'PageUp':
-        e.preventDefault(); goToIndex(currentIndex - 1); break;
+        e.preventDefault(); irA(target - 1); break;
       case 'Home':
-        e.preventDefault(); goToIndex(0); break;
+        e.preventDefault(); irA(0); break;
       case 'End':
-        e.preventDefault(); goToIndex(panels.length - 1); break;
+        e.preventDefault(); irA(panels.length - 1); break;
       case ' ':
         if (document.activeElement === container) {
           e.preventDefault();
@@ -227,7 +316,11 @@
         if (!entry.isIntersecting || entry.intersectionRatio < 0.6) return;
         var idx = panels.indexOf(entry.target);
         if (idx === -1) return;
-        currentIndex = idx;   // mantiene el índice sincronizado tras un drag táctil
+        // NO se escribe `target` aqui. Antes si (`currentIndex = idx`), y por eso
+        // 3 avances aterrizaban en el panel 2: un gesto rapido durante un
+        // scroll suave en vuelo se sumaba sobre un indice intermedio. El
+        // observer solo pinta los puntos y la nav.
+        currentIndex = idx;
         syncDots(idx);
         var id = entry.target.id;
         navLinks.forEach(function (link) {
@@ -297,6 +390,8 @@
 
   container.addEventListener('scroll', function () {
     despertarProfundidad();
+    clearTimeout(quietoTimer);
+    quietoTimer = setTimeout(alDetenerse, 140);
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(frame);
@@ -377,7 +472,7 @@
     if (resizeRAF) cancelAnimationFrame(resizeRAF);
     resizeRAF = requestAnimationFrame(function () {
       measure();
-      goToIndex(currentIndex, 'auto');   // realineado siempre instantáneo
+      goToIndex(target, 'auto');   // realineado siempre instantáneo
     });
   }, { passive: true });
 
@@ -431,7 +526,7 @@
   // ---------- Puntos de progreso ----------
   var dots = Array.prototype.slice.call(document.querySelectorAll('.panel-dot'));
   dots.forEach(function (dot, i) {
-    dot.addEventListener('click', function () { goToIndex(i); });
+    dot.addEventListener('click', function () { irA(i); });
   });
 
   function syncDots(idx) {
@@ -474,7 +569,7 @@
   if (window.location.hash) {
     var hashId = window.location.hash.slice(1);
     for (var j = 0; j < panels.length; j++) {
-      if (panels[j].id === hashId) { goToIndex(j, 'auto'); break; }
+      if (panels[j].id === hashId) { target = j; goToIndex(j, 'auto'); break; }
     }
   }
 })();
