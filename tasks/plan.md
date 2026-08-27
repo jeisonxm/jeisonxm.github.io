@@ -349,25 +349,27 @@ el sitio.** No lo toques.
 
 ### 3.2 — Reconstruir el arnés (el scratchpad es efímero)
 
-```bash
-mkdir -p ~/pw-harness && cd ~/pw-harness
-npm init -y && npm install playwright@1.62.1
-npx playwright install webkit firefox chromium
+**Ya está automatizado. Una sola orden:**
 
-# WebKit necesita 24 libs del sistema y aquí NO hay sudo. Sysroot privado:
-mkdir -p deb sysroot && cd deb
-apt-get download libgtk-4-1 libevent-2.1-7t64 libflite1 libwebpdemux2 libavif16 \
-  libwebpmux3 libwayland-server0 libmanette-0.2-0 libenchant-2-2 libsecret-1-0 \
-  libx264-164 libgstreamer-plugins-bad1.0-0 libcairo-script-interpreter2 libdav1d7 \
-  libgav1-1 librav1e0 libyuv0 libx264-dev libsvtav1enc1d1
-for f in *.deb; do dpkg-deb -x "$f" ../sysroot; done
-cd .. && ln -sf libx264.so.164 sysroot/usr/lib/x86_64-linux-gnu/libx264.so
+```bash
+tasks/verify/run.sh setup      # playwright 1.62.1 + navegadores + sysroot + enlace
+tasks/verify/run.sh            # selftest + render + probe
+tasks/verify/run.sh selfcheck  # ¿sabe dar rojo? rompe cosas a proposito
+tasks/verify/run.sh stability  # 3 corridas, mismos veredictos
 ```
 
-Después, correr siempre con:
-`WK_SYSROOT=<...>/sysroot/usr/lib/x86_64-linux-gnu PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1`
+`setup` hace lo que antes era un ritual manual: instala `playwright@1.62.1` en `~/pw-harness`,
+baja los navegadores, descarga los 19 `.deb` de Ubuntu 24.04 noble, los extrae en
+`~/pw-harness/sysroot`, enlaza `libx264.so` y **termina corriendo el control positivo**. Si
+falta un solo paquete, **muere ahí y lo dice**: un sysroot a medias es peor que ninguno, porque
+`resolve_sysroot` solo comprueba que el directorio exista y WebKit moriría después con
+`error while loading shared libraries: libevent-2.1.so.7` (comprobado envenenando el sysroot
+real). Decir «arnés reconstruido» sin haberlo ejecutado es justo el error que este plan
+persigue. El arnés **no vive en el repo**: pesa ~500 MB y
+es específico de esta máquina. Lo versionado son los scripts y `baseline.json`.
 
-**Tres trampas ya resueltas, no las redescubras:**
+**Trampas ya resueltas, no las redescubras:**
+
 - El wrapper `MiniBrowser` de WebKit hace `export LD_LIBRARY_PATH=...`, o sea que **pisa** la
   variable y nunca ve el sysroot. Por eso existe `tasks/verify/wk_run.sh`, que se pasa vía
   `launch({executablePath})`.
@@ -376,19 +378,87 @@ Después, correr siempre con:
   positivo, solo afecta a reproducir h.264. De ahí el `SKIP_VALIDATE`.
 - Los nombres de paquete son de **Ubuntu 24.04 noble**. En otra versión hay que remapearlos, y
   sin sudo no hay `playwright install-deps` de rescate.
+- **`import 'playwright'` en ESM no mira `NODE_PATH`.** Node solo sube por directorios padre
+  buscando `node_modules`, y desde `tasks/verify` no hay ninguno hasta `/`. Por eso `run.sh`
+  crea el enlace `tasks/verify/node_modules -> ~/pw-harness/node_modules`, ignorado por git.
+- **`npm install` y `apt-get download` necesitan red de verdad.** Lanzados como comando de
+  fondo salen del sandbox sin red y fallan los 19 paquetes **sin decir por qué**: se ve
+  `descargados: 0 / 19` y nada más. Correrlos en primer plano.
+- Los navegadores sobreviven en `~/.cache/ms-playwright` aunque muera el scratchpad, pero el
+  registro `.links` apunta al directorio muerto. `npx playwright install` lo re-registra sin
+  volver a descargar nada.
+
+**Lo que faltaba y ahora está versionado:** `tasks/verify/control/` (el fixture del control
+positivo) nunca se había commiteado — vivía en el scratchpad y murió con él. Sin ese
+directorio `selftest-transform.mjs` no arranca. Ahora está en el repo, comentado.
 
 ### 3.3 — Qué mide la suite
 
-`tasks/verify/run.sh` corre, por cada motor (webkit, firefox, chromium) y en escenario normal
-y forzado:
+`tasks/verify/run.sh` corre tres cosas, y cada una trae su propio control:
 
-- `pageErrors` y `consoleErrors` completos, y la firma del `TypeError` en **los tres dialectos**
-  (JSC, SpiderMonkey, V8) más un comodín.
-- `transform` de la capa antes / a mitad / después del scroll → **¿cambia?**
-- `--p` / `--a` en las tres posiciones.
-- 3 gestos de rueda a 120 ms → `scrollLeft` final y panel alcanzado.
-- **Control positivo** (`selftest-transform.mjs`): demuestra que el medidor **no es ciego**.
-  Si el control positivo falla, es *timing*, no el sitio. Correrlo siempre primero.
+**`selftest`** — control **positivo** de la métrica del transform, sobre `control/index.html`.
+Seis variantes aisladas (a…e + control JS). Demuestra que «leer `transform` antes y después
+de scrollear» sí detecta un cambio real: el control JS va de `-80` a `-40` exactos en los
+tres motores. Si esto no da verde, el `false` de `probe.mjs` no significa nada.
+
+**`render`** — los tres motores arrancan **y pintan**. Se descarga el screenshot, se
+decodifica el PNG y se miden colores distintos y desviación de luminancia. Trae **control
+negativo**: la misma medición contra una página deliberadamente en blanco tiene que **fallar**.
+Medido: sitio 9.100 colores / stdev 49; página en blanco 1 color / stdev 0.
+
+> Los píxeles solos no bastan: **con las 5 fotos rotas la página sigue dando 9.358 colores y
+> stdev 49** (texto, degradados, ruido SVG) y «pintado» salía `true`. Por eso el veredicto
+> exige además que **la foto del hero decodifique** (`naturalWidth > 0`). Las otras 4 son
+> diferidas por `IntersectionObserver` y a `scrollLeft` 0 no tienen por qué estar cargadas:
+> se cuentan (hoy 2–3 de 5) pero no se exigen. Ese conteo es la línea base del defecto 6.
+
+**`probe`** — reconocimiento del sitio en los 3 motores, escenario normal y forzado:
+`pageErrors`, `consoleErrors`, la firma del `TypeError` en los tres dialectos, el `transform`
+de la capa **en tres posiciones de panel**, `--p`/`--a`, y los gestos de rueda **por dos vías**
+(ver §3.4). Escribe `probe-results.json`.
+
+> **No existe «a mitad de scroll».** El probe medía antes un `scrollTo(clientWidth * 0.5)`.
+> Con `scroll-snap-type: x mandatory` (`style.css:162`) y `scroll-snap-align: center` (`:198`),
+> 720 px queda **exactamente equidistante** de los centros del panel 0 (720) y del panel 1
+> (2160): un empate que cada motor rompe a su manera, con la medición a 1 px de cambiar de
+> significado. Bajo snap obligatorio no hay posiciones intermedias observables, solo paneles.
+> Ahora se mide en `scrollLeft` 0 / 1440 / 2880 — tres puntos de snap reales.
+
+> **El probe sabe fallar.** Antes, apuntado a un directorio que no fuera el sitio, leía
+> `undefined` en todo, escribía `transform: {}` y **salía con 0**. Ahora comprueba que el
+> documento tenga `#container`, paneles y `#hero .panel-bg img`, y si no, sale con 1 diciendo
+> qué faltó. Un instrumento ciego producía el mismo `changed: false` que una medición real —
+> justo el valor que T5 tiene que hacer voltear.
+
+**`selfcheck`** — los controles **negativos** del arnés, ejecutables. Rompe tres cosas a
+propósito y exige rojo: el probe contra un directorio que no es el sitio, el render contra el
+sitio con las fotos borradas, y el selftest contra el fixture con la regla `#a` mutada. Los
+tres fueron falsos verdes **reales** durante T1. Estaban comprobados a mano una sola vez —
+justo lo que este plan no acepta como verificación — y ahora viven en la suite.
+
+**`stability`** — corre la suite 3 veces y compara **veredictos**, no observaciones. La
+distinción es deliberada: un veredicto («¿hubo errores?», «¿cambia el transform?», «¿qué panel
+se alcanzó?») tiene que ser idéntico corrida a corrida o la suite no sirve como puerta. Una
+observación (gaps en ms, `scrollLeft`, colores de un PNG) **nunca** va a ser idéntica al byte
+en una máquina compartida, y exigirlo sería mentir.
+
+**`baseline`** — congela `probe-results.json` en `baseline.json`, versionado. Es contra lo que
+T5 y T7 tienen que demostrar que cambiaron algo.
+
+### 3.3 bis — El arnés estuvo midiendo `/en/` creyendo medir `/`
+
+`src/lang.js:51` redirige `/` a `/en/` cuando `navigator.language` empieza por `en` y no hay
+preferencia guardada. **El locale por defecto de Playwright es `en-US`**, así que todas las
+mediciones del arnés — incluidas las del plan original — se tomaron sobre la portada en
+inglés. Nadie lo notó porque nada registraba qué documento se había cargado.
+
+Ya no: el probe y el render aceptan `--locale` y `--path`, van por defecto a `es-ES` + `/`
+(la portada canónica) y **escriben en el JSON qué pidieron y qué les sirvieron**.
+
+Comprobado que no invalida nada: `/` (es) y `/en/` (en) dan medidas **idénticas** —
+`matrix(1, 0, 0, 1, -41.9327, 0)`, `changed: false`, panel 1, cero errores de consola. Las
+19 páginas EN cargan además `obsidiana.css` (§ T8), así que **para T4, T2c y T10 hay que
+medir las dos**, no solo la que salga por defecto.
 
 ### 3.4 — Lo que este arnés NO puede ver
 
@@ -402,6 +472,18 @@ Escríbelo en el informe final. No lo vendas como equivalente a un Mac.
   desde esta máquina**. Hay que medirla en el Mac con el panel Timelines de Safari.
 - **Coste de blur/backdrop-filter en Safari: no medido.** La decisión de hornear el blur se
   apoya en cómo funcionan las superficies fuera de pantalla, no en un número tomado en Safari.
+- **El gesto de rueda no se puede sintetizar con timing fiel por el camino real.** Medido:
+  `page.mouse.wheel` cuesta ~200–460 ms de ida y vuelta en WebKit headless, 92–214 ms en
+  Firefox y 134–176 ms en Chromium. Un gesto de «3 notches a 120 ms» sale estirado, y en
+  WebKit el panel alcanzado bailaba entre 1 y 2 según la carga de la máquina. Por eso el
+  arnés mide por **dos vías** y las distingue:
+  - **confiable** — `page.mouse.wheel`, evento *trusted*, camino de entrada real. Lo único
+    que afirma de forma estable es que la rueda real llega a la página y mueve el scroll.
+  - **sintética** — `WheelEvent` despachado dentro de la página. Da 120–125 ms en los tres
+    motores, así que **esta es la que mide el gesto** y la que vale para T7. Ejercita la
+    máquina de estados del sitio, **no** el scroll nativo.
+  Cada medición lleva `timingFiel` con los gaps reales. Si es `false`, el panel alcanzado
+  describe lo que pasó pero **no** es «3 flicks a 120 ms», y así queda escrito en el JSON.
 - **El camino nativo horizontal (regla 1) solo está verificado a medias.** Se demuestra que el
   JS no interviene, pero los eventos `wheel` sintetizados no mueven el scroll nativo, así que
   el comportamiento real de `scroll-snap x mandatory` con un trackpad de verdad **no se ejercitó**.
@@ -452,8 +534,8 @@ verificado, replicarlo 4 veces solo multiplica el error.
 Detalle completo por tarea en `tasks/todo.md`. Resumen del alcance y el orden:
 
 ### FASE 1 — Arnés
-- **T1** Reconstruir Playwright + sysroot + wrappers. Correr `selftest` y `probe` sobre el
-  sitio actual y guardar la línea base. *(S — 0 archivos del sitio)*
+- **T1** Reconstruir Playwright + sysroot + wrappers. Correr `selftest`, `render` y `probe`
+  sobre el sitio actual y guardar la línea base. *(S — 0 archivos del sitio)* **HECHO.**
 
 ### FASE 2 — Assets y paleta *(paralelizable con 2c)*
 - **T2** Recuperar las 8 originales y producir los recortes con alfa de las 5 elegidas.
@@ -489,10 +571,10 @@ Detalle completo por tarea en `tasks/todo.md`. Resumen del alcance y el orden:
 
 | Después de | Criterio para seguir |
 |---|---|
-| **T1** | `selftest` da control positivo verde en los 3 motores. Línea base guardada. |
+| **T1** | `selftest` da control positivo verde en los 3 motores (`-80` → `-40`). `render` verde con su control negativo. `stability` verde: 3 corridas, veredictos idénticos. Línea base en `baseline.json`. |
 | **T4** | Los 5 recortes revisados en hoja de contacto, escalas normalizadas. Paleta con contraste AA verificado sobre las 5 fotos. |
 | **T5** | **El transform cambia** con el scroll, medido en los 3 motores. Los 4 factores distintos entre sí. Botón A/B alterna de verdad. Cero errores de consola en escenario normal **y** forzado. |
-| **T7** | Los 8 escenarios de gesto dan idéntico en los 3 motores. Especialmente: 3 flicks @120 ms → **panel 3** (hoy da panel 1). |
+| **T7** | Los 8 escenarios de gesto dan idéntico en los 3 motores, medidos **por la vía sintética** (§3.4: la confiable no gobierna su propio timing). Especialmente: 3 flicks @120 ms → **panel 3** (hoy da panel 1, con `timingFiel=true` en los 3 motores). |
 | **T8** | `verify-rollout.py` da exit 0. Los posts siguen **sin** transición (vt=false). |
 | **T11** | Suite verde entera. LCP ≤ 2,5 s. a11y 100. Cero regresiones de SEO/hreflang. |
 

@@ -8,6 +8,8 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[!]` bloqueado
 **Regla de oro:** ninguna casilla se marca sin haber corrido `tasks/verify/run.sh`.
 "Existe la regla CSS" no es verificación. "El transform cambió de X a Y" sí.
 
+Si el arnés no está montado (sesión nueva, `/tmp` vaciado): `tasks/verify/run.sh setup`.
+
 ---
 
 ## FASE 0 — Revivir producción
@@ -20,27 +22,95 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[!]` bloqueado
 
 ## FASE 1 — Arnés de verificación
 
-### [ ] T1 · Reconstruir el arnés multi-motor
+### [x] T1 · Reconstruir el arnés multi-motor
 
 **Descripción.** Playwright 1.62.1 + WebKit/Firefox/Chromium + el sysroot sin root que hace
 arrancar WebKit. Guardar la línea base del sitio actual para poder comparar después.
 
 **Acceptance criteria**
-- [ ] Los tres motores arrancan y renderizan (screenshot no vacío).
-- [ ] `tasks/verify/run.sh selftest` da **control positivo verde** en los 3: el transform de
-      control cambia de `-80` a `-40`. Esto demuestra que el medidor no es ciego.
-- [ ] `tasks/verify/run.sh probe` corre entero y escribe `probe-results.json`.
-- [ ] Línea base guardada en `tasks/verify/baseline.json`.
+- [x] Los tres motores arrancan y renderizan (screenshot no vacío).
+      `run.sh render`: sitio 9.095–9.126 colores / stdev 49; **control negativo** (página en
+      blanco) 1 color / stdev 0. El medidor no es ciego.
+- [x] `run.sh selftest` da **control positivo verde** en los 3: el control JS va de
+      `matrix(1,0,0,1,-80,0)` a `matrix(1,0,0,1,-40,0)` en webkit, firefox y chromium.
+- [x] `run.sh probe` corre entero y escribe `probe-results.json`.
+- [x] Línea base guardada en `tasks/verify/baseline.json` (commit `43f2a36`, 2026-08-27).
 
 **Verification**
-- `tasks/verify/run.sh` → exit 0.
-- 3 corridas seguidas dan resultado idéntico (la suite no es flaky; ya está comprobado).
+- [x] `tasks/verify/run.sh` → exit 0.
+- [x] 3 corridas seguidas dan resultado idéntico → **automatizado**: `run.sh stability`
+      corre la suite 3 veces y compara veredictos. Verde.
+- [x] `run.sh selfcheck` → exit 0: el arnés sabe dar **rojo** en los tres casos en que antes
+      daba un falso verde. Su verde significa algo.
 
-**Dependencies:** ninguna. **Scope:** S — no toca ningún archivo del sitio.
+**Lo que hubo que reconstruir de cero, y no estaba previsto**
+
+- **`tasks/verify/control/` no existía.** El fixture del control positivo nunca se commiteó:
+  vivía en el scratchpad y murió con él. Sin él `selftest-transform.mjs` ni arranca. Reescrito
+  y **ahora versionado**, con las 6 variantes comentadas.
+- **5 scripts auxiliares apuntaban al scratchpad muerto** (`measure`, `ab`, `scrim`,
+  `perfmetrics`, `shots`). Ahora resuelven el prototipo desde el repo (`tasks/proto/depth/`) y
+  escriben fuera del árbol (`VERIFY_OUT`, por defecto `~/pw-harness/shots`).
+- **`run.sh setup`**: el ritual manual de §3.2 del plan, automatizado. Una orden reconstruye
+  todo. `env.sh` reescrito para los scripts sueltos.
+
+**Tres fuentes de flakiness encontradas y cerradas** *(la suite NO era determinista)*
+
+1. **Error de fuente fantasma en Firefox.** `downloadable font: download failed …
+   NS_BINDING_ABORTED` aparecía en **1 de cada 8** corridas y ensuciaba `consoleErrors`, que
+   es criterio de aceptación de T5. Cerrado con `await page.evaluate(() =>
+   document.fonts.ready)` antes de medir: **0 de 8**. No es un defecto del sitio.
+2. **Métricas de píxel bailando** ±2 colores y ±300 B por corrida. Cerrado con
+   `screenshot({ animations: 'disabled' })`.
+3. **El panel alcanzado por la rueda cambiaba entre corridas en WebKit** (4 de 8 daban panel
+   2 en vez de 1). **No es el sitio: es el instrumento.** Ver el aviso de T7.
+
+**Auditoría adversarial del propio arnés — 6 defectos reales, todos cerrados**
+
+Un arnés que no puede fallar no verifica nada. Se auditó buscando falsos verdes, y salieron
+seis. **Los tres que se podían automatizar viven ahora en `run.sh selfcheck`**, que rompe cosas
+a propósito y exige rojo — estaban comprobados a mano una sola vez, que es exactamente lo que
+este plan no acepta como verificación:
+
+1. **El control positivo pasaba con el fixture roto.** La regla era `!changed.a` — una
+   aserción vacía: en WebKit A leía `none -> none`, y `'none' !== 'none'` es `false`, así que
+   la satisfacía igual un transform congelado que uno **ausente**. Ahora la aserción es
+   **positiva** (A clavada en el primer keyframe, autocalibrada contra B) y el fixture usa los
+   keyframes del sitio (`translate3d(±2.6%)`, no px), que es lo que hace que WebKit devuelva
+   una matriz de verdad. **Probado por mutación:** con la regla `#a` rota, el selftest da rojo
+   y sale con 1.
+2. **`probe.mjs` salía con 0 midiendo nada.** Apuntado a un directorio que no fuera el sitio,
+   leía `undefined` en todo y aprobaba. Ahora exige `#container`, paneles y `#hero .panel-bg
+   img`, y sale con 1 nombrando lo que faltó. Verificado con un directorio falso.
+3. **`render` aprobaba con las 5 fotos rotas** (9.358 colores, stdev 49: el texto y el ruido
+   SVG bastan). Ahora exige que la foto del hero decodifique.
+4. **El paso «a mitad de scroll» era un empate de `scroll-snap`.** 720 px es equidistante de
+   los centros del panel 0 y del 1: cada motor lo rompía a su manera. Sustituido por tres
+   posiciones de panel reales (`scrollLeft` 0 / 1440 / 2880).
+5. **`stability` moría justo cuando el fallo era intermitente**: `once()` lanzaba si el hijo
+   salía != 0. Ahora lo trata como dato. Y una medición de rueda que agota sus 4 intentos es
+   una **adquisición fallida del instrumento**, no una observación del sitio: se descarta y se
+   repite; 3 descartes seguidos sí son rojo.
+6. **`run.sh setup` cantaba victoria con un sysroot a medias.** Ahora cuenta los paquetes,
+   muere si falta uno y termina corriendo el control positivo.
+
+**Y un descubrimiento que cambia cómo leer todo lo medido hasta hoy:** el arnés estaba
+midiendo **`/en/`**, no `/`. `src/lang.js:51` redirige la raíz según `navigator.language`, y el
+locale por defecto de Playwright es `en-US`. Nada lo registraba. Ahora hay `--locale`/`--path`,
+el defecto es `es-ES` + `/`, y el JSON dice qué se pidió y qué se sirvió. Comprobado que las
+dos portadas dan medidas idénticas, así que **no invalida ningún número** — pero T4, T2c y T10
+tienen que medir las dos, porque las 19 páginas EN cargan además `obsidiana.css`.
+
+**Lo que el arnés NO puede hacer, y hay que decirlo** *(§3.4 del plan)*
+`page.mouse.wheel` no reproduce un gesto de 120 ms en esta máquina: cuesta ~200–460 ms por
+evento en WebKit, 92–214 ms en Firefox, 134–176 ms en Chromium. Por eso el probe mide por dos
+vías y marca cada una con `timingFiel` y los gaps reales.
 
 **Trampas ya resueltas (§3.2 del plan): no las redescubras.**
 El wrapper de WebKit pisa `LD_LIBRARY_PATH` → usar `wk_run.sh`. `libx264.so` da falso
 positivo → `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1`. Paquetes de Ubuntu 24.04 noble.
+`import` en ESM **no mira `NODE_PATH`** → enlace `tasks/verify/node_modules`.
+`npm install` y `apt-get download` **no tienen red en un comando de fondo**: en primer plano.
 
 ---
 
@@ -236,8 +306,16 @@ tarea. El hero es el molde; hasta que no esté verificado, replicarlo 4 veces mu
 
 **Dependencies:** T6. **Scope:** M.
 
-**Aviso:** las constantes están ajustadas contra un perfil de flick **sintético**. `DISCRETE=90`
+**Aviso 1:** las constantes están ajustadas contra un perfil de flick **sintético**. `DISCRETE=90`
 y `PEAK_SLOW=18` pueden necesitar reajuste contra deltas reales del trackpad del dueño.
+
+**Aviso 2 — con qué instrumento medir los 8 escenarios (medido en T1).** `page.mouse.wheel`
+**no** reproduce un gesto de 120 ms: cuesta ~200–460 ms por evento en WebKit headless, 92–214
+en Firefox, 134–176 en Chromium. Con `COOLDOWN_MS=650`, un gesto estirado deja pasar el tercer
+evento y el panel alcanzado cambia entre corridas. Usar la vía **sintética** de `probe.mjs`
+(`WheelEvent` despachado dentro de la página, 120–125 ms en los tres motores) y **exigir
+`timingFiel=true`**. Un panel medido con `timingFiel=false` no es el escenario que se pidió.
+La vía confiable se queda como humo: prueba que la rueda real llega y mueve, nada más.
 
 ---
 
