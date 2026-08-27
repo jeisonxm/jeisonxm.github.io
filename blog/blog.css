@@ -1,3 +1,19 @@
+/* Iconos SVG inline (FontAwesome Free) — sustituyen a los emojis que
+   marcaban la voz de Archy. */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  fill: currentColor;
+}
+
+.icon-archy {
+  font-size: 0.9em;
+  margin-right: 0.15em;
+  opacity: 0.85;
+}
+
 /* Tipografías autoalojadas — mismas declaraciones que src/styles/style.css.
    Las páginas del blog cargan blog.css, no style.css, así que necesitan su
    propia copia del @font-face. Rutas absolutas: el blog vive en /blog/ y en

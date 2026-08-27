@@ -1,7 +1,31 @@
 {
-  "hero":    { "file": "005-CircuitoCity8k-momentumphotography93-763.jpg",      "topFrac": 0.08, "note": "City 8K — zancada fuerte, cara clara, cielo arriba-izq" },
-  "about":   { "file": "006-CanajaguaTrail-achtarfoto-103865.jpg",              "topFrac": 0.06, "note": "Trail — verde bokeh, el fondo más limpio de los ocho" },
-  "skills":  { "file": "006-CircuitoCity8k-oneflashphoto-1164.jpg",             "topFrac": 0.12, "note": "City 8K — solo, ritmo controlado, montañas detrás" },
-  "blog":    { "file": "9192462844140-CircuitoSummer21k-jorgejuradofoto-886.jpg.jpg", "topFrac": 0.12, "note": "Summer 21K — grupo, luz dorada, masa tonal cálida" },
-  "contact": { "file": "9192443969772-CircuitoSummer21k-jorgejuradofoto-533.jpg.jpg", "topFrac": 0.14, "note": "Summer 21K — llegada, cara clara" }
+ "hero": {
+  "file": "006-CircuitoCity8k-oneflashphoto-1164.jpg",
+  "topFrac": 0.12,
+  "note": "City 8K — solo, izquierda tranquila para el titular",
+  "keepW": 0.7,
+  "anchorX": 0.0
+ },
+ "about": {
+  "file": "006-CanajaguaTrail-achtarfoto-103865.jpg",
+  "topFrac": 0.06,
+  "note": "Trail — verde bokeh, el fondo más limpio de los ocho"
+ },
+ "skills": {
+  "file": "005-CircuitoCity8k-momentumphotography93-763.jpg",
+  "topFrac": 0.08,
+  "note": "City 8K — ventana anclada a la derecha para sacar al segundo corredor",
+  "keepW": 0.74,
+  "anchorX": 1.0
+ },
+ "blog": {
+  "file": "9192462844140-CircuitoSummer21k-jorgejuradofoto-886.jpg.jpg",
+  "topFrac": 0.12,
+  "note": "Summer 21K — escena de carrera completa; recortar mas lo dejaba detras de la card"
+ },
+ "contact": {
+  "file": "9192443969772-CircuitoSummer21k-jorgejuradofoto-533.jpg.jpg",
+  "topFrac": 0.14,
+  "note": "Summer 21K — llegada, cara clara"
+ }
 }

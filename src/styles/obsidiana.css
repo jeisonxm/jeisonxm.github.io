@@ -21,9 +21,9 @@
   --surface: #1E1E1C;
   --surface-hover: #2A2A28;
   --white: #F2F2F0;
-  --gray: #A8A8A6;
-  --gray-light: #D4D4D2;
-  --gray-dark: #6E6E6C;
+  --gray: #CBCBC8;
+  --gray-light: #E4E4E1;
+  --gray-dark: #B0B0AD;
   --accent: #00D4FF;
   --accent-light: #66E2FF;
   --accent-dim: #0099BB;
@@ -43,30 +43,43 @@
   font-weight: 700;
 }
 
-/* Statue cool-shift: en obsidiana usamos mix-blend-mode: screen (heredado de
-   style.css es multiply, que se traga la foto en bg near-black). Con screen,
-   los valores de opacity leen mucho más brillantes que en marble — por eso
-   estas opacities son mucho más bajas que las de la versión ES. La intención
-   sigue siendo que Jeison se sienta presente como textura del fondo, no como
-   foreground popeando contra el negro. */
-.statue {
-  filter: brightness(0.85) contrast(1.1) saturate(0.55) hue-rotate(-15deg);
-  mix-blend-mode: screen;
-  opacity: 0.07;
+/* ===== SCRIM — obsidiana =====
+   El scrim de esta paleta es casi negro (#0A0A09) frente al piedra cálido
+   de la versión ES (#2C2824), así que para el MISMO alpha oscurece más. Por
+   eso aquí los valores son MÁS BAJOS que en ES, no más altos: los mínimos
+   medidos para cumplir WCAG sobre estas mismas fotos salen entre 8 y 12
+   puntos por debajo (ver tasks/contrast.mjs). Resultado: en inglés Jeison
+   se ve algo MÁS, no menos. */
+.hero-panel .panel-scrim {
+  background:
+    linear-gradient(100deg, rgba(10,10,9,0.56) 0%, rgba(10,10,9,0.42) 45%, rgba(10,10,9,0.28) 72%, rgba(10,10,9,0.06) 94%),
+    linear-gradient(180deg, transparent 46%, rgba(10,10,9,0.74) 100%);
 }
 
-.statue-left  { opacity: 0.10; }
-.statue-right { opacity: 0.07; }
-.statue-bg-center,
-.statue-bg-right,
-.statue-bg-left { opacity: 0.05; }
+.about-panel .panel-scrim {
+  background: linear-gradient(95deg, rgba(10,10,9,0.58) 0%, rgba(10,10,9,0.44) 62%, rgba(10,10,9,0.18) 100%);
+}
 
-@media (max-width: 768px) {
-  .statue-left  { opacity: 0.05; }
-  .statue-right { opacity: 0.035; }
-  .statue-bg-center,
-  .statue-bg-right,
-  .statue-bg-left { opacity: 0.03; }
+.skills-panel .panel-scrim {
+  background: linear-gradient(95deg, rgba(10,10,9,0.46) 0%, rgba(10,10,9,0.32) 60%, rgba(10,10,9,0.22) 100%);
+}
+
+.blog-panel .panel-scrim {
+  background: linear-gradient(100deg, rgba(10,10,9,0.68) 0%, rgba(10,10,9,0.60) 80%, rgba(10,10,9,0.28) 100%);
+}
+
+.contact-panel .panel-scrim {
+  background: linear-gradient(180deg, rgba(10,10,9,0.58) 0%, rgba(10,10,9,0.76) 100%);
+}
+
+@media (max-width: 699px) {
+  .hero-panel .panel-scrim,
+  .about-panel .panel-scrim,
+  .skills-panel .panel-scrim,
+  .blog-panel .panel-scrim,
+  .contact-panel .panel-scrim {
+    background: linear-gradient(180deg, rgba(10,10,9,0.68) 0%, rgba(10,10,9,0.60) 45%, rgba(10,10,9,0.78) 100%);
+  }
 }
 
 /* Override the "stone crack" hover veins with obsidiana-appropriate values

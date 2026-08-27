@@ -34,10 +34,19 @@ for (const [slug, p] of Object.entries(picks)) {
   const band = Math.round(m.width * 9 / 16);
   const top = Math.min(Math.round(m.height * p.topFrac), m.height - band);
 
-  // --- apaisado: banda dirigida a mano, luego escalar ---
+  // --- apaisado: ventana dirigida a mano, luego escalar ---
+  // keepW recorta ancho para reposicionar al sujeto dentro del encuadre:
+  // quitar parte del borde derecho lo empuja hacia la derecha del resultado,
+  // que es como se le saca de la columna donde va el texto. Recortar ancho
+  // estrecha también la banda 16:9, o sea más zoom — es el precio.
+  const keepW = Math.round(m.width * (p.keepW || 1));
+  const left  = Math.round((m.width - keepW) * (p.anchorX ?? 0));
+  const band2 = Math.round(keepW * 9 / 16);
+  const top2  = Math.min(Math.round(m.height * p.topFrac), m.height - band2);
+
   for (const [w,h,ba,bw] of LAND) {
     const pipe = sharp(src).rotate()
-      .extract({ left:0, top, width:m.width, height:band })
+      .extract({ left, top: top2, width: keepW, height: band2 })
       .resize(w, h, { fit:'cover' });
     const a = await encode(pipe, path.join(OUT, `${slug}-l${w}`), 'avif', 72, ba);
     const b = await encode(pipe, path.join(OUT, `${slug}-l${w}`), 'webp', 84, bw);
@@ -55,7 +64,7 @@ for (const [slug, p] of Object.entries(picks)) {
 
   // --- color dominante para el placeholder de 0 bytes ---
   const { data } = await sharp(src).rotate()
-    .extract({ left:0, top, width:m.width, height:band })
+    .extract({ left, top: top2, width: keepW, height: band2 })
     .resize(1,1,{fit:'cover'}).removeAlpha().raw().toBuffer({resolveWithObject:true});
   // se oscurece un poco: el fade va de color a foto y la foto lleva brightness(.92)
   const hex = '#' + [...data].map(v => Math.round(v*0.82).toString(16).padStart(2,'0')).join('');

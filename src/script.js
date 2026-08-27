@@ -22,7 +22,16 @@
 
   var navLinks = Array.prototype.slice.call(document.querySelectorAll('.header-nav a'));
   var scrollHint = document.getElementById('scrollHint');
-  var statues = Array.prototype.slice.call(container.querySelectorAll('.statue'));
+  var bgImgs = panels.map(function (p) { return p.querySelector('.panel-bg img'); });
+
+  // Si el navegador soporta scroll-driven animations, el parallax lo lleva el
+  // compositor por CSS y el JS no debe escribir --px.
+  var cssParallax = window.CSS && CSS.supports &&
+    CSS.supports('animation-timeline', 'scroll(inline nearest)');
+  // El parallax por JS solo en punteros finos: escribir transform de forma
+  // continua durante el scroll con inercia es jank y batería en Android.
+  var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var doJsParallax = !cssParallax && finePointer && !reduceMotion.matches;
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -198,6 +207,7 @@
         var idx = panels.indexOf(entry.target);
         if (idx === -1) return;
         currentIndex = idx;   // mantiene el índice sincronizado tras un drag táctil
+        syncDots(idx);
         var id = entry.target.id;
         navLinks.forEach(function (link) {
           link.classList.toggle('active', link.getAttribute('href') === '#' + id);
@@ -223,17 +233,16 @@
       scrollHint.style.opacity = x > viewportW * 0.3 ? '0' : '';
     }
 
-    if (!reduceMotion.matches) {
-      for (var i = 0; i < statues.length; i++) {
-        var statue = statues[i];
-        var panel = statue.closest('.panel');
-        if (!panel) continue;
-        var pIdx = panels.indexOf(panel);
-        var base = pIdx === -1 ? 0 : offsets[pIdx];
-        var offset = (x - base) * 0.04;
-        statue.style.transform = statue.classList.contains('statue-bg-center')
-          ? 'translateX(calc(-50% + ' + offset + 'px))'
-          : 'translateX(' + offset + 'px)';
+    if (doJsParallax) {
+      for (var i = 0; i < bgImgs.length; i++) {
+        var img = bgImgs[i];
+        if (!img) continue;
+        // Se escribe una custom property registrada como <length>, no un
+        // string de transform: el motor la guarda tipada y no re-parsea en
+        // cada frame. Clampeada a ±40px, que es la holgura del 6%.
+        var off = (x - offsets[i]) * 0.06;
+        if (off > 40) off = 40; else if (off < -40) off = -40;
+        img.style.setProperty('--px', off + 'px');
       }
     }
   }
@@ -260,25 +269,116 @@
     });
   }, { passive: true });
 
-  // ---------- Estatuas: respiración ----------
-  // (Provisional: desaparece junto con las estatuas en la fase de fotos.)
-  function animateStatue(id, min, max, duration, delay) {
-    var el = document.getElementById(id);
-    if (!el || reduceMotion.matches) return;
-    el.style.transition = 'opacity ' + duration + 'ms ease-in-out';
-    setTimeout(function () {
-      setInterval(function () {
-        var cur = parseFloat(el.style.opacity || getComputedStyle(el).opacity);
-        el.style.opacity = Math.abs(cur - max) < 0.05 ? min : max;
-      }, duration);
-    }, delay);
+  // ---------- Carga de las fotos de los paneles 2-5 ----------
+  // loading="lazy" nativo hace pop-in visible aquí: su umbral (~1250px en
+  // conexión rápida) está afinado para scroll vertical y se aplica por eje.
+  // Con paneles de 100vw, en un portátil de 1440px el panel 3 está a 2880px,
+  // fuera del umbral — y la transición de snap dura 300-500ms mientras la
+  // imagen tarda bastante más. Se ve la foto materializarse DESPUÉS de que
+  // el panel ya se detuvo.
+  function reveal(img) {
+    var pic = img.parentNode;
+    var sources = pic.querySelectorAll('source[data-srcset]');
+    for (var i = 0; i < sources.length; i++) {
+      sources[i].srcset = sources[i].getAttribute('data-srcset');
+      sources[i].removeAttribute('data-srcset');
+    }
+    if (img.getAttribute('data-srcset')) {
+      img.srcset = img.getAttribute('data-srcset');
+      img.removeAttribute('data-srcset');
+    }
+    if (img.getAttribute('data-src')) {
+      img.src = img.getAttribute('data-src');
+      img.removeAttribute('data-src');
+    }
+    // decode() resuelve solo cuando el bitmap está rasterizado y listo para
+    // pintar. Añadir .is-loaded después es lo que de verdad mata el pop-in:
+    // sin esto se puede llegar a ver un pintado progresivo a medias.
+    // El catch es obligatorio: decode() rechaza si la fuente cambia a mitad
+    // de vuelo, cosa que pasa al cruzar el breakpoint de 700px en un resize.
+    if (img.decode) {
+      img.decode().then(done, done);
+    } else {
+      img.addEventListener('load', done);
+      done();
+    }
+    function done() { img.classList.add('is-loaded'); }
   }
 
-  animateStatue('statue-gym', 0.10, 0.20, 3000, 1200);
-  animateStatue('statue-run', 0.06, 0.14, 3000, 600);
-  animateStatue('statue-code', 0.05, 0.12, 3000, 0);
-  animateStatue('statue-strength', 0.06, 0.12, 3000, 900);
-  animateStatue('statue-finish', 0.06, 0.12, 3000, 300);
+  if ('IntersectionObserver' in window) {
+    var lazyIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        lazyIO.unobserve(e.target);
+        reveal(e.target);
+      });
+    }, { root: container, rootMargin: '0px 150% 0px 150%', threshold: 0 });
+
+    bgImgs.forEach(function (img) {
+      // El <img> diferido lleva data-src (no data-srcset: los srcset viven en
+      // los <source>). Comprobar solo data-srcset dejaba a los paneles 2-5
+      // sin observar y por tanto sin cargar nunca.
+      if (!img) return;
+      var pending = img.getAttribute('data-src') || img.getAttribute('data-srcset') ||
+                    img.parentNode.querySelector('source[data-srcset]');
+      if (pending) lazyIO.observe(img);
+    });
+
+    // will-change promueve a capa de compositor. Cinco fotos de 1536x864 como
+    // texturas RGBA son ~27 MB de memoria GPU permanente; en un Adreno/Mali de
+    // gama media Chrome empieza a desalojar capas, y el desalojo a mitad de
+    // scroll es justo el tirón que se quiere evitar. Con margen del 60% solo
+    // se promueven el panel actual y su vecino: ~11 MB.
+    if (doJsParallax) {
+      var layerIO = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          e.target.style.willChange = e.isIntersecting ? 'transform' : 'auto';
+        });
+      }, { root: container, rootMargin: '0px 60% 0px 60%', threshold: 0 });
+      bgImgs.forEach(function (img) { if (img) layerIO.observe(img); });
+    }
+  } else {
+    // Sin IntersectionObserver: cargar todo de una, es preferible a no cargar.
+    bgImgs.forEach(function (img) {
+      if (img && !img.classList.contains('is-loaded')) reveal(img);
+    });
+  }
+
+  // ---------- Puntos de progreso ----------
+  var dots = Array.prototype.slice.call(document.querySelectorAll('.panel-dot'));
+  dots.forEach(function (dot, i) {
+    dot.addEventListener('click', function () { goToIndex(i); });
+  });
+
+  function syncDots(idx) {
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].classList.toggle('active', i === idx);
+      dots[i].setAttribute('aria-current', i === idx ? 'true' : 'false');
+    }
+  }
+  syncDots(0);
+
+  // ---------- Formulario de contacto ----------
+  // Mientras el endpoint de Formspree siga siendo el marcador, enviar POST
+  // llevaría a una página de error. Se intercepta y se abre un correo ya
+  // redactado con lo que la persona escribió: nunca se pierde el mensaje.
+  var cform = document.querySelector('.contact-form');
+  if (cform) {
+    cform.addEventListener('submit', function (e) {
+      var status = cform.querySelector('.form-status');
+      if (cform.action.indexOf('TU-ENDPOINT') === -1) return;   // endpoint real: dejar pasar
+      e.preventDefault();
+      var get = function (n) {
+        var el = cform.querySelector('[name="' + n + '"]');
+        return el ? el.value : '';
+      };
+      var body = get('message') + '\n\n— ' + get('name') + ' (' + get('email') + ')';
+      if (status) status.textContent = cform.getAttribute('data-fallback-msg') || '';
+      window.location.href = 'mailto:jeisonwumitre@gmail.com'
+        + '?subject=' + encodeURIComponent('Contacto desde jeisonxm.github.io')
+        + '&body=' + encodeURIComponent(body);
+    });
+  }
 
   // ---------- Año del footer ----------
   var yearEl = document.getElementById('anio');
