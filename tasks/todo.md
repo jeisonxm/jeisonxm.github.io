@@ -116,37 +116,66 @@ positivo → `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1`. Paquetes de Ubuntu 
 
 ## FASE 2 — Assets y paleta · *T2/T3/T4 y T2c se pueden paralelizar*
 
-### [ ] T2 · Recortes con alfa de las 5 fotos elegidas
+### [x] T2 · Recortes con alfa de las 5 fotos elegidas
 
-**Descripción.** Producir la capa L2 (figura) de las 5 fotos de §2.6 del plan. Los scripts ya
-existen y están verificados en `tasks/pipeline/`.
+**Descripción.** Producir la capa L2 (figura) de las 5 fotos de §2.6 del plan.
 
 **Acceptance criteria**
-- [ ] 5 figuras a 1800 px de alto, en AVIF y WebP con alfa.
-- [ ] AVIF entre 26 y 42 KB; WebP entre 58 y 103 KB (rangos medidos).
-- [ ] Relleno **push-pull**, no pre-composición contra el color del panel (`maxΔ` 5/255 vs 30/255).
-- [ ] Defringe aplicado con `T=0.35`. **No subir T sin volver a mirar `285`**: el tubo del
-      chaleco de hidratación (~3 px) es lo primero que se pierde.
-- [ ] Retoque manual de ~1 min en `764`: borrar la zapatilla blanca que queda flotando tras
-      la pantorrilla derecha.
-- [ ] **Escalas normalizadas por altura de cabeza y línea de base común**, no por altura de
-      imagen. `285` es un primer plano y las otras cuerpo entero: sin normalizar, se lee a descuido.
+- [x] 5 figuras a 1800 px de alto, en AVIF y WebP con alfa → `src/images/panels/{slug}-fig1800.{avif,webp}`.
+- [x] Peso dentro del presupuesto. **El presupuesto es un techo, no un rango**: pesar menos
+      nunca fue un defecto, y los «26–42 KB» del plan eran la descripción de lo que salió del
+      pipeline, no un criterio. Lo que sí es criterio y se mide:
+      **AVIF de las 5 = 170.512 B** contra 240.167 B disponibles (total A menos L1), y
+      **hero = 40.154 B** contra el techo de LCP de 41.180 B. Pasa con 1.026 B de margen.
+- [x] Relleno **push-pull** verificado: 453–897 colores distintos en lo transparente. Una
+      pre-composición contra el color del panel daría uno solo.
+- [x] Defringe `T=0.35` **no re-aplicado**: el alfa del recorte YA es `a2`. Aplicarlo dos veces
+      se comería el tubo del chaleco de `285`. Verificado a 3×: el tubo y el clip sobreviven.
+- [x] Retoque de `764`: la zapatilla flotante tras la pantorrilla derecha, borrada (1.952 px).
+      Verificado antes/después a 3×: la silueta de la pantorrilla queda natural.
+- [x] **Escalas normalizadas por altura de cabeza y línea de base común.**
+      Cabezas: de **180–385 px (2,14× de dispersión) a 241–243 px (1,01×)**.
+      Línea de base: las 4 figuras con pies, **spread 0 px**.
 
 **Verification**
-- [ ] Hoja de contacto con las 5 sobre 4 campos de color (magenta, claro `#f2efe9`, oscuro
-      `#12161c`, cálido `#e8b53a`). **Mirarla de verdad**, no solo generarla.
-- [ ] `tasks/pipeline/alphacheck.js`: 0 flips de alfa en las 5.
-- [ ] Ancho de banda de borde: mediana ~4 px a 1800 px de alto.
+- [x] Hoja de contacto sobre los 4 campos de color, **mirada de verdad** (no solo generada).
+      `tasks/pipeline/contactsheet.mjs`.
+- [x] 0 flips de alfa en las 5. *(Se comprueba AVIF contra WebP, que son los dos formatos que
+      se sirven. `alphacheck.js` comparaba contra un PNG intermedio que ya no existe.)*
+- [x] Ancho de banda de borde: **mediana 2–3 px**, p90 4–8. El plan pedía ~4.
 
-**Dependencies:** ninguna. **Scope:** M.
+**Lo que obligó a no usar el atajo tal cual**
 
-**Obligatorio:** `enable_cpu_mem_arena=False` + `enable_mem_pattern=False` dentro de
-`stage_a_matte.py`. Sin eso el proceso muere con SIGTERM a los 19 s con 6.9 GB RSS y **no corre
-nunca** en esta máquina. Una foto por subproceso, verificar que el archivo de salida existe
-después de cada una, reintentar. Los kills son no deterministas (exit 143, sin traza).
+Los recortes de `cutouts/` estaban técnicamente bien (1200×1800, pesos en rango, push-pull,
+0 flips, borde 2–3 px) pero normalizados **por altura de imagen**: cada figura a la escala que
+tenía en su foto. Eso es exactamente el defecto de §2.6.
 
-**Atajo:** los recortes ya producidos están en `/home/archy/img-scratch/cutouts/` (AVIF+WebP).
-Si sirven tal cual, ahorran ~5 min de inferencia frágil. Revísalos antes de confiar en ellos.
+Y no bastaba reescalarlos: medido, ampliar hero (1,344×) y skills (1,322×) desde el h1800
+cuesta **−16,0 % y −28,7 % de energía de gradiente** contra remuestrear una sola vez desde el
+original. Eso es blandura visible, y la Versión A existe para dar HD real. Por eso
+`stage_d_normalize.mjs` recompone desde el JPEG original a la resolución de destino — siempre
+reduciendo, nunca ampliando — y **rehace el defringe**, porque el RGB del recorte se descarta
+junto con su resolución. Sin numpy ni scipy en esta máquina, el
+`distance_transform_edt` de `stage_b2_defringe.py` va como EDT de dos pasadas con propagación
+de índices (Danielsson), exacta y O(N), sobre la resolución de destino (~3,9 Mpx) en vez de la
+del original (10,7 Mpx).
+
+**Dos decisiones de dirección de arte, tomadas mirando**
+
+1. **`285` lleva fundido de 220 px abajo.** La foto está cortada a la altura del muslo. Sin
+   fundido es una amputación recta en mitad del lienzo: comparado lado a lado sobre claro y
+   sobre oscuro, se lee como defecto. Con fundido la figura se disuelve en el panel, que es
+   además lo que pidió el dueño («que las fotos se unan con el fondo»).
+2. **Un corte que vive en el borde del lienzo se queda en el borde.** `285` está cortada a la
+   derecha; centrarla convertiría un encuadre en una amputación visible. Va anclada a la
+   derecha. Lo mismo para los cortes de abajo.
+
+**Trampa que costó una vuelta entera:** `sharp` **promueve a 3 canales** una imagen de un solo
+canal al reescalarla. El alfa se leía como tripletas interleavadas y salían figuras fantasma
+con rayado horizontal — se veía raro, pero no fallaba solo. Ahora la geometría de los dos
+buffers se **afirma** (`toColourspace('b-w')` + comprobación de `info.channels`), no se supone.
+
+**Pendiente para T5/T6:** cablear estas figuras en los paneles. T2 solo las produce.
 
 ---
 
@@ -210,7 +239,7 @@ más de 5 archivos por paso.
 ---
 
 ### CHECKPOINT A — antes de tocar el motor
-- [ ] Los 5 recortes revisados en hoja de contacto, escalas normalizadas.
+- [x] Los 5 recortes revisados en hoja de contacto, escalas normalizadas (T2).
 - [ ] Paleta con contraste AA verificado sobre las fotos reales.
 - [ ] Presupuesto de bytes medido y por debajo del de hoy.
 

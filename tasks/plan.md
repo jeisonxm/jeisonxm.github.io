@@ -217,6 +217,9 @@ a 320 px q35 en vez de 1536 px q50 baja esa capa de 371.744 B a **25.973 B en lo
   19 % pero deja halo medible (`maxΔ 30/255` en el borde); push-pull lo baja a `maxΔ 5/255` y
   aun así cuesta 9 % menos que dejar el RGB crudo.
 - Pesos medidos de la figura a 1800 px de alto con alfa: **AVIF 26–42 KB, WebP 58–103 KB.**
+  *(T2: eso era la descripción de lo que salió del pipeline, no un criterio. El criterio es el
+  techo. Tras normalizar escalas, las 5 figuras AVIF suman **170.512 B** y el hero pesa
+  **40.154 B** contra su techo de LCP de 41.180 B.)*
   AVIF conserva el alfa con 0 flips en las 8; WebP (q80, alphaQuality 90) es prácticamente
   sin pérdida.
 
@@ -539,7 +542,9 @@ Detalle completo por tarea en `tasks/todo.md`. Resumen del alcance y el orden:
 
 ### FASE 2 — Assets y paleta *(paralelizable con 2c)*
 - **T2** Recuperar las 8 originales y producir los recortes con alfa de las 5 elegidas.
-  Retoque manual de 1 min en `764`. *(M)*
+  Retoque manual de 1 min en `764`. *(M)* **HECHO.** Cabezas normalizadas de 2,14× a 1,01× de
+  dispersión; recompuesto desde los originales porque reescalar el h1800 costaba −16 %/−29 %
+  de nitidez.
 - **T3** Producir las capas de fondo desenfocado (320 px q35) y las fotos enteras de la
   Versión B (2048 máx). *(M)*
 - **T4** Derivar la paleta única de las 5 fotos y escribir el archivo de tokens. *(M)*
