@@ -527,13 +527,33 @@ disco: un enlace puede apuntar a un archivo que existe y aun así estar mal escr
 **Cambia el CV que se ofrecía.** ES pasaba de «curriculum final.pdf» (mayo) al de 2026, y EN
 del genérico al perfil **AI Builder**. Los antiguos siguen en `src/` pero ya no se enlazan.
 
-### [ ] T10 · Contraste y accesibilidad
+### [x] T10 · Contraste y accesibilidad
 
-- [ ] **Los 6 fallos de contraste del blog ES que Lighthouse NO ve** (hasta 2.87:1). Se le
-      escapan porque el ruido SVG de fondo deja 60 nodos «no evaluables» para axe. **Medirlos a
-      mano, no confiar en la puntuación.**
-- [ ] a11y 100 conservado. No perder aria, tabindex, skip links, hreflang, meta ni structured data.
-- [ ] Contraste AA en las dos versiones (A y B) sobre las 5 fotos.
+- [x] **Los 6 fallos del blog ES ya no existen.** Se buscaron caminando el DOM real
+      (`tasks/verify/a11y-check.mjs`): **1.951 elementos con texto en las 38 páginas**, y los
+      1.804 que no están sobre foto **cumplen AA**. Los arregló T2c: la paleta anterior tenía
+      pares como `--gray-dark` sobre `--surface` muy justos; la nueva no baja de 5,23:1.
+- [x] a11y conservado, **verificado contra la línea base `43f2a36`**: hreflang 3→3, tabindex
+      6→6, `aria-` 24→32, `alt=` 5→15, meta description 1→1. **Ninguna de las 38 páginas perdió
+      un solo atributo** (220 → 238 en total).
+- [x] Contraste AA en las dos versiones sobre las 5 fotos: `tasks/contrast.mjs` exit 0.
+
+**Corrección al plan: los skip links, el JSON-LD, el canonical y los Open Graph no se
+perdieron — nunca existieron.** Comprobado contra `43f2a36`: 0 antes, 0 ahora. El plan pedía
+conservar cosas que el sitio no tiene. *(Queda anotado como mejora futura, fuera del alcance.)*
+
+**Dos bugs de mi propia medición, cazados antes de creerme el verde**
+1. **La comprobación era ciega.** Marcaba «sobre imagen» —y por tanto no evaluable— a 1.815 de
+   1.951 elementos, porque el ruido SVG de fondo lleva `filter='url(%23n)'` **dentro** de su
+   data URI y mi regex se disparaba con él. Es el mismo agujero por el que Lighthouse da 100
+   con fallos dentro. Ahora exige que la URL apunte a un archivo de imagen real: 147.
+2. **56 falsos fallos con ratio exacto 1:1** — la firma de comparar algo consigo mismo.
+   Componía el fondo sobre la marcha, así que el primer fondo semitransparente se mezclaba
+   consigo mismo y una píldora con `rgb(var(--accent-rgb) / 0.12)` devolvía el acento a plena
+   opacidad, el mismo color que su texto. Ahora recoge la cadena y compone de abajo arriba.
+
+**Control negativo:** un texto inyectado a 3,73:1 se mide por debajo de 4,5. La comprobación
+sabe dar rojo, así que su verde significa algo.
 
 **Dependencies:** T6, T8. **Scope:** M.
 
