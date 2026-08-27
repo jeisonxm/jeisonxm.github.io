@@ -1,0 +1,48 @@
+/* tokens.css — UNA sola fuente de verdad para el color.
+ *
+ * Generado por tasks/pipeline/maketokens.mjs. No editar a mano: se regenera.
+ *
+ * Derivada de las 5 fotos de §2.6, medidas en OKLCh (tasks/pipeline/palette.mjs),
+ * no de las estatuas de IA de donde salio la paleta anterior. Tonos dominantes
+ * del conjunto: 245°/235° azul, 55°/65° calido, 115° verde de trail, 185°/195°
+ * turquesa. La UI anterior vivia entera en 67-79° con croma 0.009-0.027, y por
+ * eso las fotos no combinaban.
+ *
+ *   neutros  h=245°  el tono dominante. Frio a proposito: deja resaltar la
+ *            piel y el asfalto en vez de competir con ellos.
+ *   acento   h=195°  el turquesa que YA llevan las camisetas de hero y blog.
+ *
+ * NADA se deriva de --marble-warm: en obsidiana.css valia #00D4FF, cian
+ * electrico, y cualquier efecto derivado daba halo de neon en las 19 paginas EN.
+ */
+:root {
+  --bg: #12171B;
+  --bg-alt: #1C2228;
+  --surface: #252D33;
+  --surface-hover: #323A42;
+  --stone: #252D33;
+  --stone-light: #384048;
+  --stone-texture: #1C2228;
+  --white: #F2F5F7;
+  --gray-light: #DBDFE2;
+  --gray: #BEC3C7;
+  --gray-dark: #999FA4;
+  --accent: #77CFCF;
+  --accent-strong: #12A7A7;
+
+  /* Bordes: sobre --white, para que sigan al texto y no al fondo. */
+  --border: rgba(247, 248, 250, 0.08);
+  --border-hover: rgba(247, 248, 250, 0.16);
+
+  /* Campo de color de cada panel, sacado de su propio fondo desenfocado. */
+  --panel-hero: #887F6C;
+  --panel-about: #3E4E5B;
+  --panel-skills: #5F6A59;
+  --panel-blog: #887569;
+  --panel-contact: #9C9682;
+
+  --radius: 2px;
+  --transition: 300ms ease;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}

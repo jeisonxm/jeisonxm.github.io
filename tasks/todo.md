@@ -243,19 +243,39 @@ también `picks.json` y `tasks/build.mjs`.
 
 ---
 
-### [ ] T4 · Paleta derivada de las 5 fotos
+### [x] T4 · Paleta derivada de las 5 fotos
 
 **Acceptance criteria**
-- [ ] Paleta extraída de las **5 fotos elegidas**, no de las estatuas de IA borradas.
-- [ ] Un solo archivo de tokens, cargado por los 38 HTML.
-- [ ] Recoge los tonos reales de las fotos: verdes de trail 119°, turquesa de camiseta,
-      asfalto. Hoy la UI vive en 10–19 % de saturación en tono 30–37° y las fotos llegan a 47 %.
-- [ ] Contraste AA verificado **sobre las fotos reales** con `tasks/contrast.mjs`.
+- [x] Paleta extraída de las **5 fotos elegidas**, medidas en OKLCh
+      (`tasks/pipeline/palette.mjs`), no de las estatuas de IA borradas.
+- [x] Un solo archivo de tokens: `src/styles/tokens.css`, generado por
+      `tasks/pipeline/maketokens.mjs`. *(Cargarlo en los 38 HTML es T2c.)*
+- [x] Recoge los tonos reales. Medido, tonos dominantes del conjunto:
+      **245°/235° azul** (camiseta de `285`, sombras), **55°/65° cálido** (piel, asfalto),
+      **115°/105° verde de trail**, **185°/195° turquesa de camiseta**.
+      La UI anterior vivía **entera** en 67–79° con croma 0,009–0,027. Ahí estaba la raíz de
+      «las fotos no combinan».
+- [x] Contraste AA verificado **sobre las fotos reales**, en A y en B.
+
+**Decisiones, con su porqué**
+- **Neutros en h=245°**, el tono dominante. Fríos a propósito: un neutro cálido compite con la
+  piel y el asfalto; uno frío los deja resaltar. Croma 0,010–0,020 — tiene que leerse neutro.
+- **Acento en h=195°**, el turquesa que *ya* llevan las camisetas de hero y blog. Croma 0,085:
+  fotográfico, no neón.
+- **`--panel-*` por tono dominante de su propia L1**, no por promedio. Reducir la L1 a 1×1
+  aplastaba el tono y blog y contact salían del mismo marrón. Ahora: hero 85°, about 245°,
+  skills 135°, blog 55°, contact 95°, cada uno con la luminosidad real de su foto.
+- **Nada deriva de `--marble-warm`.** En `obsidiana.css` vale `#00D4FF`, cian eléctrico.
 
 **Verification**
-- [ ] `tasks/contrast.mjs` sin fallos sobre los 5 paneles, en ambas versiones (A y B).
-- [ ] Ningún token derivado de `--marble-warm`: en EN vale `#00D4FF` (cian eléctrico) y daría
-      halo de neón. Derivar de neutros vía `color-mix`.
+- [x] `tasks/pipeline/maketokens.mjs` → exit 0: **los 11 pares de color planos cumplen AA**,
+      el más justo `--gray-dark` sobre `--surface` a 5,23:1.
+- [x] `tasks/contrast.mjs` → exit 0 sobre los 5 paneles **en las dos versiones**. Estaba
+      obsoleto (usaba `picks.json` y rutas muertas); reescrito para medir sobre los paneles
+      reales compuestos.
+
+**El número que T5 necesita:** scrim **0,56 en Versión A** y **0,58 en Versión B** (peor caso,
+`contact`/formulario). Tope duro 0,85 — por encima ya no es un scrim, es tapar la foto.
 
 **Dependencies:** T2, T3. **Scope:** M.
 

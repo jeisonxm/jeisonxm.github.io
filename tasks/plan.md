@@ -549,6 +549,8 @@ Detalle completo por tarea en `tasks/todo.md`. Resumen del alcance y el orden:
   Versión B (2048 máx). *(M)* **HECHO.** L1 pesa 8.327 B los 5 (un tercio de lo previsto) y va
   alineada con la transformación de su figura: sin eso el fantasma L1/L2 se ve, medido.
 - **T4** Derivar la paleta única de las 5 fotos y escribir el archivo de tokens. *(M)*
+  **HECHO.** Neutros en 245° y acento turquesa en 195°, ambos medidos en las fotos. Scrim
+  necesario: 0,56 (A) / 0,58 (B).
 - **T2c** Unificar los tres `:root` en uno; eliminar `obsidiana.css`; migrar los 82 colores
   hardcodeados. *(L — dividir si hace falta)*
 
