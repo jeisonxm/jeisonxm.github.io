@@ -54,7 +54,8 @@ for (const [slug, p] of Object.entries(picks)) {
   }
 
   // --- vertical: la fuente ya es 2:3, el recorte es leve; saliencia basta ---
-  for (const [w,h,ba,bw] of PORT) {
+  for (let [w,h,ba,bw] of PORT) {
+    if (slug === 'hero') { ba = Math.round(ba * 0.62); bw = Math.round(bw * 0.62); }
     const pipe = sharp(src).rotate()
       .resize(w, h, { fit:'cover', position: sharp.strategy.attention });
     const a = await encode(pipe, path.join(OUT, `${slug}-p${w}`), 'avif', 72, ba);
