@@ -1,7 +1,12 @@
 import { chromium } from 'playwright';
 import path from 'node:path';
-const S = '/tmp/claude-1001/-home-archy-jeisonxm-github-io/ab849e21-0869-4348-9524-78050999b3ea/scratchpad';
-const URL = 'file://' + path.join(S, 'recon/depth/index.html');
+import { fileURLToPath } from 'node:url';
+
+// El prototipo vive en el repo (tasks/proto/depth), no en el scratchpad efimero
+// de la sesion que lo escribio. S es solo el directorio de salida.
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const S = process.env.VERIFY_OUT || path.join(process.env.HOME, 'pw-harness', 'shots');
+const URL = 'file://' + path.join(HERE, '..', 'proto', 'depth', 'index.html');
 
 const pick = (m, ks) => Object.fromEntries(m.filter(x => ks.includes(x.name)).map(x => [x.name, x.value]));
 const KEYS = ['LayoutCount', 'RecalcStyleCount', 'LayoutDuration', 'RecalcStyleDuration', 'ScriptDuration', 'TaskDuration'];

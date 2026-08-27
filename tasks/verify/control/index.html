@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Control de la metrica del transform</title>
+<!--
+  Fixture del CONTROL POSITIVO de selftest-transform.mjs.
+
+  No es el sitio: es el banco de pruebas que demuestra que "leer
+  getComputedStyle(img).transform antes y despues de scrollear" SI detecta un
+  cambio real. Si el control JS no cambia aqui, el "false" de probe.mjs sobre el
+  sitio no significa nada: significaria que el medidor esta ciego.
+
+  La variante A copia LITERALMENTE la forma del sitio (style.css:312-320):
+  overflow:hidden + scroll(inline nearest) + animation-range: entry/exit +
+  keyframes en translate3d(+-2.6%). Las otras cinco se apartan de A en UNA sola
+  cosa cada una, para que el contraste aisle una causa y no una mezcla:
+
+    a   la forma del sitio, tal cual                          CONGELADA
+    b   a, pero SIN overflow:hidden                           cambia   <- la causa
+    c   a, pero con timeline por nombre (--sc)                cambia   <- el arreglo
+    d   a, pero SIN animation-range                           CONGELADA <- NO era el rango
+    e   c, pero SIN animation-range                           cambia
+    js  cero CSS de scroll: lo mueve el JS                    EL CONTROL
+
+  b prueba que la causa es overflow:hidden (una caja con overflow:hidden ES un
+  scroll container, asi que scroll(inline nearest) se ata a .panel-bg, que nunca
+  scrollea). c prueba que el nombre de timeline atraviesa ese recorte. d refuta
+  el diagnostico de DEFECTOS.md, que culpaba a animation-range: quitarlo no
+  descongela nada.
+
+  Los keyframes van en % como en el sitio, a proposito. Con keyframes en px
+  WebKit devolvia "none" para la animacion congelada, y "none -> none" tambien
+  "no cambia": el selftest habria pasado igual con la regla #a rota. Con % se
+  lee una matriz de verdad y la comprobacion puede ser POSITIVA (a clavada en el
+  primer keyframe) en vez de la aserción vacia "a no cambio".
+
+  El control JS va de translateX(-80px) a translateX(-40px) EXACTOS en la
+  posicion que usa el selftest (scrollLeft = 1.5 x clientWidth), asi el criterio
+  de aceptacion de T1 se lee tal cual en la salida.
+-->
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+
+  #container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* Timeline con nombre para las variantes c y e. */
+    scroll-timeline-name: --sc;
+    scroll-timeline-axis: inline;
+  }
+
+  .panel { flex: 0 0 100%; height: 100%; position: relative; }
+  .panel-bg { position: absolute; inset: 0; }
+  /* 106% de ancho: la capa desborda su caja, igual que en el sitio. Los
+     keyframes en % se resuelven contra ESTA caja, identica en las 6 variantes. */
+  .panel-bg img { position: absolute; top: 0; left: 0; width: 106%; height: 100%; object-fit: cover; }
+
+  .tag {
+    position: absolute; left: 24px; top: 24px; z-index: 2;
+    font: 600 15px/1.4 system-ui, sans-serif; color: #fff;
+    background: rgba(0,0,0,.55); padding: 6px 12px; border-radius: 4px;
+  }
+
+  /* Mismos keyframes que style.css:318-320. */
+  @keyframes shift {
+    from { transform: translate3d(-2.6%, 0, 0); }
+    to   { transform: translate3d( 2.6%, 0, 0); }
+  }
+
+  /* --- a: la forma del sitio, literal. overflow:hidden convierte .panel-bg en
+     scroll container, la timeline se ata a el, y el nunca scrollea. --- */
+  #a, #a .panel-bg { overflow: hidden; }
+  #a .panel-bg img {
+    animation: shift linear both;
+    animation-timeline: scroll(inline nearest);
+    animation-range: entry 0% exit 100%;
+  }
+
+  /* --- b: a SIN overflow:hidden. El nearest pasa a ser #container, que si
+     scrollea. Unica diferencia con a. --- */
+  #b .panel-bg img {
+    animation: shift linear both;
+    animation-timeline: scroll(inline nearest);
+    animation-range: entry 0% exit 100%;
+  }
+
+  /* --- c: a con el timeline apuntado por nombre al scroller de verdad.
+     Mantiene el overflow:hidden. Es el camino que si funciona. --- */
+  #c, #c .panel-bg { overflow: hidden; }
+  #c .panel-bg img {
+    animation: shift linear both;
+    animation-timeline: --sc;
+    animation-range: entry 0% exit 100%;
+  }
+
+  /* --- d: a SIN animation-range. Sigue congelada => el rango no era la causa. --- */
+  #d, #d .panel-bg { overflow: hidden; }
+  #d .panel-bg img {
+    animation: shift linear both;
+    animation-timeline: scroll(inline nearest);
+  }
+
+  /* --- e: c SIN animation-range. Sigue cambiando. --- */
+  #e, #e .panel-bg { overflow: hidden; }
+  #e .panel-bg img {
+    animation: shift linear both;
+    animation-timeline: --sc;
+  }
+
+  /* --- js: el control. Cero CSS de scroll; lo mueve el JS de abajo. --- */
+  #js .panel-bg img { transform: translateX(calc(-80px + 40px * var(--prog, 0))); }
+</style>
+</head>
+<body>
+<div id="container">
+  <section id="a"  class="panel"><span class="tag">a &middot; la forma del sitio: overflow:hidden + scroll(inline nearest) + range</span><div class="panel-bg"><img alt="" src="p.svg"></div></section>
+  <section id="b"  class="panel"><span class="tag">b &middot; a sin overflow:hidden</span><div class="panel-bg"><img alt="" src="p.svg"></div></section>
+  <section id="c"  class="panel"><span class="tag">c &middot; a con timeline por nombre --sc</span><div class="panel-bg"><img alt="" src="p.svg"></div></section>
+  <section id="d"  class="panel"><span class="tag">d &middot; a sin animation-range</span><div class="panel-bg"><img alt="" src="p.svg"></div></section>
+  <section id="e"  class="panel"><span class="tag">e &middot; c sin animation-range</span><div class="panel-bg"><img alt="" src="p.svg"></div></section>
+  <section id="js" class="panel"><span class="tag">js &middot; control: el JS escribe --prog</span><div class="panel-bg"><img alt="" src="p.svg"></div></section>
+</div>
+<script>
+  // Control positivo. Va de -80px a -40px exactos cuando
+  // scrollLeft alcanza 1.5 x clientWidth, que es donde scrollea el selftest.
+  (function () {
+    var c = document.getElementById('container');
+    var img = document.querySelector('#js .panel-bg img');
+    function update() {
+      var span = c.clientWidth * 1.5;
+      var prog = span > 0 ? Math.min(1, Math.max(0, c.scrollLeft / span)) : 0;
+      img.style.setProperty('--prog', String(prog));
+    }
+    c.addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', update);
+    update();
+  })();
+</script>
+</body>
+</html>
