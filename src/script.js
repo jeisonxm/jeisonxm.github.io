@@ -22,7 +22,10 @@
 
   var navLinks = Array.prototype.slice.call(document.querySelectorAll('.header-nav a'));
   var scrollHint = document.getElementById('scrollHint');
-  var bgImgs = panels.map(function (p) { return p.querySelector('.panel-bg img'); });
+  // Las capas de profundidad NO se difieren por JS. El defecto 6 era justo eso:
+  // con data-src, sin JavaScript solo cargaba 1 foto de 5. Ahora llevan src
+  // normal con loading="lazy" nativo, que funciona sin JS y respeta el scroll
+  // horizontal. Lo unico diferido por JS es la Version B, y es opt-in.
 
   // CERO scroll-driven animations, y CERO @supports sobre ellas.
   //
@@ -379,59 +382,33 @@
   }, { passive: true });
 
   // ---------- Carga de las fotos de los paneles 2-5 ----------
-  // loading="lazy" nativo hace pop-in visible aquí: su umbral (~1250px en
-  // conexión rápida) está afinado para scroll vertical y se aplica por eje.
-  // Con paneles de 100vw, en un portátil de 1440px el panel 3 está a 2880px,
-  // fuera del umbral — y la transición de snap dura 300-500ms mientras la
-  // imagen tarda bastante más. Se ve la foto materializarse DESPUÉS de que
-  // el panel ya se detuvo.
-  function reveal(img) {
-    var pic = img.parentNode;
-    var sources = pic.querySelectorAll('source[data-srcset]');
-    for (var i = 0; i < sources.length; i++) {
-      sources[i].srcset = sources[i].getAttribute('data-srcset');
-      sources[i].removeAttribute('data-srcset');
+  // loading="lazy" nativo carga SIN JavaScript, que es lo que arregla el
+  // defecto 6 (con data-src solo cargaba 1 foto de 5 sin JS). Pero su umbral
+  // (~1250 px en conexion rapida) esta afinado para scroll vertical y se aplica
+  // por eje: con paneles de 100vw, en un portatil de 1440 el panel 3 esta a
+  // 2880 px, fuera del umbral. La foto se materializa DESPUES de que el panel ya
+  // se detuvo.
+  //
+  // La mejora progresiva no vuelve a atar la carga al JS: solo la ADELANTA.
+  // Cuando un panel entra en un margen del 150%, sus imagenes pasan a eager. Si
+  // el JS no corre, el navegador las carga igual, solo que mas tarde.
+  function adelantar(panel) {
+    var imgs = panel.querySelectorAll('.d-far img, .d-fig img');
+    for (var i = 0; i < imgs.length; i++) {
+      if (imgs[i].loading === 'lazy') imgs[i].loading = 'eager';
     }
-    if (img.getAttribute('data-srcset')) {
-      img.srcset = img.getAttribute('data-srcset');
-      img.removeAttribute('data-srcset');
-    }
-    if (img.getAttribute('data-src')) {
-      img.src = img.getAttribute('data-src');
-      img.removeAttribute('data-src');
-    }
-    // decode() resuelve solo cuando el bitmap está rasterizado y listo para
-    // pintar. Añadir .is-loaded después es lo que de verdad mata el pop-in:
-    // sin esto se puede llegar a ver un pintado progresivo a medias.
-    // El catch es obligatorio: decode() rechaza si la fuente cambia a mitad
-    // de vuelo, cosa que pasa al cruzar el breakpoint de 700px en un resize.
-    if (img.decode) {
-      img.decode().then(done, done);
-    } else {
-      img.addEventListener('load', done);
-      done();
-    }
-    function done() { img.classList.add('is-loaded'); }
   }
 
   if ('IntersectionObserver' in window) {
-    var lazyIO = new IntersectionObserver(function (entries) {
+    // Adelanto de carga: margen del 150%, o sea el panel actual y vecino y medio.
+    var cargaIO = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
-        lazyIO.unobserve(e.target);
-        reveal(e.target);
+        cargaIO.unobserve(e.target);
+        adelantar(e.target);
       });
     }, { root: container, rootMargin: '0px 150% 0px 150%', threshold: 0 });
-
-    bgImgs.forEach(function (img) {
-      // El <img> diferido lleva data-src (no data-srcset: los srcset viven en
-      // los <source>). Comprobar solo data-srcset dejaba a los paneles 2-5
-      // sin observar y por tanto sin cargar nunca.
-      if (!img) return;
-      var pending = img.getAttribute('data-src') || img.getAttribute('data-srcset') ||
-                    img.parentNode.querySelector('source[data-srcset]');
-      if (pending) lazyIO.observe(img);
-    });
+    panels.forEach(function (p) { cargaIO.observe(p); });
 
     // will-change promueve a capa de compositor. Cinco fotos de 1536x864 como
     // texturas RGBA son ~27 MB de memoria GPU permanente; en un Adreno/Mali de
@@ -449,11 +426,6 @@
       }, { root: container, rootMargin: '0px 60% 0px 60%', threshold: 0 });
       panels.forEach(function (p) { layerIO.observe(p); });
     }
-  } else {
-    // Sin IntersectionObserver: cargar todo de una, es preferible a no cargar.
-    bgImgs.forEach(function (img) {
-      if (img && !img.classList.contains('is-loaded')) reveal(img);
-    });
   }
 
   // ---------- Puntos de progreso ----------

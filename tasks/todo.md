@@ -386,17 +386,35 @@ molestó en alinear.
 
 ## FASE 4 — Replicar
 
-### [ ] T6 · Los otros 4 paneles
+### [x] T6 · Los otros 4 paneles
 
 **Acceptance criteria**
-- [ ] Sobre Mí = `285` · Skills = `103865` · Blog = `764` · Contacto = `533`.
-- [ ] Los 5 paneles con las 4 capas y ambas versiones.
-- [ ] **Sin JS, las 5 fotos cargan.** Hoy solo carga 1 de 5 (defecto 6).
+- [x] Sobre Mí = `285` · Skills = `103865` · Blog = `764` · Contacto = `533`.
+- [x] Los 5 paneles con las 4 capas y ambas versiones.
+- [x] **Sin JS, las 5 fotos cargan.** Medido con `javaScriptEnabled: false`: el navegador
+      pide **las 10 imágenes** (5 figuras + 5 fondos). El defecto 6 era **1 de 5**.
+
+**Cómo se cerró el defecto 6.** Las capas visibles dejan de estar gateadas por `data-src` +
+`IntersectionObserver` y llevan `src` normal con `loading="lazy"` nativo. La mejora progresiva
+**no vuelve a atar la carga al JS: solo la adelanta** — cuando un panel entra en un margen del
+150 %, sus imágenes pasan a `eager`. Sin JS el navegador las carga igual. Solo la Versión B
+sigue diferida, y es opt-in.
+
+Cada panel conserva su gradiente de scrim propio: estaban afinados uno a uno y el gradiente
+depende de dónde cae el texto en cada composición.
 
 **Verification**
-- [ ] Suite verde en los 5 paneles.
-- [ ] Hoja de contacto de los 5: escalas de figura coherentes entre paneles contiguos.
-- [ ] Prueba con JavaScript desactivado.
+- [x] `tasks/verify/panels-check.mjs` → exit 0.
+- [x] `run.sh` → exit 0, cero `consoleErrors`, transform cambia en los 3 motores.
+- [x] `tasks/contrast.mjs` → exit 0: **todas las zonas AA en las dos versiones**
+      (scrim necesario 0,57 en A y 0,58 en B).
+- [x] `tokens-check` → 114 cargas, todas resuelven sus 37 tokens.
+- [x] Hoja de contacto de los 5 paneles montados, mirada: escalas de figura coherentes entre
+      paneles contiguos — que es lo que T2 normalizó.
+
+**Y un falso rojo de mi propia comprobación:** `tokens-check` buscaba todos los tokens en
+`:root`, pero `--panel-bg` y los cuatro `--d-*` viven en un **elemento** a propósito (dependen
+de `--p`, que es por panel). Ahora se comprueban donde de verdad viven.
 
 **Dependencies:** T5. **Scope:** M.
 

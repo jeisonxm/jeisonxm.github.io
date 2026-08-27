@@ -103,9 +103,17 @@ for (const eng of ENGINES) {
         '--p': 'motor de profundidad (T5)', '--a': 'motor de profundidad (T5)',
         '--vw': 'motor de profundidad (T5)', '--prog': 'fixture del control',
       };
+      // Hay tokens que viven en un ELEMENTO, no en :root, y eso es correcto:
+      // --panel-bg lo pone cada <section> en linea, y --d-* los define .panel
+      // porque dependen de --p, que es por panel. Buscarlos solo en :root daba
+      // un falso rojo. Se comprueban donde de verdad viven.
       const raiz = getComputedStyle(document.documentElement);
+      const panel = document.querySelector('.panel');
+      const enPanel = panel ? getComputedStyle(panel) : null;
+      const resuelve = (n) => raiz.getPropertyValue(n).trim() !== '' ||
+        (enPanel && enPanel.getPropertyValue(n).trim() !== '');
       const sinDefinir = [...usados].filter((n) =>
-        raiz.getPropertyValue(n).trim() === '' && !(n in EN_RUNTIME) && !conRespaldo.has(n));
+        !resuelve(n) && !(n in EN_RUNTIME) && !conRespaldo.has(n));
       const runtime = [...usados].filter((n) => n in EN_RUNTIME);
       const cs = getComputedStyle(document.body);
       return { usados: usados.size, sinDefinir, runtime, conRespaldo: [...conRespaldo], color: cs.color, fondo: cs.backgroundColor,

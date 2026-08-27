@@ -1562,9 +1562,9 @@ ul { list-style: none; }
   /* Hereda la caja que antes daba el propio .panel. Al envolver el contenido en
      una capa absoluta dejo de ser flex item del panel y el texto perdio su
      margen: se pegaba al borde izquierdo. Los hijos posicionados en absoluto
-     (.hero-stats, .scroll-hint) siguen igual porque la capa ocupa inset:0. */
-  display: flex; flex-direction: column; justify-content: center;
-  padding: 0 8%;
+     (.hero-stats, .scroll-hint) siguen igual porque la capa ocupa inset:0.
+     Los mismos valores que .panel, y debajo las dos excepciones que ya existian. */
+  display: flex; align-items: center; justify-content: center;
   transform: translateX(var(--d-text));
   opacity: clamp(0, calc(1 - 1.45 * var(--a, 0)), 1);
   /* El scrim va como BACKGROUND de esta capa, no como elemento suelto: medido,
@@ -1578,6 +1578,18 @@ ul { list-style: none; }
     rgb(var(--bg-rgb) / var(--scrim, 0.56)) 38%,
     rgb(var(--bg-rgb) / 0) 84%);
 }
+
+/* Las dos excepciones de caja que ya tenian sus paneles, trasladadas a la capa. */
+.hero-panel  .d-text { flex-direction: column; justify-content: center; padding: 0 8%; }
+.about-panel .d-text { align-items: flex-start; padding-top: 40px; }
+
+/* Cada panel conserva su scrim propio: estaban afinados uno a uno y el gradiente
+   depende de donde cae el texto en cada composicion. El alpha de partida (0.56)
+   lo midio tasks/contrast.mjs; estos son los que ya pasaban AA. */
+.about-panel   .d-text { background: linear-gradient(95deg,  rgb(var(--bg-rgb) / 0.70) 0%, rgb(var(--bg-rgb) / 0.56) 62%, rgb(var(--bg-rgb) / 0.24) 100%); }
+.skills-panel  .d-text { background: linear-gradient(95deg,  rgb(var(--bg-rgb) / 0.56) 0%, rgb(var(--bg-rgb) / 0.40) 60%, rgb(var(--bg-rgb) / 0.26) 84%); }
+.blog-panel    .d-text { background: linear-gradient(100deg, rgb(var(--bg-rgb) / 0.74) 0%, rgb(var(--bg-rgb) / 0.66) 60%, rgb(var(--bg-rgb) / 0.30) 84%); }
+.contact-panel .d-text { background: linear-gradient(100deg, rgb(var(--bg-rgb) / 0.72) 0%, rgb(var(--bg-rgb) / 0.62) 55%, rgb(var(--bg-rgb) / 0.28) 84%); }
 
 /* Promocion gobernada por IntersectionObserver a rootMargin 60%. Medido:
    promueve 3 paneles de 5 (con 100% promovia los 5, o sea nada). Crear y
