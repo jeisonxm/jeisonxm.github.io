@@ -563,7 +563,11 @@ ul { list-style: none; }
 }
 
 .info-card {
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  /* Era `color-mix(in srgb, var(--surface) 94%, transparent)` SIN declaracion de
+     respaldo delante — el defecto 3 del plan: sin soporte, la declaracion entera
+     se descarta y la tarjeta se queda transparente con el texto sobre la foto.
+     `rgb(R G B / a)` no necesita respaldo: va desde Safari 12.1. */
+  background: rgb(var(--surface-rgb) / 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border);
@@ -615,7 +619,11 @@ ul { list-style: none; }
 }
 
 .skill-block {
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  /* Era `color-mix(in srgb, var(--surface) 94%, transparent)` SIN declaracion de
+     respaldo delante — el defecto 3 del plan: sin soporte, la declaracion entera
+     se descarta y la tarjeta se queda transparente con el texto sobre la foto.
+     `rgb(R G B / a)` no necesita respaldo: va desde Safari 12.1. */
+  background: rgb(var(--surface-rgb) / 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border);
@@ -654,9 +662,15 @@ ul { list-style: none; }
 }
 
 .skill-pill {
-  padding: 4px 11px;
+  /* `border-radius: 100px` convertia las etiquetas cortas en circulos: "Git",
+     "JS" y "GRC" se leian como pastillas deformes. El lenguaje del sitio es de
+     esquina viva (--radius: 2px); una pildora de 100px era ademas ajena a el.
+     Padding horizontal mayor para que una palabra corta siga siendo un rectangulo. */
+  padding: 4px 12px;
+  min-width: 3.4em;
+  text-align: center;
   border: 1px solid var(--border);
-  border-radius: 100px;
+  border-radius: var(--radius);
   background: rgb(var(--white-rgb) / 0.03);
   color: var(--gray-light);
   font-size: 1.2rem;
@@ -721,7 +735,11 @@ ul { list-style: none; }
 }
 
 .blog-entry {
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  /* Era `color-mix(in srgb, var(--surface) 94%, transparent)` SIN declaracion de
+     respaldo delante — el defecto 3 del plan: sin soporte, la declaracion entera
+     se descarta y la tarjeta se queda transparente con el texto sobre la foto.
+     `rgb(R G B / a)` no necesita respaldo: va desde Safari 12.1. */
+  background: rgb(var(--surface-rgb) / 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border);
@@ -1801,4 +1819,55 @@ ul { list-style: none; }
      los tres se apretaban en una sola fila y "Audit Analytics @ 25" quedaba
      cortado. */
   .hero-stats .stat-item { flex: 0 0 auto; min-width: 0; }
+}
+
+
+/* =====================================================================
+   MOVIL: donde cae la figura y cuanto tapa (peticion del dueno)
+   =====================================================================
+   En vertical los cinco paneles ponian la figura en el mismo sitio —abajo a la
+   derecha— y eso funcionaba en Contacto pero no en el resto: en el hero los
+   botones caian justo sobre la cara, y en Sobre Mi la foto en la que sale
+   sonriendo quedaba enterrada detras del texto. Aqui cada panel decide. */
+@media (max-width: 699px), (max-aspect-ratio: 3/4) {
+
+  /* La pildora de rol cae en la zona donde el scrim es suave a proposito (para
+     no apagar la cara), asi que se apoya en fondo PROPIO. Medida sin el: 3.86:1. */
+  .hero-panel .hero-label {
+    background: rgb(var(--bg-rgb) / 0.78);
+    border-color: rgb(var(--white-rgb) / 0.16);
+  }
+
+  /* HERO — la cabeza ARRIBA, por encima del nombre. El cuerpo sigue detras del
+     texto, pero la cara queda limpia, que es lo que se pidio. */
+  .hero-panel .d-fig picture { align-items: flex-start; }
+  .hero-panel .d-fig img { height: 74%; max-width: 90%; }
+  /* El scrim del hero arranca casi transparente para no apagar la cara, y
+     aprieta a partir del 34%, que es donde empieza el titular. */
+  .hero-panel .d-text {
+    background: linear-gradient(180deg,
+      rgb(var(--bg-rgb) / 0.22) 0%,
+      rgb(var(--bg-rgb) / 0.30) 26%,
+      rgb(var(--bg-rgb) / 0.74) 40%,
+      rgb(var(--bg-rgb) / 0.86) 100%);
+  }
+
+  /* SOBRE MI — es la unica foto en la que sale sonriendo y de cerca: va ARRIBA,
+     a la altura del titulo, no enterrada al fondo del panel. */
+  .about-panel .d-fig picture { align-items: flex-start; justify-content: flex-end; }
+  .about-panel .d-fig img { height: 46%; max-width: 58%; }
+  .about-panel .d-text {
+    background: linear-gradient(180deg,
+      rgb(var(--bg-rgb) / 0.34) 0%,
+      rgb(var(--bg-rgb) / 0.58) 26%,
+      rgb(var(--bg-rgb) / 0.82) 100%);
+  }
+
+  /* SKILLS y BLOG — las tarjetas estaban al 94% y lo tapaban entero. Se dejan
+     ver a traves. El texto sigue por encima de AA: lo mide mobile-contrast. */
+  .skills-panel .skill-block,
+  .blog-panel .blog-entry {
+    background: rgb(var(--surface-rgb) / 0.72);
+  }
+  .blog-panel .d-fig img { height: 50%; max-width: 66%; }
 }
