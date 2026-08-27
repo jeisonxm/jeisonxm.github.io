@@ -44,21 +44,21 @@ const nitidez = (buf, w, h, ch) => {
 console.log(`\n=== T3 · L1 y Version B — ${DIR}\n`);
 let sumaL1 = 0, sumaFig = 0, sumaB = 0;
 for (const fig of geo.figuras) {
-  const l1 = path.join(DIR, `${fig.slug}-l1-320.avif`);
+  const l1 = path.join(DIR, `${fig.slug}-l1l320.avif`);
   const b = path.join(DIR, `${fig.slug}-b${B_MAX}.avif`);
   const f = path.join(DIR, `${fig.slug}-fig1800.avif`);
   for (const p of [l1, b, f]) if (!existsSync(p)) { console.log(`FALTA ${p}`); fallos++; }
   if (!existsSync(l1) || !existsSync(b) || !existsSync(f)) continue;
 
   const ml1 = await sharp(l1).metadata(), mb = await sharp(b).metadata();
-  const okL1Dim = ml1.width === 320 && ml1.height === 480;
+  const okL1Dim = ml1.width === 320 && ml1.height === 180;
   const okBDim = Math.max(mb.width, mb.height) === B_MAX;
   if (!okL1Dim || !okBDim) fallos++;
 
   // ¿esta el blur horneado? se compara contra la misma foto SIN desenfocar
   const raw = await sharp(l1).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const crudo = await sharp(path.join('/home/archy/img-scratch/originals', fig.orig))
-    .resize(320, 480, { fit: 'cover' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    .resize(320, 180, { fit: 'cover' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const gBlur = nitidez(raw.data, raw.info.width, raw.info.height, raw.info.channels);
   const gCrudo = nitidez(crudo.data, crudo.info.width, crudo.info.height, crudo.info.channels);
   // Un asset SIN desenfocar da razon ~1.00 contra su propia referencia. Los
@@ -77,7 +77,7 @@ for (const fig of geo.figuras) {
 }
 
 const okL1 = sumaL1 <= L1_PRESUPUESTO;
-const aTotal = sumaFig + sumaL1, aHero = bytes(path.join(DIR, 'hero-fig1800.avif')) + bytes(path.join(DIR, 'hero-l1-320.avif'));
+const aTotal = sumaFig + sumaL1, aHero = bytes(path.join(DIR, 'hero-fig1800.avif')) + bytes(path.join(DIR, 'hero-l1l320.avif'));
 const okA = aTotal <= A_TOTAL_MAX && aTotal < HOY;
 const okHero = aHero <= A_HERO_MAX;
 if (!okL1) fallos++; if (!okA) fallos++; if (!okHero) fallos++;
@@ -98,7 +98,7 @@ console.log(`  Solo la Version A da 1.00x. Por eso A es la predeterminada.`);
 {
   const f0 = geo.figuras[0];
   const crudo = await sharp(path.join('/home/archy/img-scratch/originals', f0.orig))
-    .resize(320, 480, { fit: 'cover' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    .resize(320, 180, { fit: 'cover' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const g = nitidez(crudo.data, crudo.info.width, crudo.info.height, crudo.info.channels);
   const pasaria = (g / g) < 0.5;
   console.log(`\ncontrol negativo: la foto SIN desenfocar da razon 1.00 -> ${pasaria ? 'PASA (la comprobacion es ciega)' : 'falla, como debe'}`);

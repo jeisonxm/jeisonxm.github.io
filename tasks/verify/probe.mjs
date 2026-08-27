@@ -232,15 +232,21 @@ function isKnownTypeError(text) {
 
 async function readTransform(page) {
   return page.evaluate(() => {
-    const img = document.querySelector('#hero .panel-bg img');
-    if (!img) return { found: false };
-    const cs = getComputedStyle(img);
-    const host = img.closest('.panel-bg') || img.parentElement;
+    // La capa que lleva el transform es .d-far (L1, el fondo desenfocado).
+    // Se acepta tambien el marcado antiguo (.panel-bg img) para poder medir
+    // paneles todavia sin convertir y para comparar contra la linea base.
+    const el = document.querySelector('#hero .d-far') ||
+               document.querySelector('#hero .panel-bg img');
+    if (!el) return { found: false };
+    const panel = document.getElementById('hero');
+    const ps = panel ? getComputedStyle(panel) : null;
     return {
       found: true,
-      transform: cs.transform,
-      px: getComputedStyle(host).getPropertyValue('--px').trim() ||
-          getComputedStyle(img).getPropertyValue('--px').trim() || null,
+      capa: el.classList.contains('d-far') ? '.d-far' : '.panel-bg img',
+      transform: getComputedStyle(el).transform,
+      p: ps ? ps.getPropertyValue('--p').trim() || null : null,
+      a: ps ? ps.getPropertyValue('--a').trim() || null : null,
+      px: getComputedStyle(el).getPropertyValue('--px').trim() || null,
       scrollLeft: document.getElementById('container')?.scrollLeft ?? null,
     };
   });
@@ -326,7 +332,7 @@ async function runEngine(name, base) {
       pathname: location.pathname,
       lang: document.documentElement.lang || null,
       container: !!document.getElementById('container'),
-      heroImg: !!document.querySelector('#hero .panel-bg img'),
+      heroImg: !!(document.querySelector('#hero .d-far') || document.querySelector('#hero .panel-bg img')),
     }));
     out.documento.pedido = PATHNAME;
     out.documento.locale = LOCALE;
@@ -370,7 +376,9 @@ async function runEngine(name, base) {
 
     out.transform = {
       enPanel0: l0.transform, enPanel1: l1.transform, enPanel2: l2.transform,
-      pxPanel0: l0.px, pxPanel1: l1.px, pxPanel2: l2.px,
+      capa: l0.capa,
+      pPanel0: l0.p, pPanel1: l1.p, pPanel2: l2.p,
+      aPanel0: l0.a, aPanel1: l1.a, aPanel2: l2.a,
       scrollLeft: lecturas.map((l) => l.scrollLeft),
       changed: !!(l0.found && (l0.transform !== l1.transform || l0.transform !== l2.transform)),
       measurable: !!l0.found,
@@ -452,7 +460,9 @@ for (const name of ENGINES) {
   console.log(`  transform  en panel 0    : ${r.transform.enPanel0}`);
   console.log(`  transform  en panel 1    : ${r.transform.enPanel1}`);
   console.log(`  transform  en panel 2    : ${r.transform.enPanel2}`);
-  console.log(`  --px  p0 / p1 / p2       : ${r.transform.pxPanel0} / ${r.transform.pxPanel1} / ${r.transform.pxPanel2}`);
+  console.log(`  capa medida              : ${r.transform.capa}`);
+  console.log(`  --p   p0 / p1 / p2       : ${r.transform.pPanel0} / ${r.transform.pPanel1} / ${r.transform.pPanel2}`);
+  console.log(`  --a   p0 / p1 / p2       : ${r.transform.aPanel0} / ${r.transform.aPanel1} / ${r.transform.aPanel2}`);
   console.log(`  scrollLeft p0 / p1 / p2  : ${(r.transform.scrollLeft || []).join(' / ')}`);
   console.log(`  >>> EL TRANSFORM CAMBIA  : ${r.transform.changed}`);
   console.log(`  rueda x3 @120ms confiable: ${fmtWheel(r.wheel)}`);

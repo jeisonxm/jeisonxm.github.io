@@ -271,20 +271,12 @@ ul { list-style: none; }
   inherits: false;
 }
 
-/* Ruta preferente: la animación corre entera en el compositor, fuera del
-   hilo principal. Es lo que sostiene 60fps en Android de gama media.
-   El JS solo escribe --px cuando esto no está soportado. */
-@supports (animation-timeline: scroll(inline nearest)) {
-  .panel-bg img {
-    animation: panel-parallax linear both;
-    animation-timeline: scroll(inline nearest);
-    animation-range: entry 0% exit 100%;
-  }
-  @keyframes panel-parallax {
-    from { transform: translate3d(-2.6%, 0, 0); }
-    to   { transform: translate3d( 2.6%, 0, 0); }
-  }
-}
+/* El bloque `@supports (animation-timeline: scroll(inline nearest))` que vivia
+   aqui se ELIMINA. Daba true en Chrome, lo que desactivaba el fallback JS,
+   mientras que el propio camino CSS tampoco animaba: overflow:hidden en
+   .panel-bg lo convierte en scroll container y scroll(inline nearest) se ataba
+   a el, que nunca scrollea. No habia parallax por ninguna de las dos vias.
+   Ahora hay un solo camino: el motor rAF de src/script.js. */
 
 /* ===== SCRIM =====
    Alphas derivados de medir la luminancia real de cada foto en las zonas
@@ -1480,4 +1472,179 @@ ul { list-style: none; }
     from { opacity: 0; }
     to { opacity: 1; }
   }
+}
+
+/* =====================================================================
+   PROFUNDIDAD — las cuatro capas (plan §2.2)
+   =====================================================================
+   Cuatro planos que se mueven a velocidades distintas sobre el mismo eje.
+   Lo que se lee como tridimensionalidad no es la velocidad: es que la
+   separacion entre capas contiguas forme progresion geometrica. Medido a
+   |p|=0.5 con vw=1440: L1-L2 = 86.4 px, L2-L3 = 36.0 px, L3-L4 = 93.6 px.
+
+   CERO scroll-driven animations, y cero @supports sobre ellas. Esa fue la
+   causa raiz del parallax congelado: el @supports daba true en Chrome y
+   desactivaba el fallback JS, asi que no habia parallax por ninguna via. Un
+   solo camino de codigo = imposible que un motor tome una rama no probada.
+
+   El motor (src/script.js) escribe solo --p y --a por panel. Todo lo demas
+   es CSS. */
+
+/* Registradas como <number>: el motor las guarda tipadas y no re-parsea un
+   string en cada frame. Existe desde Safari 16.4.
+   inherits: true NO es opcional. El motor escribe --p y --a sobre el .panel, y
+   las cuatro capas son HIJAS. Con inherits:false las capas leen el valor
+   inicial 0: el translateX seguia bien (va por --d-far, que si hereda) pero la
+   escala se quedaba clavada en 1.03 y las opacidades en 1. Medido en los tres
+   motores antes de corregirlo. */
+@property --p { syntax: '<number>'; initial-value: 0; inherits: true; }
+@property --a { syntax: '<number>'; initial-value: 0; inherits: true; }
+
+/* Tope absoluto: los factores son proporcionales a vw, o sea +-317 px a 1440
+   pero +-563 px en un monitor de 2560. Sin tope, en pantalla ancha las capas
+   se despegan tanto que deja de leerse como profundidad. */
+.panel {
+  --d-far:  clamp(-340px, calc(0.22 * var(--p, 0) * var(--vw, 0px)), 340px);
+  --d-fig:  clamp(-340px, calc(0.10 * var(--p, 0) * var(--vw, 0px)), 340px);
+  --d-wash: clamp(-340px, calc(0.05 * var(--p, 0) * var(--vw, 0px)), 340px);
+  /* L4 va POR DELANTE del panel (factor negativo, 108% de la velocidad):
+     es el plano mas cercano al ojo. */
+  --d-text: clamp(-340px, calc(-0.08 * var(--p, 0) * var(--vw, 0px)), 340px);
+}
+
+.depth { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+
+.d-far, .d-fig, .d-photo { position: absolute; top: 0; height: 100%; }
+.d-far   { left: -3%; width: 106%; z-index: 0; }
+.d-fig   { left: -2%; width: 104%; z-index: 1; }
+.d-photo { left: -2%; width: 104%; z-index: 1; display: none; }
+
+/* <picture> NECESITA altura definida. Un porcentaje de altura resuelve contra
+   el padre, y el padre del <img> es el <picture>, no la capa. En .d-fig el
+   <picture> era ademas un flex item de altura automatica, asi que
+   `height:100%` en el <img> no resolvia contra nada y la figura salia a tamano
+   INTRINSECO: 1200x1800 dentro de un panel de 656 px. Medido, no deducido. */
+.depth picture { display: block; width: 100%; height: 100%; }
+.d-far img, .d-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* La figura se ajusta por ALTURA y se ancla a la derecha: su lienzo es 2:3 y el
+   panel apaisado, asi que con object-fit:cover se le cortaria la cabeza o los
+   pies. El texto vive a la izquierda; la persona, a la derecha. */
+.d-fig picture { display: flex; align-items: flex-end; justify-content: flex-end;
+                 padding-right: var(--fig-inset, 5%); }
+.d-fig img { height: 100%; width: auto; display: block; }
+
+/* L3, campo de color: el mismo color del panel, que sube al salir. */
+.d-wash { position: absolute; inset: 0; z-index: 2;
+          background: var(--panel-bg, var(--bg)); }
+
+/* Las traslaciones son LINEALES en p (paralaje fisicamente consistente); solo
+   escala y opacidad llevan easing. Transforms 2D: un transform 3D promueve
+   siempre y quita el control del presupuesto de capas. */
+.d-far   { transform: translateX(var(--d-far))  scale(calc(1.03 - 0.03 * var(--a, 0))); }
+.d-fig,
+.d-photo { /* El escalado crece HACIA ARRIBA desde la linea de base. Con origen
+             centrado, scale(1.06) en reposo corta los pies ~20 px, que es justo
+             lo que T2 se molesto en alinear. */
+           transform-origin: bottom center;
+           transform: translateX(var(--d-fig))  scale(calc(1.06 - 0.06 * var(--a, 0)));
+           /* Rack-focus: al desvanecerse la figura nitida asoma L1
+              desenfocada, o sea que el panel se desenfoca al salir SIN animar
+              ningun radio de blur. */
+           opacity: calc(1 - 0.72 * var(--a, 0)); }
+.d-wash  { transform: translateX(var(--d-wash));
+           opacity: calc(0.42 * var(--a, 0)); }
+
+/* L4 — contenido. NO escala a proposito: escalar texto en el compositor lo
+   resamplea y se ve blando en Safari. */
+.d-text {
+  position: absolute; inset: 0; z-index: 3;
+  /* Hereda la caja que antes daba el propio .panel. Al envolver el contenido en
+     una capa absoluta dejo de ser flex item del panel y el texto perdio su
+     margen: se pegaba al borde izquierdo. Los hijos posicionados en absoluto
+     (.hero-stats, .scroll-hint) siguen igual porque la capa ocupa inset:0. */
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 8%;
+  transform: translateX(var(--d-text));
+  opacity: clamp(0, calc(1 - 1.45 * var(--a, 0)), 1);
+  /* El scrim va como BACKGROUND de esta capa, no como elemento suelto: medido,
+     un scrim suelto se promovia por solapamiento y Blink aplastaba los 5 en
+     una capa de 7200x900 (122.5 -> 112.4 MB al fusionarlo).
+     El alpha 0.56 lo midio tasks/contrast.mjs sobre la foto real: es el minimo
+     que sostiene AA en la peor zona de texto. El ultimo stop cierra en 84%,
+     no en 100%, para no dejar un escalon duro de luminancia dentro del panel. */
+  background: linear-gradient(90deg,
+    rgb(var(--bg-rgb) / var(--scrim, 0.56)) 0%,
+    rgb(var(--bg-rgb) / var(--scrim, 0.56)) 38%,
+    rgb(var(--bg-rgb) / 0) 84%);
+}
+
+/* Promocion gobernada por IntersectionObserver a rootMargin 60%. Medido:
+   promueve 3 paneles de 5 (con 100% promovia los 5, o sea nada). Crear y
+   destruir capas a mitad de scroll ES el tiron que se quiere evitar, asi que
+   esto NUNCA se toca dentro del rAF. */
+.panel.depth-live .d-far,
+.panel.depth-live .d-fig,
+.panel.depth-live .d-photo,
+.panel.depth-live .d-wash,
+.panel.depth-live .d-text { will-change: transform, opacity; }
+
+/* --- Version B: la foto entera, con los bordes disueltos ---
+   No es un recorte de sujeto: es la foto completa, y el borde se deshace en el
+   campo de color con mask-image en vez de cortarse. */
+:root[data-version="b"] .d-far,
+:root[data-version="b"] .d-fig { display: none; }
+:root[data-version="b"] .d-photo { display: block; }
+.d-photo img {
+  -webkit-mask-image: radial-gradient(ellipse 82% 92% at 62% 42%, #000 40%, transparent 92%);
+          mask-image: radial-gradient(ellipse 82% 92% at 62% 42%, #000 40%, transparent 92%);
+}
+
+/* --- Boton A/B --- */
+.ver-toggle {
+  position: fixed; right: 1rem; bottom: 1rem; z-index: 60;
+  display: inline-flex; gap: 1px; padding: 2px;
+  background: rgb(var(--bg-rgb) / 0.72);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  font-family: var(--font-body); font-size: 0.72rem; letter-spacing: 0.06em;
+}
+.ver-toggle button {
+  appearance: none; border: 0; cursor: pointer; padding: 0.35rem 0.6rem;
+  background: transparent; color: var(--gray-dark);
+  font: inherit; text-transform: uppercase; border-radius: 1px;
+  transition: color var(--transition), background var(--transition);
+}
+.ver-toggle button[aria-pressed="true"] { background: var(--surface); color: var(--white); }
+.ver-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* --- reduced-motion (plan §2.5) ---
+   Fuera traslacion Y escala. Las rampas de opacidad se RECORTAN a ~1/4, no se
+   apagan: fundido cruzado en vez de movimiento, que es el sustituto que
+   recomienda Apple. El rAF sigue corriendo porque hace falta para calcular --a:
+   se apaga el movimiento, no el motor. */
+@media (prefers-reduced-motion: reduce) {
+  .d-far, .d-fig, .d-photo, .d-wash, .d-text { transform: none; }
+  .d-fig, .d-photo { opacity: calc(1 - 0.18 * var(--a, 0)); }
+  .d-wash { opacity: calc(0.12 * var(--a, 0)); }
+  .d-text { opacity: clamp(0, calc(1 - 0.10 * var(--a, 0)), 1); }
+  .panel.depth-live .d-far,
+  .panel.depth-live .d-fig,
+  .panel.depth-live .d-photo,
+  .panel.depth-live .d-wash,
+  .panel.depth-live .d-text { will-change: opacity; }
+}
+
+/* --- puntero grueso: el motor se apaga ENTERO (plan §2.5) ---
+   Con inercia tactil, escribir transform cada frame es jank y bateria. La
+   profundidad es un lujo de escritorio; en movil todos los paneles se quedan
+   en su pose de "ya llegue". */
+@media not all and (hover: hover) and (pointer: fine) {
+  .d-far, .d-fig, .d-photo, .d-wash, .d-text { transform: none; opacity: 1; }
+  .d-wash { opacity: 0; }
+  .panel.depth-live .d-far,
+  .panel.depth-live .d-fig,
+  .panel.depth-live .d-photo,
+  .panel.depth-live .d-wash,
+  .panel.depth-live .d-text { will-change: auto; }
+  .ver-toggle { display: none; }
 }

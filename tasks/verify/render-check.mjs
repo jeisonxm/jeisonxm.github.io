@@ -190,7 +190,10 @@ for (const name of ENGINES) {
     row.documento.locale = LOCALE;
     row.imagenes = await page.evaluate(() => {
       const todas = Array.from(document.querySelectorAll('#container .panel img'));
-      const hero = document.querySelector('#hero .panel-bg img');
+      // La foto del hero es el LCP. Con el marcado de profundidad (T5) es la
+      // figura recortada; con el antiguo, el fondo a sangre.
+      const hero = document.querySelector('#hero .d-fig img') ||
+                   document.querySelector('#hero .panel-bg img');
       return {
         total: todas.length,
         // Las otras 4 son diferidas (IntersectionObserver, rootMargin 150%):

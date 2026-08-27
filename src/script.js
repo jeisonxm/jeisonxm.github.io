@@ -24,13 +24,16 @@
   var scrollHint = document.getElementById('scrollHint');
   var bgImgs = panels.map(function (p) { return p.querySelector('.panel-bg img'); });
 
-  // Si el navegador soporta scroll-driven animations, el parallax lo lleva el
-  // compositor por CSS y el JS no debe escribir --px.
-  var cssParallax = window.CSS && CSS.supports &&
-    CSS.supports('animation-timeline', 'scroll(inline nearest)');
-  // El parallax por JS solo en punteros finos: escribir transform de forma
-  // continua durante el scroll con inercia es jank y batería en Android.
-  var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  // CERO scroll-driven animations, y CERO @supports sobre ellas.
+  //
+  // Esa fue la causa raíz del parallax congelado: `@supports (animation-timeline)`
+  // daba true en Chrome, lo que DESACTIVABA el fallback JS, mientras que el
+  // camino CSS tampoco animaba porque `overflow:hidden` en .panel-bg lo convierte
+  // en scroll container y `scroll(inline nearest)` se ataba a él, que nunca
+  // scrollea. No había parallax por ninguna de las dos vías. Un solo camino de
+  // código = imposible que un motor tome una rama no probada.
+  var finePointerMQ = window.matchMedia('(hover: hover) and (pointer: fine)');
+  var finePointer = finePointerMQ.matches;
 
   // Se declara ANTES de cualquier uso. Estaba debajo de doJsParallax, y con
   // `var` eso lo dejaba en undefined al evaluarlo: solo salvaba el
@@ -40,7 +43,11 @@
   // el guard del formulario.
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  var doJsParallax = !cssParallax && finePointer && !reduceMotion.matches;
+  // En puntero grueso el motor se apaga ENTERO (plan §2.5): con inercia táctil,
+  // escribir transform cada frame es jank y batería. La profundidad es un lujo
+  // de escritorio. reduced-motion NO lo apaga: ahí se apaga el movimiento en
+  // CSS, pero el motor sigue porque hace falta para calcular --a.
+  var depthOn = finePointer;
 
   function behavior() {
     return reduceMotion.matches ? 'auto' : 'smooth';
@@ -68,6 +75,10 @@
   function measure() {
     offsets = panels.map(function (p) { return p.offsetLeft; });
     viewportW = container.clientWidth;
+    // --vw en el elemento raíz: los factores de las capas son proporcionales al
+    // ancho del panel, y leerlo del CSS con 100vw daría el viewport de layout,
+    // que incluye la barra de scroll y queda obsoleto con el pinch-zoom de macOS.
+    document.documentElement.style.setProperty('--vw', viewportW + 'px');
     nestedScrollers = Array.prototype.slice
       .call(container.querySelectorAll('*'))
       .filter(function (el) {
@@ -240,25 +251,116 @@
       scrollHint.style.opacity = x > viewportW * 0.3 ? '0' : '';
     }
 
-    if (doJsParallax) {
-      for (var i = 0; i < bgImgs.length; i++) {
-        var img = bgImgs[i];
-        if (!img) continue;
-        // Se escribe una custom property registrada como <length>, no un
-        // string de transform: el motor la guarda tipada y no re-parsea en
-        // cada frame. Clampeada a ±40px, que es la holgura del 6%.
-        var off = (x - offsets[i]) * 0.06;
-        if (off > 40) off = 40; else if (off < -40) off = -40;
-        img.style.setProperty('--px', off + 'px');
-      }
+    escribirProfundidad(x);
+  }
+
+  // ---------- Motor de profundidad (plan §2.2) ----------
+  // Un solo rAF. Lee container.scrollLeft UNA vez por frame y escribe solo --p
+  // y --a por panel. Cero getComputedStyle, cero offsetLeft y cero
+  // getBoundingClientRect dentro del bucle: todo eso vive en measure().
+  //
+  // will-change NUNCA se toca aquí. Crear y destruir capas a mitad de scroll ES
+  // el tirón que se quiere evitar; lo gobierna un IntersectionObserver aparte.
+  function escribirProfundidad(x) {
+    if (!depthOn || !viewportW) return;
+    for (var i = 0; i < panels.length; i++) {
+      var p = (x - offsets[i]) / viewportW;
+      if (p < -1.15) p = -1.15; else if (p > 1.15) p = 1.15;
+      var t = Math.abs(p); if (t > 1) t = 1;
+      // smoothstep: las traslaciones son lineales en p (paralaje físicamente
+      // consistente); solo escala y opacidad llevan easing.
+      var a = t * t * (3 - 2 * t);
+      var st = panels[i].style;
+      st.setProperty('--p', p.toFixed(4));
+      st.setProperty('--a', a.toFixed(4));
     }
   }
 
+  // El rAF corre mientras el scroll se mueve y un rato después, no siempre:
+  // dejarlo girando en reposo es batería a cambio de nada.
+  var depthRAF = 0, quietos = 0, ultimoX = -1;
+  function girar() {
+    var x = container.scrollLeft;
+    escribirProfundidad(x);
+    quietos = (x === ultimoX) ? quietos + 1 : 0;
+    ultimoX = x;
+    if (quietos > 12) { depthRAF = 0; return; }   // ~200 ms parado
+    depthRAF = requestAnimationFrame(girar);
+  }
+  function despertarProfundidad() {
+    quietos = 0;
+    if (!depthRAF && depthOn) depthRAF = requestAnimationFrame(girar);
+  }
+
   container.addEventListener('scroll', function () {
+    despertarProfundidad();
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(frame);
   }, { passive: true });
+
+  // ---------- Boton A/B ----------
+  // El dueno decide el tratamiento fotografico VIENDOLO. La eleccion persiste
+  // para poder vivir con una durante dias. Por defecto A: es la unica que da
+  // HD real (a 2048 la B sigue 1.58x escalada en un Retina).
+  var VER_KEY = 'jw-version';
+  var verBtns = Array.prototype.slice.call(document.querySelectorAll('.ver-toggle button'));
+
+  function revelarB() {
+    // Las fotos de B van diferidas a proposito: A es la predeterminada, y B no
+    // debe competir por el LCP mientras nadie la pida.
+    var pend = document.querySelectorAll('.d-photo [data-src], .d-photo [data-srcset]');
+    Array.prototype.forEach.call(pend, function (el) {
+      if (el.getAttribute('data-srcset')) {
+        el.setAttribute('srcset', el.getAttribute('data-srcset'));
+        el.removeAttribute('data-srcset');
+      }
+      if (el.getAttribute('data-src')) {
+        el.setAttribute('src', el.getAttribute('data-src'));
+        el.removeAttribute('data-src');
+      }
+    });
+  }
+
+  function aplicarVersion(v, guardar) {
+    document.documentElement.setAttribute('data-version', v);
+    verBtns.forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-ver') === v ? 'true' : 'false');
+    });
+    if (v === 'b') revelarB();
+    if (guardar) { try { localStorage.setItem(VER_KEY, v); } catch (e) { /* modo privado */ } }
+  }
+
+  if (verBtns.length) {
+    var guardada = null;
+    try { guardada = localStorage.getItem(VER_KEY); } catch (e) { /* modo privado */ }
+    aplicarVersion(guardada === 'b' ? 'b' : 'a', false);
+    verBtns.forEach(function (b) {
+      b.addEventListener('click', function () { aplicarVersion(b.getAttribute('data-ver'), true); });
+    });
+  }
+
+  // Se escucha `change` en AMBOS media queries para aplicarlo en vivo sin
+  // recargar: alguien que active reduced-motion o conecte un raton no deberia
+  // tener que refrescar.
+  function alCambiarEntorno() {
+    finePointer = finePointerMQ.matches;
+    depthOn = finePointer;
+    if (!depthOn) {
+      panels.forEach(function (p) {
+        p.style.setProperty('--p', '0');
+        p.style.setProperty('--a', '0');
+        p.classList.remove('depth-live');
+      });
+    } else {
+      measure();
+      despertarProfundidad();
+    }
+  }
+  if (finePointerMQ.addEventListener) {
+    finePointerMQ.addEventListener('change', alCambiarEntorno);
+    reduceMotion.addEventListener('change', alCambiarEntorno);
+  }
 
   // ---------- Resize ----------
   // El colapso de la barra de URL en móvil dispara resize con el ancho sin
@@ -336,13 +438,16 @@
     // gama media Chrome empieza a desalojar capas, y el desalojo a mitad de
     // scroll es justo el tirón que se quiere evitar. Con margen del 60% solo
     // se promueven el panel actual y su vecino: ~11 MB.
-    if (doJsParallax) {
+    if (depthOn) {
+      // Promoción sobre el PANEL, no sobre cada imagen: una clase, y el CSS
+      // decide qué capas promueve. Medido con margen del 60%: promueve 3 de 5
+      // (con 100% promovía los 5, o sea nada).
       var layerIO = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
-          e.target.style.willChange = e.isIntersecting ? 'transform' : 'auto';
+          e.target.classList.toggle('depth-live', e.isIntersecting);
         });
       }, { root: container, rootMargin: '0px 60% 0px 60%', threshold: 0 });
-      bgImgs.forEach(function (img) { if (img) layerIO.observe(img); });
+      panels.forEach(function (p) { layerIO.observe(p); });
     }
   } else {
     // Sin IntersectionObserver: cargar todo de una, es preferible a no cargar.

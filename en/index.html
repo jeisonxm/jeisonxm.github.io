@@ -58,50 +58,76 @@
 
     <!-- PANEL 1: Hero -->
     <section id="hero" class="panel hero-panel" tabindex="-1" style="--panel-bg:var(--panel-hero)">
-      <picture class="panel-bg">
-        <source media="(max-width:699px)" type="image/avif" srcset="/src/images/panels/hero-p640.avif 640w, /src/images/panels/hero-p828.avif 828w" sizes="100vw">
-        <source media="(max-width:699px)" type="image/webp" srcset="/src/images/panels/hero-p640.webp 640w, /src/images/panels/hero-p828.webp 828w" sizes="100vw">
-        <source type="image/avif" srcset="/src/images/panels/hero-l640.avif 640w, /src/images/panels/hero-l1024.avif 1024w, /src/images/panels/hero-l1536.avif 1536w" sizes="112vw">
-        <source type="image/webp" srcset="/src/images/panels/hero-l640.webp 640w, /src/images/panels/hero-l1024.webp 1024w, /src/images/panels/hero-l1536.webp 1536w" sizes="112vw">
-        <img alt="" width="1536" height="864" src="/src/images/panels/hero-l1024.webp" fetchpriority="high" decoding="async" loading="eager" class="is-loaded">
-      </picture>
-      <div class="panel-scrim"></div>
-
-      <div class="hero-content">
-        <div class="hero-label">AI &amp; Data Leader</div>
-        <h1 class="hero-title">
-          Hi,<br>I'm <span class="hero-name">Jeison Wu</span>
-        </h1>
-        <p class="hero-sub">Innovator by calling. Marathoner in training.</p>
-        <div class="hero-buttons">
-          <a href="#contact" class="btn btn-solid">Get in touch</a>
-          <a href="#about" class="btn btn-ghost">Explore <svg class="icon icon-arrow" viewBox="0 0 448 512" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
+      <div class="depth" aria-hidden="true">
+        <!-- L1 — el fondo desenfocado. Es la MISMA foto que la figura, bajo la
+             misma transformacion (tasks/pipeline/figs-geometry.json), asi que en
+             p=0 la figura nitida tapa su propio borroso. El blur va horneado en
+             el asset: filter sobre una capa a pantalla completa obliga a una
+             superficie fuera de pantalla y rompe la ruta rapida de composicion. -->
+        <div class="d-far">
+          <picture>
+            <source media="(max-aspect-ratio: 1/1)" type="image/avif" srcset="/src/images/panels/hero-l1p320.avif">
+            <source media="(max-aspect-ratio: 1/1)" type="image/webp" srcset="/src/images/panels/hero-l1p320.webp">
+            <source type="image/avif" srcset="/src/images/panels/hero-l1l320.avif">
+            <img alt="" width="320" height="180" src="/src/images/panels/hero-l1l320.webp" fetchpriority="high" decoding="async">
+          </picture>
         </div>
+        <!-- L2 — la figura recortada con alfa. Escalas normalizadas por altura
+             de cabeza y linea de base comun (T2). -->
+        <div class="d-fig">
+          <picture>
+            <source type="image/avif" srcset="/src/images/panels/hero-fig1800.avif">
+            <img alt="" width="1200" height="1800" src="/src/images/panels/hero-fig1800.webp" fetchpriority="high" decoding="async">
+          </picture>
+        </div>
+        <!-- Version B — la foto entera. Diferida: A es la predeterminada y B es
+             un modo de comparacion, asi que no compite por el LCP. -->
+        <div class="d-photo">
+          <picture>
+            <source type="image/avif" data-srcset="/src/images/panels/hero-b2048.avif">
+            <img alt="" width="1366" height="2048" data-src="/src/images/panels/hero-b2048.webp" decoding="async" loading="lazy">
+          </picture>
+        </div>
+        <!-- L3 — campo de color -->
+        <div class="d-wash"></div>
       </div>
+      <div class="d-text">
+        <div class="hero-content">
+          <div class="hero-label">AI &amp; Data Leader</div>
+          <h1 class="hero-title">
+            Hi,<br>I'm <span class="hero-name">Jeison Wu</span>
+          </h1>
+          <p class="hero-sub">Innovator by calling. Marathoner in training.</p>
+          <div class="hero-buttons">
+            <a href="#contact" class="btn btn-solid">Get in touch</a>
+            <a href="#about" class="btn btn-ghost">Explore <svg class="icon icon-arrow" viewBox="0 0 448 512" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
+          </div>
+        </div>
 
-      <div class="hero-stats">
-        <div class="stat-item">
-          <span class="stat-num">+80K</span>
-          <span class="stat-desc">Hours automated</span>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-num">+80K</span>
+            <span class="stat-desc">Hours automated</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num">Head</span>
+            <span class="stat-desc">Audit Analytics @ 25</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num">Sub-4h</span>
+            <span class="stat-desc">Marathon Goal 2026</span>
+          </div>
         </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-num">Head</span>
-          <span class="stat-desc">Audit Analytics @ 25</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-num">Sub-4h</span>
-          <span class="stat-desc">Marathon Goal 2026</span>
-        </div>
-      </div>
 
-      <div class="scroll-hint" id="scrollHint">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="hint-desktop">Scroll wheel to navigate</span>
-        <span class="hint-mobile">Swipe <svg class="icon icon-arrow" viewBox="0 0 448 512" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></span>
+        <div class="scroll-hint" id="scrollHint">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="hint-desktop">Scroll wheel to navigate</span>
+          <span class="hint-mobile">Swipe <svg class="icon icon-arrow" viewBox="0 0 448 512" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></span>
+        </div>
       </div>
     </section>
 
@@ -326,5 +352,12 @@
   </svg>
 
   <script src="/src/script.js"></script>
+<!-- Boton A/B: el dueno decide el tratamiento fotografico VIENDOLO, no
+     discutiendolo. La eleccion persiste en localStorage para poder vivir
+     con una durante dias. Por defecto A: es la unica que da HD real. -->
+<div class="ver-toggle" role="group" aria-label="Photographic treatment">
+  <button type="button" data-ver="a" aria-pressed="true">A</button>
+  <button type="button" data-ver="b" aria-pressed="false">B</button>
+</div>
 </body>
 </html>

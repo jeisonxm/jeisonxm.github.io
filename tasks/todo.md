@@ -330,41 +330,52 @@ cssText` no leía ni una declaración. Corregido: ahora ve 28 por página.
 
 ## FASE 3 — El molde
 
-### [ ] T5 · Panel hero completo, las dos versiones
-
-**Descripción.** **Este es el slice vertical**: imagen + CSS + JS + verificación en una sola
-tarea. El hero es el molde; hasta que no esté verificado, replicarlo 4 veces multiplica el error.
+### [x] T5 · Panel hero completo, las dos versiones
 
 **Acceptance criteria**
-- [ ] Las 4 capas de §2.2 del plan, con sus factores exactos.
-- [ ] Motor: **un solo rAF**, lee `scrollLeft` una vez por frame, escribe solo `--p` y `--a`.
-      Cero `getComputedStyle`, `offsetLeft` o `getBoundingClientRect` dentro del bucle.
-- [ ] Cero scroll-driven animations. **Cero `@supports` sobre ellas.**
-- [ ] Toda `var()` con fallback: `var(--p,0)`, `var(--a,0)`, `var(--vw,0px)`.
-- [ ] Transforms 2D. `will-change` gobernado por `IntersectionObserver` a `rootMargin 60%`,
-      **nunca tocado dentro del rAF**.
-- [ ] Scrim como `background` de la capa de contenido (V3), **no** como elemento suelto:
-      medido, un scrim suelto se promovía por solapamiento y Blink aplastaba los 5 en una capa
-      de 7200×900 (122.5 → 112.4 MB de extensión al fusionarlo).
-- [ ] Botón A/B funcionando, con persistencia en `localStorage`. **Por defecto: A.**
-- [ ] Blur horneado en el asset. Cero `filter: blur()` y cero `backdrop-filter` en CSS.
-- [ ] Tope absoluto de los factores: `min(k·vw, 340px)`.
+- [x] Las 4 capas con sus factores exactos. **Medidos por regresión, idénticos en los 3 motores:**
+      `k_far 0.2200 · k_fig 0.1000 · k_wash 0.0500 · k_txt −0.0800`. Los cuatro distintos.
+- [x] Un solo rAF, lee `scrollLeft` una vez por frame, escribe solo `--p` y `--a`.
+      Cero `getComputedStyle`/`offsetLeft`/`getBoundingClientRect` en el bucle.
+- [x] Cero scroll-driven animations y **cero `@supports` sobre ellas** (bloque eliminado).
+- [x] Toda `var()` con fallback. `@property` con **`inherits: true`** — ver abajo.
+- [x] Transforms 2D. `will-change` por `IntersectionObserver` a `rootMargin 60%`, sobre el
+      panel (una clase) y **nunca dentro del rAF**.
+- [x] Scrim como `background` de `.d-text`, no elemento suelto. Alpha 0,56 (medido en T4).
+- [x] Botón A/B con persistencia en `localStorage`. **Por defecto A.**
+- [x] Blur horneado. Cero `filter: blur()` y cero `backdrop-filter`.
+- [x] Tope `min(k·vw, 340px)` — verificado a 2560 px.
 
-**Verification — la que de verdad importa**
-- [ ] **El `transform` CAMBIA con el scroll**, medido en los 3 motores. Es *la* métrica: hoy
-      da `matrix(1,0,0,1,-41.9327,0)` idéntico en las tres posiciones.
-- [ ] Los 4 factores salen **distintos entre sí** por regresión:
-      `k_far 0.2200 · k_fig 0.1000 · k_wash 0.0500 · k_txt −0.0800`.
-- [ ] `transform` es **0 exacto** en `p=0` (hoy hay 41,93 px de descentrado permanente).
-- [ ] Cero errores de consola en escenario normal **y forzado**.
-- [ ] El **fantasma entre L1 y L2 ya se midió en T3** y el blur **no** lo destruye: se
-      resolvió dando a L1 la misma transformación que su figura (`figs-geometry.json`), así que
-      en `p=0` la figura tapa su propio borroso. Aquí solo queda comprobar que el paralaje los
-      separa como se espera (86,4 px a `|p|=0.5`) sin reabrirlo.
-- [ ] Sin escalón duro de luminancia dentro del panel (salto máx. ~1.9, el ruido de fondo).
-      Cerrar el último stop del gradiente en **84 %**, no en 100 %.
-- [ ] Probado a 2560 px de ancho.
-- [ ] `prefers-reduced-motion` y puntero grueso probados explícitamente.
+**Verification**
+- [x] **El transform CAMBIA con el scroll** en los 3 motores. Era `false`.
+- [x] **`transform` es 0 exacto en p=0** en los 3 motores (defecto 5: eran 41,93 px).
+- [x] Separación a `|p|=0.5`, vw 1440: **L1-L2 86,4 · L2-L3 36,0 · L3-L4 93,6 px** — los
+      números del plan, clavados. *(Los ratios que el plan cita, «2,2× y 2,0×», no cuadran con
+      sus propias cifras: son 2,4× y 2,6×.)*
+- [x] Cero errores de consola, escenario normal y forzado.
+- [x] `prefers-reduced-motion` y puntero grueso: `transform: none` en las 4 capas.
+- [x] `tasks/verify/depth-check.mjs` → exit 0. `run.sh` → exit 0.
+
+**Tres defectos que solo aparecieron al montarlo y mirarlo**
+
+1. **`@property … inherits: false` mataba la mitad del efecto.** El motor escribe `--p`/`--a`
+   sobre el `.panel` y las capas son hijas: con `inherits:false` leían el valor inicial 0. El
+   `translateX` seguía bien (va por `--d-far`, que sí hereda) pero **la escala se quedaba en
+   1,03 y las opacidades en 1**. Medido en los 3 motores antes de corregirlo.
+2. **`height:100%` en el `<img>` no resolvía contra nada.** El `<img>` vive dentro de un
+   `<picture>`, y en `.d-fig` ese `<picture>` era un flex item de altura automática. La figura
+   salía a tamaño **intrínseco: 1200×1800 en un panel de 656 px** — se veía una rodilla
+   llenando la pantalla.
+3. **L1 es 2:3 y el panel de escritorio 16:9.** Servir el vertical con `object-fit:cover`
+   recortaba hasta dejar una zapatilla. Y la alineación perfecta L1/L2 en apaisado es
+   **geométricamente imposible** con fuentes verticales: el panel mide 3200×1800 en
+   coordenadas del lienzo y el marco de la foto solo 1614. L1 sale ahora en dos formas —
+   `-l1p320` (2:3, alineada con la figura, panel vertical) y `-l1l320` (16:9, banda sobre el
+   torso, escritorio)— elegidas por `<source media>`.
+
+**Añadido no previsto, justificado:** `transform-origin: bottom center` en L2. Con origen
+centrado, `scale(1.06)` en reposo cortaba los pies ~20 px — justo la línea de base que T2 se
+molestó en alinear.
 
 **Dependencies:** T2, T3, T4, T2c. **Scope:** L.
 

@@ -69,7 +69,7 @@ function alphaNecesario(px, objetivo) {
 const ALPHA_MAX = 0.85;
 
 async function panelA(slug) {
-  const l1 = await sharp(path.join(DIR, `${slug}-l1-320.avif`)).resize(PW, PH, { fit: 'cover' }).png().toBuffer();
+  const l1 = await sharp(path.join(DIR, `${slug}-l1l320.avif`)).resize(PW, PH, { fit: 'cover' }).png().toBuffer();
   const fig = await sharp(path.join(DIR, `${slug}-fig1800.webp`)).resize({ height: PH }).png().toBuffer();
   const fm = await sharp(fig).metadata();
   return sharp(l1).composite([{ input: fig, left: Math.round(PW * 0.68 - fm.width / 2), top: 0 }])

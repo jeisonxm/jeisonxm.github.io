@@ -50,6 +50,10 @@ const GEO  = path.join(path.dirname(new URL(import.meta.url).pathname), 'figs-ge
 const L1_W = 320;          // §2.7: a 320 px, bajo blur fuerte, es indistinguible de 1536
 const L1_BLUR = 6;         // sigma horneado a 320 px (~30 al escalar al panel)
 const B_MAX = 2048;        // Version B: lado mayor
+// Donde cae el torso dentro del lienzo de 1800. La cabeza acaba en ~0.19 (105 px
+// de tope + 242 de cabeza) y la cintura ronda 0.55; 0.32 deja la banda sobre
+// pecho y hombros, que es de donde salen los colores buenos.
+const TORSO_EN_LIENZO = 0.32;
 
 const { readFileSync } = await import('node:fs');
 if (!existsSync(GEO)) throw new Error(`falta ${GEO}: corre antes stage_d_normalize.mjs`);
@@ -118,10 +122,33 @@ for (const fig of geo.figuras) {
     .extend({ left: izq, top: arr, right: der, bottom: abj, extendWith: 'copy' })
     .png().toBuffer();
 
-  const l1 = (await hornearColor(
+  // L1 sale en DOS formas, y no es capricho: el lienzo de la figura es 2:3 y el
+  // panel de escritorio es 16:9. Montado y mirado, servir el 2:3 con
+  // object-fit:cover en un panel apaisado recorta hasta dejar una rodilla
+  // llenando el cuadro. Y la foto vertical no tiene ancho suficiente para llenar
+  // un 16:9 a la escala de la figura: el panel mide 3200x1800 en coordenadas del
+  // lienzo, y el marco de la foto solo 1614. Alineacion perfecta L1/L2 en
+  // apaisado es geometricamente imposible con fuentes verticales.
+  //
+  //   -l1p  2:3   el lienzo entero, alineado con la figura. Para panel vertical.
+  //   -l1l  16:9  banda centrada sobre el torso del sujeto. Para escritorio.
+  //
+  // La banda se toma sobre el torso (no sobre el centro de la caja) para que el
+  // campo desenfocado sean colores de camiseta y ambiente, no una zapatilla.
+  const l1p = (await hornearColor(
     sharp(lienzo).resize({ width: L1_W, height: Math.round(L1_W * CANVAS_H / CANVAS_W), fit: 'fill' })
   )).blur(L1_BLUR);
-  const pesosL1 = await codificar(l1, path.join(OUT, `${fig.slug}-l1-${L1_W}`), { avifQ: 35, webpQ: 45 });
+  const pesosP = await codificar(l1p, path.join(OUT, `${fig.slug}-l1p${L1_W}`), { avifQ: 35, webpQ: 45 });
+
+  const bandaH = Math.round(CANVAS_W * 9 / 16);
+  const torso = Math.max(0, Math.min(CANVAS_H - bandaH,
+    Math.round(TORSO_EN_LIENZO * CANVAS_H - bandaH * 0.45)));
+  const l1l = (await hornearColor(
+    sharp(lienzo).extract({ left: 0, top: torso, width: CANVAS_W, height: bandaH })
+      .resize({ width: L1_W, height: Math.round(L1_W * 9 / 16), fit: 'fill' })
+  )).blur(L1_BLUR);
+  const pesosL = await codificar(l1l, path.join(OUT, `${fig.slug}-l1l${L1_W}`), { avifQ: 35, webpQ: 45 });
+  const pesosL1 = { avif: pesosP.avif + pesosL.avif, webp: pesosP.webp + pesosL.webp };
 
   // --- Version B: la foto entera, sin recorte de sujeto, lado mayor 2048 ---
   const b = await hornearColor(sharp(src).rotate().resize({
@@ -132,7 +159,7 @@ for (const fig of geo.figuras) {
   filas.push({ slug: fig.slug, l1: pesosL1, b: pesosB });
   console.log(`${fig.slug.padEnd(8)} foto ${fig.id.padEnd(7)} escala ${fig.escala.toFixed(3)}x  ` +
     `relleno de borde ${cubierto ? 'no hizo falta' : `izq${izq} arr${arr} der${der} abj${abj}`}  ` +
-    `L1 ${pesosL1.avif}/${pesosL1.webp} B  B(${mb.width}x${mb.height}) ${pesosB.avif}/${pesosB.webp} B`);
+    `L1 2:3+16:9 ${pesosL1.avif}/${pesosL1.webp} B  B(${mb.width}x${mb.height}) ${pesosB.avif}/${pesosB.webp} B`);
 }
 
 const sum = (f, k) => filas.reduce((a, r) => a + r[f][k], 0);

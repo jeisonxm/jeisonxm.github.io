@@ -106,7 +106,7 @@ const T = {
 // sobre la foto real.
 const paneles = {};
 for (const fig of geo.figuras) {
-  const { data, info } = await sharp(path.join('src/images/panels', `${fig.slug}-l1-320.webp`))
+  const { data, info } = await sharp(path.join('src/images/panels', `${fig.slug}-l1l320.webp`))
     .removeAlpha().resize({ width: 160 }).raw().toBuffer({ resolveWithObject: true });
   const bins = new Array(36).fill(0);
   let sumL = 0, n = 0;

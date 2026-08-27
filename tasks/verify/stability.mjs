@@ -62,6 +62,7 @@ const probeVerdict = (rs) => rs.map((r) => ({
   pageErrors: r.pageErrors, consoleErrors: r.consoleErrors,
   knownTypeError: r.knownTypeError,
   transform: r.transform && {
+    capa: r.transform.capa,
     enPanel0: r.transform.enPanel0, enPanel1: r.transform.enPanel1,
     enPanel2: r.transform.enPanel2,
     changed: r.transform.changed, measurable: r.transform.measurable,
