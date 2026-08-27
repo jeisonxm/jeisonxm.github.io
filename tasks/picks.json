@@ -1,0 +1,7 @@
+{
+  "hero":    { "file": "005-CircuitoCity8k-momentumphotography93-763.jpg",      "topFrac": 0.08, "note": "City 8K — zancada fuerte, cara clara, cielo arriba-izq" },
+  "about":   { "file": "006-CanajaguaTrail-achtarfoto-103865.jpg",              "topFrac": 0.06, "note": "Trail — verde bokeh, el fondo más limpio de los ocho" },
+  "skills":  { "file": "006-CircuitoCity8k-oneflashphoto-1164.jpg",             "topFrac": 0.12, "note": "City 8K — solo, ritmo controlado, montañas detrás" },
+  "blog":    { "file": "9192462844140-CircuitoSummer21k-jorgejuradofoto-886.jpg.jpg", "topFrac": 0.12, "note": "Summer 21K — grupo, luz dorada, masa tonal cálida" },
+  "contact": { "file": "9192443969772-CircuitoSummer21k-jorgejuradofoto-533.jpg.jpg", "topFrac": 0.14, "note": "Summer 21K — llegada, cara clara" }
+}
