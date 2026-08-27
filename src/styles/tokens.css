@@ -49,11 +49,11 @@
   --accent-rgb: 119 207 207;
 
   /* Campo de color de cada panel, sacado de su propio fondo desenfocado. */
-  --panel-hero: #887F6C;
-  --panel-about: #3E4E5B;
-  --panel-skills: #5F6A59;
-  --panel-blog: #887569;
-  --panel-contact: #9C9682;
+  --panel-hero: #757965;
+  --panel-about: #445461;
+  --panel-skills: #606B5A;
+  --panel-blog: #958175;
+  --panel-contact: #B8BCA7;
 
   --radius: 2px;
   --transition: 300ms ease;
