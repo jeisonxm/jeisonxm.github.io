@@ -48,7 +48,9 @@ const PANELES = [
 //   - panel 1 (hero), techo de LCP con 10% de margen: <= 46.375 B
 // De ahi sale L1 (fondo desenfocado, T3): 25.973 B los 5 juntos, ~5.195 B el
 // hero. Lo que queda es lo que puede pesar la figura.
-const L1_TOTAL = 25973, L1_HERO = 5195;
+// Medidos en T3 (checkbg.mjs), no estimados: L1 salio mucho mas barata que el
+// 25.973 B que preveia el plan.
+const L1_TOTAL = 8327, L1_HERO = 1945;
 const PRESUPUESTO_FIGURAS = 266140 - L1_TOTAL;   // 240.167 B
 const PRESUPUESTO_HERO = 46375 - L1_HERO;        // 41.180 B
 
