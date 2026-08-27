@@ -30,7 +30,7 @@
 //
 //   node stage_d_normalize.mjs <originales> <recortes> <salida> [--fade285=180]
 
-import { existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
@@ -283,12 +283,29 @@ for (const fig of FIGS) {
     await sharp(png).toFormat(ext, opts).toFile(path.join(OUT, `${nombre}.${ext}`));
   }
 
-  medidas.push({ panel: fig.panel, id: fig.id, cabezaAntes: m.cabeza, escala: +s.toFixed(3),
-                 trabajo: `${Wf}x${Hf}`, dx, dy, borrados,
+  medidas.push({ panel: fig.panel, slug: fig.slug, id: fig.id, orig: fig.orig,
+                 cabezaAntes: m.cabeza, cabezaDestino: TARGET_HEAD, escala: s,
+                 Wf, Hf, dx, dy, lienzo: [CANVAS_W, CANVAS_H], borrados,
+                 trabajo: `${Wf}x${Hf}`,
                  bordes: [m.tocaIzquierda && 'izq', m.tocaDerecha && 'der',
                           m.tocaArriba && 'arr', m.tocaAbajo && 'abj'].filter(Boolean).join(',') || '-' });
   console.log(`${fig.panel.padEnd(9)} cabeza ${String(m.cabeza).padStart(3)} -> ${TARGET_HEAD}  ` +
               `escala ${s.toFixed(3)}x  trabajo ${Wf}x${Hf}  dx=${dx} dy=${dy}  ` +
               `bordes tocados: ${medidas.at(-1).bordes}` + (borrados ? `  retoque: ${borrados} px` : ''));
 }
+// La geometria se publica como contrato, no se recalcula en otra etapa.
+// stage_e la necesita para alinear el fondo desenfocado con SU figura, y T5 la
+// necesita para saber a que escala esta cada figura dentro de su lienzo.
+const GEO = path.join(path.dirname(new URL(import.meta.url).pathname), 'figs-geometry.json');
+writeFileSync(GEO, JSON.stringify({
+  que: 'Transformacion aplicada a cada figura por stage_d_normalize.mjs.',
+  como: 'El original se lleva a Wf x Hf (siempre reduciendo) y se pega en el lienzo en (dx, dy).',
+  lienzo: [CANVAS_W, CANVAS_H], cabezaDestino: TARGET_HEAD, baseline: BASELINE_Y,
+  figuras: medidas.map((m) => ({
+    slug: m.slug, id: m.id, orig: m.orig, escala: +m.escala.toFixed(6),
+    Wf: m.Wf, Hf: m.Hf, dx: m.dx, dy: m.dy,
+    cabezaAntes: m.cabezaAntes, cabezaDestino: m.cabezaDestino, retoquePx: m.borrados,
+  })),
+}, null, 2) + '\n');
 console.log(`\n-> ${OUT}`);
+console.log(`-> ${GEO}`);

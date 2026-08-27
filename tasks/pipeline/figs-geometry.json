@@ -1,0 +1,77 @@
+{
+  "que": "Transformacion aplicada a cada figura por stage_d_normalize.mjs.",
+  "como": "El original se lleva a Wf x Hf (siempre reduciendo) y se pega en el lienzo en (dx, dy).",
+  "lienzo": [
+    1200,
+    1800
+  ],
+  "cabezaDestino": 242,
+  "baseline": 1799,
+  "figuras": [
+    {
+      "slug": "hero",
+      "id": "1164",
+      "orig": "006-CircuitoCity8k-oneflashphoto-1164.jpg",
+      "escala": 1.344444,
+      "Wf": 1614,
+      "Hf": 2420,
+      "dx": -225,
+      "dy": -438,
+      "cabezaAntes": 180,
+      "cabezaDestino": 242,
+      "retoquePx": 0
+    },
+    {
+      "slug": "about",
+      "id": "285",
+      "orig": "007-CanajaguaTrail-jorgejuradofoto-285.jpg",
+      "escala": 0.628571,
+      "Wf": 754,
+      "Hf": 1131,
+      "dx": 445,
+      "dy": -123,
+      "cabezaAntes": 385,
+      "cabezaDestino": 242,
+      "retoquePx": 0
+    },
+    {
+      "slug": "skills",
+      "id": "103865",
+      "orig": "006-CanajaguaTrail-achtarfoto-103865.jpg",
+      "escala": 1.322404,
+      "Wf": 1587,
+      "Hf": 2380,
+      "dx": -269,
+      "dy": -408,
+      "cabezaAntes": 183,
+      "cabezaDestino": 242,
+      "retoquePx": 0
+    },
+    {
+      "slug": "blog",
+      "id": "764",
+      "orig": "004-CircuitoCity8k-momentumphotography93-764.jpg",
+      "escala": 0.98374,
+      "Wf": 1181,
+      "Hf": 1771,
+      "dx": -193,
+      "dy": 29,
+      "cabezaAntes": 246,
+      "cabezaDestino": 242,
+      "retoquePx": 1952
+    },
+    {
+      "slug": "contact",
+      "id": "533",
+      "orig": "9192443969772-CircuitoSummer21k-jorgejuradofoto-533.jpg.jpg",
+      "escala": 1,
+      "Wf": 1200,
+      "Hf": 1800,
+      "dx": -170,
+      "dy": 0,
+      "cabezaAntes": 242,
+      "cabezaDestino": 242,
+      "retoquePx": 0
+    }
+  ]
+}
