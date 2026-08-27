@@ -1,0 +1,146 @@
+// layout-check.mjs — ¿CABE el contenido, en cualquier dispositivo?
+//
+// POR QUE EXISTE. El dueno encontro que "Contactame" se solapaba con el pie de
+// stats en su HP EliteBook 840 G9 con Edge. Ninguna de las 15 puertas lo cazo,
+// y la razon es estructural: todas verifican comportamiento, color, peso o
+// gestos, y NINGUNA pregunta si el contenido cabe en su caja. depth-check varia
+// el ANCHO (1440 y 2560) y nunca la ALTURA. Los criterios del plan tampoco lo
+// nombran, asi que la verificacion heredo el punto ciego del plan.
+//
+// Esto barre una matriz de viewports REALES y afirma cuatro cosas por panel:
+//   1. ningun bloque hermano se solapa con otro
+//   2. nada desborda su panel por abajo
+//   3. la pagina no scrollea en horizontal
+//   4. los objetivos tactiles llegan a 24x24 CSS px (WCAG 2.2 AA)
+//
+//   node layout-check.mjs [--json]
+
+import { spawn } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { chromium } from 'playwright';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const SITE = path.resolve(HERE, '..', '..');
+const argv = Object.fromEntries(process.argv.slice(2).map((a) => {
+  const m = a.match(/^--([^=]+)(?:=(.*))?$/); return m ? [m[1], m[2] ?? true] : [a, true]; }));
+
+// Viewports CSS reales, ya descontado el cromo del navegador.
+const DISPOSITIVOS = [
+  { n: 'iPhone SE',              w: 375, h: 553, movil: true },
+  { n: 'iPhone 14',              w: 390, h: 664, movil: true },
+  { n: 'iPhone 14 Pro Max',      w: 430, h: 745, movil: true },
+  { n: 'Pixel 7',                w: 412, h: 732, movil: true },
+  { n: 'iPad mini vertical',     w: 744, h: 954 },
+  { n: 'iPad Pro apaisado',      w: 1194, h: 738 },
+  { n: 'EliteBook 840 @150%',    w: 1280, h: 610 },   // el caso del dueno
+  { n: 'EliteBook 840 @125%',    w: 1536, h: 780 },
+  { n: 'EliteBook 840 @100%',    w: 1920, h: 1020 },
+  { n: 'portatil 1366x768',      w: 1366, h: 640 },
+  { n: 'MacBook Air 13',         w: 1440, h: 812 },
+  { n: 'MacBook Pro 16',         w: 1728, h: 950 },
+  { n: 'monitor 2560',           w: 2560, h: 1300 },
+  { n: 'ventana baja 1280x560',  w: 1280, h: 560 },
+];
+
+const PANELES = ['hero', 'about', 'skills', 'blog', 'contact'];
+
+const proc = spawn('python3', ['-u', '-m', 'http.server', '--bind', '127.0.0.1', '--directory', SITE, '0'],
+  { stdio: ['ignore', 'pipe', 'pipe'] });
+const port = await new Promise((r) => proc.stdout.on('data', (b) => {
+  const m = String(b).match(/port (\d+)/); if (m) r(Number(m[1])); }));
+
+const browser = await chromium.launch({ headless: true });
+let fallos = 0;
+const filas = [];
+
+for (const d of DISPOSITIVOS) {
+  const ctx = await browser.newContext({ viewport: { width: d.w, height: d.h }, locale: 'es-ES',
+    isMobile: !!d.movil, hasTouch: !!d.movil, deviceScaleFactor: d.movil ? 2 : 1 });
+  const page = await ctx.newPage();
+  await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'load', timeout: 45000 });
+  await page.evaluate(() => document.fonts.ready).catch(() => {});
+  await page.waitForTimeout(500);
+
+  const problemas = [];
+  for (let i = 0; i < PANELES.length; i++) {
+    await page.evaluate((n) => {
+      const c = document.getElementById('container');
+      c.scrollTo({ left: c.clientWidth * n, behavior: 'auto' });
+    }, i);
+    await page.waitForTimeout(320);
+    const r = await page.evaluate((slug) => {
+      const panel = document.getElementById(slug);
+      const pr = panel.getBoundingClientRect();
+      const out = [];
+      // Bloques de primer nivel dentro de la capa de texto: son los que compiten
+      // por el mismo alto y los que pueden pisarse.
+      const capa = panel.querySelector('.d-text') || panel;
+      const bloques = Array.from(capa.children).filter((e) => {
+        const cs = getComputedStyle(e);
+        if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+        const b = e.getBoundingClientRect();
+        return b.width > 4 && b.height > 4;
+      }).map((e) => ({ el: e, r: e.getBoundingClientRect(),
+                       nombre: e.className && typeof e.className === 'string'
+                         ? '.' + e.className.split(/\s+/)[0] : e.tagName.toLowerCase() }));
+
+      for (let a = 0; a < bloques.length; a++) {
+        for (let b = a + 1; b < bloques.length; b++) {
+          const A = bloques[a].r, B = bloques[b].r;
+          const solapaY = Math.min(A.bottom, B.bottom) - Math.max(A.top, B.top);
+          const solapaX = Math.min(A.right, B.right) - Math.max(A.left, B.left);
+          if (solapaY > 2 && solapaX > 2) {
+            out.push({ tipo: 'solapa', a: bloques[a].nombre, b: bloques[b].nombre,
+                       px: Math.round(solapaY) });
+          }
+        }
+        // desborde por abajo del panel
+        const b0 = bloques[a].r;
+        if (b0.bottom > pr.bottom + 2) {
+          out.push({ tipo: 'desborda', a: bloques[a].nombre, px: Math.round(b0.bottom - pr.bottom) });
+        }
+      }
+      return out;
+    }, PANELES[i]);
+    for (const x of r) problemas.push({ panel: PANELES[i], ...x });
+  }
+
+  const global = await page.evaluate(() => {
+    // WCAG 2.2 SC 2.5.8 exime los objetivos EN LINEA dentro de un bloque de
+    // texto: un enlace en medio de una frase no puede crecer sin romper la
+    // linea. Se detecta porque su padre tiene ademas texto propio.
+    const enLinea = (e) => {
+      const p = e.parentElement;
+      if (!p) return false;
+      return Array.from(p.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim().length > 1);
+    };
+    const chicos = Array.from(document.querySelectorAll('a, button')).filter((e) => {
+      const cs = getComputedStyle(e);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+      const b = e.getBoundingClientRect();
+      if (!(b.width > 0 && b.height > 0)) return false;
+      if (b.width >= 24 && b.height >= 24) return false;
+      return !enLinea(e);
+    }).map((e) => (e.textContent || '').trim().slice(0, 18) || e.className);
+    return { scrollH: document.documentElement.scrollWidth > innerWidth + 1, chicos: chicos.slice(0, 4) };
+  });
+  if (global.scrollH) problemas.push({ tipo: 'scroll horizontal en la pagina' });
+  if (global.chicos.length) problemas.push({ tipo: 'objetivo tactil < 24px', a: global.chicos.join(', ') });
+
+  if (problemas.length) fallos++;
+  filas.push({ d: d.n, w: d.w, h: d.h, problemas });
+  const resumen = problemas.length
+    ? problemas.map((p) => p.tipo === 'solapa' ? `${p.panel}: ${p.a} pisa ${p.b} (${p.px}px)`
+        : p.tipo === 'desborda' ? `${p.panel}: ${p.a} desborda ${p.px}px` : p.tipo + (p.a ? ' — ' + p.a : ''))
+        .slice(0, 3).join(' | ')
+    : 'OK';
+  console.log(`${problemas.length ? 'FALLO' : 'OK   '} ${d.n.padEnd(24)} ${String(d.w).padStart(4)}x${String(d.h).padStart(4)}  ${resumen}`);
+  await ctx.close();
+}
+await browser.close(); proc.kill();
+if (argv.json) writeFileSync('layout-results.json', JSON.stringify(filas, null, 2));
+console.log(fallos ? `\n${fallos} de ${DISPOSITIVOS.length} dispositivos con el layout roto`
+                   : `\nEL CONTENIDO CABE EN LOS ${DISPOSITIVOS.length} DISPOSITIVOS`);
+process.exit(fallos ? 1 : 0);

@@ -125,6 +125,56 @@ encontraron y cerraron; los tres primeros viven ahora en `run.sh selfcheck`.
 - **`gestures-check` daba dos rojos que parecían bugs** por medir la fidelidad del timing con
   la mediana, que escondía justo el pico que partía el gesto.
 
+## 5 bis. Lo que el dueño encontró y las puertas no
+
+Cuatro defectos reportados tras publicar. Los cuatro reales, y **ninguno lo cazó la suite**.
+
+1. **El botón A/B no hacía nada.** `script.js` se carga en la línea 424 y el botón se insertó
+   en la 428: al ejecutarse, `querySelectorAll('.ver-toggle button')` devolvía una lista
+   **vacía**. Ni se ponía `data-version` ni se enganchaba un listener. Lo que se veía como «A y
+   B se parecen» era esto: **B nunca llegaba a activarse**. Con la Versión B activa de verdad,
+   la diferencia media es de 31,7/255.
+2. **En móvil la figura tapaba el contenido.** Medido a 390×844: `height:100%` la sacaba a
+   **520 px de ancho en un viewport de 390**, anclada abajo. En Contacto quedaba justo detrás
+   del formulario. Ahora ocupa la mitad inferior, anclada a la derecha, con scrim vertical.
+3. **No se podía cambiar A/B en el teléfono**, porque la regla de puntero grueso ocultaba el
+   botón. Era un error de criterio mío: el motor se apaga en móvil, pero **la elección estética
+   se decide viendo el sitio**, y el dueño lo mira tanto en el teléfono como en el Mac.
+4. **«Contáctame» se solapaba con el pie de stats** en su HP EliteBook 840 G9 con Edge.
+
+**Cinco porqués del cuarto, que es el que tiene causa sistémica:**
+
+1. Se solapan porque `.hero-stats` estaba en posición absoluta al fondo y `.hero-content` fluía
+   centrado sobre la altura **completa** del panel.
+2. El bloque centrado crece hacia abajo porque **nada reservaba** el espacio del pie: dos
+   sistemas de layout que no se conocen.
+3. No había reserva porque el panel tiene presupuesto fijo pero el contenido no tenía contrato
+   de altura.
+4. Se asumió que cabía porque **solo se verificó en viewports altos**: `depth-check` varía el
+   ancho (1440 y 2560) y **nunca la altura**.
+5. No existía esa comprobación porque **ningún criterio del plan dice «el contenido cabe en su
+   caja»**. La verificación heredó el punto ciego del plan.
+
+**Causa raíz: faltaba una puerta de encaje de layout.** Ahora existe —
+`tasks/verify/layout-check.mjs`— y barre **14 viewports reales** (incluidos los tres escalados
+del EliteBook) afirmando que ningún bloque pisa a otro, que nada desborda su panel, que no hay
+scroll horizontal y que los objetivos táctiles llegan a 24×24 (WCAG 2.2 AA).
+
+El arreglo va a la causa, no al síntoma: **el pie pasa al flujo**, así que el espacio queda
+reservado por construcción. Y aparecieron dos defectos de la misma familia:
+
+- **Tres contabilidades distintas del mismo alto**: el panel con `100svh − 64px`, el contenido
+  con `100vh − 100px`, y encima el padding propio de `.d-text`. Además `100vh` en móvil es el
+  viewport **grande**, así que en un teléfono real desbordaba más que en el emulador.
+  Sustituidas por `max-height: 100%`: un porcentaje no puede desincronizarse; un `calc` sí.
+- **Objetivos táctiles por debajo de 24 px** en la navegación, el `.docx` y los botones A/B.
+  Con la excepción de WCAG para enlaces en línea dentro de una frase, que sí están exentos.
+
+Y una puerta más, `mobile-contrast.mjs`, que mide el contraste **sobre píxeles reales**:
+renderiza, oculta el texto conservando el layout, captura y mide el fondo bajo cada caja. Con
+ella se encontró el punto medio: el primer scrim móvil que puse dejaba leer pero **borraba la
+foto**, y la foto es la mitad del diseño.
+
 ## 6. Pendiente del dueño
 
 - **Abrirlo en su Mac** y decidir A o B con el botón. Es lo único que cierra la pregunta

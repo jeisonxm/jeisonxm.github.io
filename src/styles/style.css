@@ -152,6 +152,13 @@ ul { list-style: none; }
 }
 
 .panel {
+  /* El alto disponible NO se recalcula en ningun sitio: los paneles con scroll
+     interno usan `max-height: 100%`, que resuelve contra su contenedor real.
+     Antes habia TRES contabilidades del mismo espacio que no cuadraban — el
+     panel con `100svh - 64px`, el contenido con `100vh - 100px`, y encima el
+     padding propio de .d-text — y ademas `100vh` en movil es el viewport GRANDE
+     (barra de URL plegada), asi que en un telefono real desbordaba mas que en el
+     emulador. Un porcentaje no puede desincronizarse; un calc si. */
   min-width: 100vw;
   height: calc(100vh - 64px);
   /* svh, no dvh: svh es el viewport pequeño y no cambia mientras la barra de
@@ -414,11 +421,17 @@ ul { list-style: none; }
   margin-bottom: 0;
 }
 
-/* Stats bar at bottom */
+/* Pie de stats. EN FLUJO, no en absoluto.
+   Estaba en `position: absolute; bottom: 60px` mientras .hero-content fluia
+   centrado sobre la altura COMPLETA del panel: dos sistemas de layout que no se
+   conocen. Al encoger el viewport, el bloque centrado conservaba su altura y
+   crecia dentro de las stats. Medido: el hueco se cierra a 0 en un viewport de
+   ~600 px y a 1280x560 el solape es de 22 px.
+   En flujo el espacio queda reservado POR CONSTRUCCION, y ya no depende de que
+   la pantalla sea lo bastante alta. */
 .hero-stats {
-  position: absolute;
-  bottom: 60px;
-  left: 8%;
+  position: static;
+  margin-top: 0;
   display: flex;
   align-items: center;
   gap: 32px;
@@ -450,7 +463,7 @@ ul { list-style: none; }
 /* Scroll hint */
 .scroll-hint {
   position: absolute;
-  bottom: 60px;
+  bottom: 28px;
   right: 8%;
   display: flex;
   align-items: center;
@@ -1064,7 +1077,7 @@ ul { list-style: none; }
     max-width: 100%;
     padding: 0;
     overflow-y: auto;
-    max-height: calc(100vh - 100px);
+    max-height: 100%;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 30px;
   }
@@ -1119,12 +1132,12 @@ ul { list-style: none; }
 
   /* --- SKILLS mobile --- */
   .skills-panel {
-    padding: 80px 20px 20px;
+      padding: 80px 20px 20px;
   }
 
   .skills-panel .panel-content {
     overflow-y: auto;
-    max-height: calc(100vh - 100px);
+    max-height: 100%;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 30px;
   }
@@ -1150,12 +1163,12 @@ ul { list-style: none; }
 
   /* --- BLOG mobile --- */
   .blog-panel {
-    padding: 80px 20px 20px;
+      padding: 80px 20px 20px;
   }
 
   .blog-panel .panel-content {
     overflow-y: auto;
-    max-height: calc(100vh - 100px);
+    max-height: 100%;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 30px;
   }
@@ -1198,12 +1211,12 @@ ul { list-style: none; }
 
   /* --- CONTACT mobile --- */
   .contact-panel {
-    padding: 80px 20px 20px;
+      padding: 80px 20px 20px;
   }
 
   .contact-panel .panel-content {
     overflow-y: auto;
-    max-height: calc(100vh - 100px);
+    max-height: 100%;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 30px;
   }
@@ -1554,7 +1567,10 @@ ul { list-style: none; }
 }
 
 /* Las dos excepciones de caja que ya tenian sus paneles, trasladadas a la capa. */
-.hero-panel  .d-text { flex-direction: column; justify-content: center; padding: 0 8%; }
+/* El contenido se centra en el espacio QUE SOBRA (margin-block:auto), no sobre
+   la altura completa. El padding inferior es el sitio del pie. */
+.hero-panel  .d-text { flex-direction: column; justify-content: flex-start; padding: 0 8% 28px; }
+.hero-panel  .hero-content { margin-block: auto; }
 .about-panel .d-text { align-items: flex-start; padding-top: 40px; }
 
 /* Cada panel conserva su scrim propio: estaban afinados uno a uno y el gradiente
@@ -1623,16 +1639,68 @@ ul { list-style: none; }
 /* --- puntero grueso: el motor se apaga ENTERO (plan §2.5) ---
    Con inercia tactil, escribir transform cada frame es jank y bateria. La
    profundidad es un lujo de escritorio; en movil todos los paneles se quedan
-   en su pose de "ya llegue". */
+   en su pose de "ya llegue". El BOTON A/B si se queda: la eleccion estetica se
+   decide viendo el sitio, y el dueno lo mira tanto en el telefono como en el Mac. */
 @media not all and (hover: hover) and (pointer: fine) {
   .d-far, .d-fig, .d-photo, .d-wash, .d-text { transform: none; opacity: 1; }
-  .d-wash { opacity: 0; }
   .panel.depth-live .d-far,
   .panel.depth-live .d-fig,
   .panel.depth-live .d-photo,
   .panel.depth-live .d-wash,
   .panel.depth-live .d-text { will-change: auto; }
-  .ver-toggle { display: none; }
+}
+
+/* --- Pantalla estrecha y vertical: la figura NO puede comerse el contenido ---
+   Medido en 390x844: con `height:100%` la figura salia 520 px de ancho en un
+   viewport de 390 y anclada abajo, o sea que tapaba el texto. En Contacto
+   quedaba justo detras del formulario. El lienzo de la figura es 2:3 y el panel
+   de movil es mas estrecho todavia, asi que ajustarla por altura no cabe.
+   Aqui la figura pasa a ser PRESENCIA, no fondo: ocupa la mitad inferior,
+   anclada a la derecha, y el texto recupera su sitio. */
+@media (max-width: 699px), (max-aspect-ratio: 3/4) {
+  .d-fig picture { align-items: flex-end; justify-content: flex-end; padding-right: 0; }
+  .d-fig img { height: 56%; width: auto; max-width: 82%; }
+
+  /* El scrim pasa a VERTICAL. El horizontal se desvanece al 84% del ancho, que
+     en apaisado deja libre el lado de la figura; en vertical dejaba el texto
+     sin proteger justo donde cae la foto. */
+  /* Medido con mobile-contrast.mjs sobre pixeles reales: a 0.74/0.70/0.88 el
+     texto pasaba AA de sobra pero la foto quedaba BORRADA, y la foto es la mitad
+     del diseno. Estos son los valores mas bajos con los que todos los textos
+     siguen por encima de AA. Las piezas pequenas que no llegaban (la pildora de
+     etiqueta, el enlace .docx) se resuelven con fondo propio, no subiendo el
+     scrim de toda la pantalla. */
+  .hero-panel .d-text,
+  .about-panel .d-text,
+  .skills-panel .d-text,
+  .blog-panel .d-text,
+  .contact-panel .d-text {
+    background: linear-gradient(180deg,
+      rgb(var(--bg-rgb) / 0.58) 0%,
+      rgb(var(--bg-rgb) / 0.54) 42%,
+      rgb(var(--bg-rgb) / 0.78) 100%);
+  }
+  /* El campo de color no se apaga: es lo que unifica la foto con la UI cuando
+     no hay paralaje que haga ese trabajo. */
+  .d-wash { opacity: 0.16; }
+}
+
+/* El panel de contacto lleva un formulario que ocupa todo el alto: ahi la figura
+   estorba mas que en ningun otro. Se reduce y se manda al fondo del todo. */
+@media (max-width: 699px), (max-aspect-ratio: 3/4) {
+  .contact-panel .d-fig img { height: 42%; max-width: 62%; opacity: 0.72; }
+  .contact-panel .d-text {
+    background: linear-gradient(180deg,
+      rgb(var(--bg-rgb) / 0.70) 0%,
+      rgb(var(--bg-rgb) / 0.76) 55%,
+      rgb(var(--bg-rgb) / 0.88) 100%);
+  }
+}
+
+/* El boton A/B, en movil, arriba a la derecha: abajo choca con los puntos de
+   panel y con la barra del navegador. */
+@media (max-width: 699px) {
+  .ver-toggle { right: 0.6rem; bottom: auto; top: calc(64px + 0.6rem); }
 }
 
 /* El .docx como enlace SECUNDARIO: el PDF es lo que se descarga por defecto
@@ -1649,3 +1717,36 @@ ul { list-style: none; }
   transition: color var(--transition), border-color var(--transition);
 }
 .cv-alt:hover, .cv-alt:focus-visible { color: var(--accent); border-color: var(--accent); }
+
+
+/* --- Objetivos tactiles: 24x24 CSS px minimo (WCAG 2.2 AA, SC 2.5.8) ---
+   Los enlaces de navegacion, el .docx y los botones A/B se quedaban por debajo.
+   Se crece con padding, no con font-size, para no mover la tipografia. */
+.header-nav a,
+.lang-toggle,
+.cv-alt,
+.ver-toggle button {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+}
+.header-nav a { padding-block: 4px; }
+/* 22 px de ancho medidos: el texto ".docx" es estrecho. El minimo de WCAG es
+   24x24, no solo el alto. */
+.cv-alt { padding-block: 4px; padding-inline: 8px; min-width: 44px; justify-content: center; }
+.ver-toggle button { min-width: 32px; justify-content: center; }
+
+
+/* Piezas pequenas que se apoyan en la foto: se resuelven con fondo PROPIO, no
+   subiendo el scrim de toda la pantalla. Medido: sin esto, .docx daba 3.87:1 y
+   la pildora de etiqueta 3.99:1 sobre la foto en movil. */
+.cv-alt {
+  background: rgb(var(--bg-rgb) / 0.72);
+  border-radius: var(--radius);
+}
+.blog-tag,
+.blog-tag-pill,
+.blog-index-tag,
+.blog-entry-tag {
+  background: rgb(var(--bg-rgb) / 0.82);
+}

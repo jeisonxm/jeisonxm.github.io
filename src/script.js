@@ -402,7 +402,7 @@
   // para poder vivir con una durante dias. Por defecto A: es la unica que da
   // HD real (a 2048 la B sigue 1.58x escalada en un Retina).
   var VER_KEY = 'jw-version';
-  var verBtns = Array.prototype.slice.call(document.querySelectorAll('.ver-toggle button'));
+  var verBtns = [];
 
   function revelarB() {
     // Las fotos de B van diferidas a proposito: A es la predeterminada, y B no
@@ -429,13 +429,23 @@
     if (guardar) { try { localStorage.setItem(VER_KEY, v); } catch (e) { /* modo privado */ } }
   }
 
-  if (verBtns.length) {
+  function cablearVersion() {
+    verBtns = Array.prototype.slice.call(document.querySelectorAll('.ver-toggle button'));
+    if (!verBtns.length) return false;
     var guardada = null;
     try { guardada = localStorage.getItem(VER_KEY); } catch (e) { /* modo privado */ }
     aplicarVersion(guardada === 'b' ? 'b' : 'a', false);
     verBtns.forEach(function (b) {
       b.addEventListener('click', function () { aplicarVersion(b.getAttribute('data-ver'), true); });
     });
+    return true;
+  }
+  // El script se carga ANTES del marcado del boton, asi que en el primer intento
+  // querySelectorAll devolvia una lista VACIA: ni se ponia data-version ni se
+  // enganchaba un solo listener. El boton se veia y no hacia nada, y la Version B
+  // parecia identica a la A porque nunca llegaba a activarse.
+  if (!cablearVersion()) {
+    document.addEventListener('DOMContentLoaded', cablearVersion, { once: true });
   }
 
   // Se escucha `change` en AMBOS media queries para aplicarlo en vivo sin
