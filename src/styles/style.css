@@ -1442,37 +1442,11 @@ ul { list-style: none; }
   }
 }
 
-/* ===== VIEW TRANSITIONS (cross-document liquid sweep) ===== */
-@view-transition {
-  navigation: auto;
-}
+/* El opt-in de view transitions vivia aqui y se ELIMINA. Si se deja, los 34 posts
+   siguen optando y tendran transicion — justo lo contrario de lo que pidio el
+   dueno: "adentro de un blog se prioriza el poder leer bien". El opt-in vive
+   ahora solo en src/styles/portal.css, que cargan unicamente los 4 indices. */
 
-::view-transition-old(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-
-::view-transition-new(root) {
-  clip-path: circle(0% at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%));
-  animation: vt-sweep 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes vt-sweep {
-  to {
-    clip-path: circle(150% at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-new(root) {
-    clip-path: none;
-    animation: vt-fade 0.22s ease forwards;
-  }
-  @keyframes vt-fade {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-}
 
 /* =====================================================================
    PROFUNDIDAD — las cuatro capas (plan §2.2)

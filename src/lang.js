@@ -85,6 +85,34 @@
     });
   }
 
+
+  // El documento saliente ofrece una transicion aunque el destino no opte
+  // (indice -> post). Esa promesa interna se rechaza con AbortError y sale como
+  // unhandledrejection en la consola del documento que se abandona. NO se puede
+  // atrapar con .catch() sobre ready/finished/updateCallbackDone: esta probado.
+  // Se silencia SOLO ese caso concreto.
+  addEventListener('unhandledrejection', function (e) {
+    var r = e.reason;
+    if (r && r.name === 'AbortError' &&
+        String(r.message).indexOf('Transition was skipped') !== -1) {
+      e.preventDefault();
+    }
+  });
+
+  // ---- Portal: capturar el origen del click en enlaces marcados ----
+  // El recorte circular de la pagina entrante nace en el punto donde se hizo
+  // click, no en el centro. Sin JS el portal se abre desde el centro y la
+  // navegacion sigue siendo un <a href> normal.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-portal]');
+    if (!a) return;
+    var r = a.getBoundingClientRect();
+    var x = r.left + r.width / 2, y = r.top + r.height / 2;
+    try { localStorage.setItem(STORAGE_VT, JSON.stringify({ x: x, y: y })); } catch (err) { /* modo privado */ }
+    document.documentElement.style.setProperty('--vt-origin-x', x + 'px');
+    document.documentElement.style.setProperty('--vt-origin-y', y + 'px');
+  }, true);
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', wireToggle);
   } else {

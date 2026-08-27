@@ -21,8 +21,10 @@ def check(label, cond, detail=''):
 def read(p):
     with open(os.path.join(ROOT, p), encoding='utf-8') as f: return f.read()
 
+# tasks/ NO es el sitio: ahi viven los prototipos del portal, que por definicion
+# contienen portal.css y el boton. Incluirlos daba dos rojos falsos.
 htmls = sorted(p for p in glob.glob(os.path.join(ROOT, '**/*.html'), recursive=True)
-               if '/.git/' not in p)
+               if '/.git/' not in p and '/tasks/' not in p)
 rel = [os.path.relpath(p, ROOT) for p in htmls]
 posts = [r for r in rel if r.startswith(('blog/', 'en/blog/')) and not r.endswith('index.html')]
 

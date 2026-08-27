@@ -472,35 +472,40 @@ que revisarlas.
 
 ## FASE 6 — Portal del blog
 
-### [ ] T8 · Portal de entrada y de vuelta
+### [x] T8 · Portal de entrada y de vuelta
 
 **Acceptance criteria**
-- [ ] **Solo 9 archivos**, 6 de ellos HTML. **Los 34 posts: CERO ediciones.**
-- [ ] Borrado el `@view-transition` actual de `blog.css` y `style.css`. **Si no se borra, los
-      34 posts siguen optando y tendrán transición — justo lo contrario de lo pedido.**
-- [ ] Efecto según la especificación de §2.10. Radio en **longitud, no en porcentaje**.
-- [ ] `clip-path` como base, `mask-image` solo como mejora aditiva.
-- [ ] Botón-portal: `<a href>` real, texto real, icono FontAwesome inline, cero emojis.
-      Borde a **0.55** (a 0.28 daba 1.87:1 y fallaba WCAG 1.4.11).
-- [ ] `unhandledrejection` filtrado para el `AbortError: Transition was skipped`. **No se puede
-      atrapar con `.catch()`** — ya está probado.
-- [ ] reduced-motion → corte seco, no fundido.
-- [ ] Sin JS: navegable. El portal se abre desde el centro.
+- [x] **9 archivos, 6 de ellos HTML. Los 34 posts: CERO ediciones.** Verificado.
+- [x] Borrado el opt-in de view transitions de `blog.css` y `style.css`. Si se dejaba, **los 34
+      posts seguían optando** — lo contrario de lo que pidió el dueño.
+- [x] Efecto de §2.10. **Radio en longitud (`135vmax`), no en porcentaje**: `circle()` resuelve
+      los % contra `sqrt((w²+h²)/2)` y los stops de un gradiente contra el rayo a la esquina más
+      lejana, así que con % el recorte y la máscara se desincronizan.
+- [x] `clip-path` como base, `mask-image` solo aditivo.
+- [x] Botón-portal: `<a href>` real, texto real, icono FontAwesome inline, cero emojis.
+      Área **186 × 48 px**.
+- [x] `unhandledrejection` filtrado para el `AbortError: Transition was skipped`.
+- [x] reduced-motion → corte seco.
+- [x] Sin JS: navegable. El portal se abre desde el centro.
 
 **Verification**
-- [ ] `tasks/proto/portal/verify-rollout.py` → **exit 0**. (Da exit 1 sobre el repo sin tocar,
-      o sea que discrimina de verdad.)
-- [ ] ES portada→blog `vt=true`; ES blog→portada `vt=true`; EN blog→portada `vt=true`;
-      blog→**post** `vt=false`.
-- [ ] Firefox: navegación perfecta con corte instantáneo, cero roturas.
-- [ ] Botón atrás: `opacity:1`, url y title correctos, sin estado pegado.
+- [x] `tasks/proto/portal/verify-rollout.py` → **exit 0** (16 comprobaciones).
+- [x] `tasks/verify/portal-check.mjs` → exit 0. Observado con `pagereveal`, no inferido del CSS:
 
-**Dependencies:** T2c (tokens). **Scope:** M.
+| ruta | Chromium | WebKit | Firefox |
+|---|---|---|---|
+| ES portada→blog | `vt=true` | `vt=true` | sin soporte, navega |
+| ES blog→portada | `vt=true` | `vt=true` | sin soporte, navega |
+| EN blog→portada | `vt=true` | `vt=true` | sin soporte, navega |
+| **blog→post** | **`vt=false`** | **`vt=false`** | sin soporte, navega |
 
-**Las tres asimetrías ES/EN que revientan cualquier script ingenuo:** `blog.css` se enlaza
-`./blog.css` en ES y `/blog/blog.css` en EN; las 19 páginas EN cargan además `obsidiana.css`;
-el enlace al blog es `./blog/` en ES y `/en/blog/` en EN. **Anclar al último
-`<link rel=stylesheet>` y a una regex de href, nunca a una cadena literal.**
+- [x] Firefox: navegación perfecta con corte instantáneo, cero roturas.
+- [x] Botón atrás: `body opacity: 1`, url correcta, sin estado pegado, en los 3 motores.
+
+**Un rojo falso del propio verificador:** recorría `**/*.html` e incluía los prototipos de
+`tasks/proto/portal/`, que por definición contienen `portal.css` y el botón. Excluido `tasks/`.
+
+**Dependencies:** T2c. **Scope:** M.
 
 ---
 

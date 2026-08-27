@@ -1,0 +1,217 @@
+/* =====================================================================
+   portal.css  ->  se coloca en  /src/styles/portal.css
+   Lo cargan EXACTAMENTE 4 archivos: /index.html, /en/index.html,
+   /blog/index.html, /en/blog/index.html
+
+   Por que solo esos 4: esta medido que (a) una transicion cross-document
+   solo ocurre si AMBOS documentos declaran @view-transition, y (b) la
+   apariencia la define el documento de DESTINO. Los 34 posts no cargan
+   este archivo, asi que no optan, asi que no tienen portal. Cero
+   ediciones en los posts.
+
+   Requiere que /src/styles/style.css y /blog/blog.css DEJEN de declarar
+   su @view-transition actual (hoy lo declaran los dos), o los posts
+   seguirian optando.
+
+   No usa imagenes, ni fuentes, ni emojis. Los tokens (--marble-*, --bg,
+   --font-display) ya existen en style.css y blog.css.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. LA TRANSICION
+   --------------------------------------------------------------------- */
+
+/* Un solo radio animado, --ap, en LONGITUD y no en porcentaje.
+   Deliberado: circle() resuelve los % contra sqrt((w²+h²)/2) y los
+   stops de un radial-gradient contra el rayo a la esquina mas lejana.
+   Con % el recorte y la mascara se desincronizan; en px coinciden. */
+@property --ap { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+:root {
+  /* El ribete. Medido: con una pluma ancha (~4% del rayo) las dos
+     paginas se leen a la vez y el efecto se lee como tilt-shift o
+     como doble exposicion, no como agujero. 10px es antialias. */
+  --ap-feather: 10px;
+}
+
+@view-transition { navigation: auto; }
+
+/* --- El mundo que dejas: se aleja y pierde foco ---
+   El desenfoque va DELANTE del recorrido (12 de 16 px en el 70% del
+   tiempo). Es lo que impide que el texto de la pagina saliente se lea
+   a traves del borde: con el texto viejo nitido, el efecto se lee como
+   glitch de render. La opacidad aguanta en 1 hasta el 70% para que
+   nunca asome el lienzo del navegador por debajo.
+   NO se toca brightness: medido, oscurecer la saliente la lleva al
+   mismo valor que el fondo del blog (#2C2824) y BORRA el borde. El
+   contraste ya lo da la paleta: panel dorado -> blog oscuro. */
+::view-transition-old(root) {
+  animation: portal-recede 460ms cubic-bezier(0.3, 0.72, 0.4, 1) forwards;
+  transform-origin: var(--vt-origin-x, 50%) var(--vt-origin-y, 50%);
+  mix-blend-mode: normal;
+}
+@keyframes portal-recede {
+  0%   { transform: scale(1);    filter: blur(0px);  opacity: 1; }
+  70%  { transform: scale(1.08); filter: blur(12px); opacity: 1; }
+  100% { transform: scale(1.12); filter: blur(16px); opacity: 0; }
+}
+
+/* --- El umbral: la apertura se abre desde donde se hizo click ---
+   La curva NO es easeOut. Un easeOut gasta el 85% del recorrido en el
+   primer 25% del tiempo: la apertura deja de leerse como forma antes de
+   los 100 ms y el efecto se degrada a un crossfade rapido (medido en la
+   primera pasada del prototipo). Esta curva se compromete rapido pero
+   mantiene la boca del portal legible entre los 120 y los 400 ms. */
+::view-transition-new(root) {
+  /* BASE: el borde duro. clip-path sobre estos pseudos es lo que YA usa
+     el sitio hoy, asi que esta probado en el Safari del dueno. Si todo
+     lo demas del bloque se ignorara, esto solo ya da el portal. */
+  clip-path: circle(var(--ap) at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%));
+
+  /* MEJORA: el ribete difuso, justo por DENTRO del corte duro. No se
+     pudo verificar en WebKit desde el entorno de pruebas. Si Safari
+     ignorara mask-image sobre el pseudo, queda el clip-path y el efecto
+     sigue en pie. Es aditivo, no una apuesta. */
+  mask-image: radial-gradient(circle at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%),
+                #000 calc(var(--ap) - var(--ap-feather)), #0000 var(--ap));
+  -webkit-mask-image: radial-gradient(circle at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%),
+                #000 calc(var(--ap) - var(--ap-feather)), #0000 var(--ap));
+  mask-repeat: no-repeat;
+
+  transform-origin: var(--vt-origin-x, 50%) var(--vt-origin-y, 50%);
+  animation:
+    portal-aperture 620ms cubic-bezier(0.55, 0.06, 0.28, 1) forwards,
+    portal-settle   620ms cubic-bezier(0.55, 0.06, 0.28, 1) forwards,
+    portal-ignite    90ms linear forwards;
+}
+/* 135vmax cubre la diagonal desde CUALQUIER origen y en cualquier
+   relacion de aspecto (el peor caso medido es ~118vmax en 16:10). */
+@keyframes portal-aperture { from { --ap: 0px; } to { --ap: 135vmax; } }
+@keyframes portal-settle   { from { transform: scale(1.07); } to { transform: scale(1); } }
+@keyframes portal-ignite   { from { opacity: 0; } to { opacity: 1; } }
+
+/* @property NO es un riesgo: cross-document VT exige Chrome 126+ o
+   Safari 18.2+, y @property esta desde Chrome 85 / Safari 16.4. Donde
+   hay portal, hay @property. */
+
+/* ---------------------------------------------------------------------
+   2. reduced-motion — CORTE SECO, no un fundido
+   Medido: un crossfade entre dos documentos completos produce fantasmeo
+   de texto ("Blog" sobre "Blog", tarjetas dobladas). Un fundido corto
+   sigue siendo un parpadeo de texto doble. Lo correcto es que NO haya
+   transicion: el mismo corte instantaneo que ya reciben Firefox y
+   Safari 18.0/18.1, verificado como navegable.
+   Dos capas por si algun motor ignora @view-transition anidado.
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+    clip-path: none !important;
+    mask-image: none; -webkit-mask-image: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   3. EL BOTON-PORTAL de vuelta
+   Va SOLO en /blog/index.html y /en/blog/index.html.
+   100% CSS: sin imagenes, sin emojis. Texto real + icono FontAwesome
+   inline (el mismo set que ya usa el sitio).
+
+   OJO CON EL COLOR: el sitio tiene DOS paletas. En ES --marble-warm es
+   #C4B9A8 (crema), pero en EN (src/styles/obsidiana.css, que cargan las
+   19 paginas inglesas) --marble-warm es #00D4FF, CYAN ELECTRICO. Si la
+   difuminacion se derivara de --marble-warm, el portal ingles seria un
+   halo de neon: exactamente el "AI slop" rechazado.
+   Por eso todo se deriva de --marble-cream, que es neutro en las dos
+   paletas (#D9D2C7 en ES, #D4D4D2 en EN), via color-mix.
+   --------------------------------------------------------------------- */
+.portal-back-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 72px 24px 96px;
+}
+
+.portal-back {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;              /* area tactil medida: 187 x 51.5 px */
+  padding: 12px 26px;
+  isolation: isolate;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--marble-cream);    /* ES 8.61:1 · EN 12.32:1 — AAA */
+  /* 0.55 es el minimo medido que pasa WCAG 1.4.11 (>=3:1) en LAS DOS
+     paletas, contra el fondo de pagina y contra el relleno del boton.
+     ES: 3.58:1 / 3.16:1 · EN: 3.39:1 / 3.13:1 */
+  border: 1px solid color-mix(in srgb, var(--marble-cream) 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  transition: color 240ms ease, border-color 240ms ease, background 240ms ease;
+}
+
+/* LA DIFUMINACION: anillo de umbral, detras del boton.
+   Es un ANILLO, no un halo: el centro es transparente y el maximo de
+   alpha esta al 63% del radio. Un solo tono neutro de la paleta, sin
+   pulso en reposo, y es el unico elemento de la pagina con difuminacion. */
+.portal-back::before {
+  content: "";
+  position: absolute;
+  inset: -34px -46px;            /* mas ancho que alto: boca, no burbuja */
+  z-index: -1;
+  border-radius: 999px;
+  background:
+    radial-gradient(closest-side ellipse at 50% 50%,
+      transparent 46%,
+      color-mix(in srgb, var(--marble-cream) 17%, transparent) 63%,
+      color-mix(in srgb, var(--marble-cream)  5%, transparent) 78%,
+      transparent 92%);
+  filter: blur(11px);
+  transform: scale(1);
+  opacity: 0.9;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms ease;
+  pointer-events: none;
+}
+
+/* El umbral interior: la boca del portal */
+.portal-back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 999px;
+  box-shadow: inset 0 0 22px color-mix(in srgb, var(--marble-cream) 10%, transparent);
+  transition: box-shadow 240ms ease;
+  pointer-events: none;
+}
+
+.portal-back:hover,
+.portal-back:focus-visible {
+  color: var(--marble-white);
+  border-color: color-mix(in srgb, var(--marble-cream) 80%, transparent);
+  background: color-mix(in srgb, var(--surface-hover) 70%, transparent);
+}
+.portal-back:hover::before,
+.portal-back:focus-visible::before { transform: scale(1.12); opacity: 1; }
+.portal-back:hover::after,
+.portal-back:focus-visible::after {
+  box-shadow: inset 0 0 28px color-mix(in srgb, var(--marble-cream) 18%, transparent);
+}
+
+.portal-back:focus-visible {
+  /* ES 12.19:1 · EN 17.67:1 sobre el fondo de pagina */
+  outline: 2px solid var(--marble-white);
+  outline-offset: 4px;
+}
+
+.portal-back .icon { width: 1em; height: 1em; fill: currentColor; flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-back, .portal-back::before, .portal-back::after { transition: none; }
+  .portal-back:hover::before, .portal-back:focus-visible::before { transform: scale(1); }
+}
