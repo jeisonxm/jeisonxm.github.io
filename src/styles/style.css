@@ -121,7 +121,11 @@ ul { list-style: none; }
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth eliminado a propósito. Mientras estaba aquí,
+     CUALQUIER escritura de scrollLeft heredaba animación y se componía:
+     cada evento de rueda del trackpad redirigía la animación en curso a un
+     destino un viewport más lejos. La navegación ahora pasa behavior
+     explícito en scrollTo(); el realineado por resize es instantáneo. */
   overscroll-behavior-x: contain;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -129,6 +133,18 @@ ul { list-style: none; }
 
 .scroll-container::-webkit-scrollbar {
   display: none;
+}
+
+/* Los paneles llevan tabindex="-1" para poder recibir foco por programa al
+   navegar desde el menú. Eso es un destino de salto, no un control: no debe
+   dibujar outline. El contenedor sí es tabulable y sí debe mostrarlo. */
+.panel:focus {
+  outline: none;
+}
+
+.scroll-container:focus-visible {
+  outline: 2px solid var(--accent, var(--marble-warm));
+  outline-offset: -4px;
 }
 
 .panel {
