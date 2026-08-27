@@ -1,3 +1,23 @@
+/* Tipografías autoalojadas — mismas declaraciones que src/styles/style.css.
+   Las páginas del blog cargan blog.css, no style.css, así que necesitan su
+   propia copia del @font-face. Rutas absolutas: el blog vive en /blog/ y en
+   /en/blog/, y una ruta relativa resolvería distinto en cada uno. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/src/fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/src/fonts/space-grotesk-latin-wght-normal.woff2') format('woff2-variations');
+}
+
 /* =====================================================
    BLOG POST — Inherits marble palette from main site
    ===================================================== */

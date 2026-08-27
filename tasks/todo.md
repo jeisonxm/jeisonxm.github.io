@@ -8,23 +8,23 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[!]` bloqueado
 
 ## FASE 1 — Navegación *(se despliega sola)*
 
-- [ ] **1.1** Reescribir la capa de input en `src/script.js`
-  - [ ] `currentIndex` + `goToIndex(i)` leyendo `panels[i].offsetLeft` (fuera `scrollStep`/`scrollLeft +=`)
-  - [ ] Quitar `scroll-behavior: smooth` de `.scroll-container` (`style.css:124`); `behavior` explícito por llamada
-  - [ ] Wheel: eje dominante + normalizar `deltaMode` + acumular + umbral + cooldown
-  - [ ] Guard `e.ctrlKey` → dejar pasar el pinch-zoom
-  - [ ] Guard de scrollers anidados (`.about-content`, `.contact-panel .panel-content`)
-  - [ ] Teclado: flechas/PageUp/PageDown/Home/End/Space, sin robar teclas en campos de formulario
-  - [ ] `prefers-reduced-motion` → `behavior: 'auto'`
-- [ ] **1.2** Colapsar los tres listeners `scroll` en uno solo coalescido con rAF
-  - [ ] `updateActiveNav` → `IntersectionObserver` (`root: container`, `threshold: 0.6`)
-  - [ ] Cachear `offsets` en `measure()`; cero lecturas de layout en el bucle
-  - [ ] Early-outs `x === lastX` e `idx !== activeIdx`
-- [ ] **1.3** Gatear el handler de resize por cambio real de `innerWidth` (bug de la barra de URL en móvil)
-- [ ] **1.4** A11y: `tabindex="-1"` en cada `.panel`, `aria-label` en `#container`, foco al navegar
+- [x] **1.1** Reescribir la capa de input en `src/script.js`
+  - [x] `currentIndex` + `goToIndex(i)` leyendo `panels[i].offsetLeft` (fuera `scrollStep`/`scrollLeft +=`)
+  - [x] Quitar `scroll-behavior: smooth` de `.scroll-container` (`style.css:124`); `behavior` explícito por llamada
+  - [x] Wheel: eje dominante + normalizar `deltaMode` + acumular + umbral + cooldown
+  - [x] Guard `e.ctrlKey` → dejar pasar el pinch-zoom
+  - [x] Guard de scrollers anidados (`.about-content`, `.contact-panel .panel-content`)
+  - [x] Teclado: flechas/PageUp/PageDown/Home/End/Space, sin robar teclas en campos de formulario
+  - [x] `prefers-reduced-motion` → `behavior: 'auto'`
+- [x] **1.2** Colapsar los tres listeners `scroll` en uno solo coalescido con rAF
+  - [x] `updateActiveNav` → `IntersectionObserver` (`root: container`, `threshold: 0.6`)
+  - [x] Cachear `offsets` en `measure()`; cero lecturas de layout en el bucle
+  - [x] Early-outs `x === lastX` e `idx !== activeIdx`
+- [x] **1.3** Gatear el handler de resize por cambio real de `innerWidth` (bug de la barra de URL en móvil)
+- [x] **1.4** A11y: `tabindex="-1"` en cada `.panel`, `aria-label` en `#container`, foco al navegar
 - [ ] **1.5** Calibrar `THRESHOLD` / `COOLDOWN_MS` en el MacBook (Safari + Chrome)
 
-**CHECKPOINT 1** — probar en el Mac de Jeison · **mergear y desplegar solo**
+**CHECKPOINT 1** — [~] commit `5c954a8` en `fix/trackpad-scroll`. 11/11 pruebas en Chrome headless (ES+EN × 3 viewports); el código anterior falla 6. **Falta probar en el Mac real de Jeison.**
 
 ---
 

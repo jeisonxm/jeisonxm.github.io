@@ -1,4 +1,30 @@
 /* =====================================================
+   TIPOGRAFÍAS AUTOALOJADAS
+   Antes venían de Google Fonts, que impone una cadena serial: la hoja de
+   fonts.googleapis.com tiene que resolver ANTES de que el navegador sepa
+   las URLs de fonts.gstatic.com. Dos orígenes, dos DNS, dos TLS, en
+   secuencia, en la ruta crítica. Servidas desde el propio origen
+   multiplexan sobre una conexión que ya está abierta.
+   Sin unicode-range a propósito: solo se sirve un archivo por familia, así
+   que restringir el rango solo podría dejar caracteres fuera de la fuente.
+   ===================================================== */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/src/fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/src/fonts/space-grotesk-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+/* =====================================================
    JEISON WU — Portfolio
    Style: Greek Marble Sculpture — Warm Stone Throughout
    Palette extracted from marble statue images.
@@ -156,6 +182,19 @@ ul { list-style: none; }
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+/* ===== ICONOS (SVG de FontAwesome Free, inline) =====
+   Sustituyen al <i class="fa-*"> del kit remoto: mismos glifos, mismo
+   aspecto, pero sin script bloqueante ni origen de terceros. Se dimensionan
+   con font-size y heredan color vía fill: currentColor, igual que el <i>. */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  fill: currentColor;
+  flex: none;
 }
 
 /* ===== BUTTONS ===== */
@@ -443,7 +482,8 @@ ul { list-style: none; }
   background: var(--surface-hover);
 }
 
-.info-card i {
+.info-card .icon {
+  display: block;
   font-size: 2rem;
   color: var(--marble-warm);
   margin-bottom: 10px;
@@ -502,9 +542,10 @@ ul { list-style: none; }
   gap: 8px;
 }
 
-.skill-block h3 i {
+.skill-block h3 .icon {
   color: var(--marble-warm);
   font-size: 1.4rem;
+  flex: none;
 }
 
 .skill-block li {
@@ -694,10 +735,10 @@ ul { list-style: none; }
   background: var(--surface-hover);
 }
 
-.social-list a i {
+.social-list a .icon {
   font-size: 1.8rem;
   width: 22px;
-  text-align: center;
+  flex: none;
 }
 
 /* ===== STONE CRACK — Shared Hover Effect ===== */
@@ -945,7 +986,7 @@ ul { list-style: none; }
     padding: 16px;
   }
 
-  .info-card i {
+  .info-card .icon {
     font-size: 1.6rem;
     margin-bottom: 6px;
   }
