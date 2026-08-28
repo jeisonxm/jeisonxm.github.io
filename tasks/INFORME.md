@@ -273,3 +273,60 @@ de alto. `layout-check` cazó el choque intermedio contenido/stats en el SE
 holgura de cabeza **17–111 px**, stats en **una sola fila** con el mismo margen
 de borde que el resto (29–34 px). Las 12 compuertas + probe en los 3 motores,
 en verde.
+
+
+---
+
+## 6 — El tirón del swipe de dos dedos
+
+**Lo reportado:** *"solo revisar un tema con deslizar con dos dedos en mi mac,
+para la derecha perfecto solo se medio traba cuando echo para la izquierda."*
+
+Lo primero que sorprende: el swipe horizontal del Mac entra por la **REGLA 1**
+del motor de gestos, que por diseño **no hace nada** — `return` inmediato, ni
+`preventDefault`. Lo mueve el scroll nativo. Así que la asimetría no podía estar
+en el acumulador de gestos.
+
+### Cinco porqués
+
+1. ¿Por qué se traba al ir hacia un lado? Porque ~1 s **después** de terminar el gesto, el sitio lo devuelve al panel del que salió, y a los dos reintentos se rinde. Eso es "se medio traba", no "no funciona".
+2. ¿Por qué lo devuelve? Porque `alDetenerse` cree que ese scroll lo pidió ella y reemite `goToIndex(target)` con un `target` rancio.
+3. ¿Por qué lo cree? Porque `programatico` seguía en `true` desde un gesto anterior.
+4. ¿Por qué seguía en `true`? Porque aquel gesto acabó en un `goToIndex` que era un **no-op** (ya estábamos en el destino), y un `scrollTo` a la posición actual **no emite `scroll`**. El único sitio que arma el temporizador de la guarda es el listener de `scroll`, así que la guarda nunca corrió.
+5. **Raíz:** el flag que dice "este scroll es mío" se ponía por **intención** y solo se limpiaba por **efecto**. Cuando una intención no produce efecto, no había camino de vuelta.
+
+**Por qué es asimétrico en la práctica:** el borde derecho es Contacto, el panel
+con el formulario, donde el reflejo natural es hacer scroll vertical. Ese gesto
+entra por la REGLA 3, llama a `irA(target + 1)`, clampa a 4 sin moverse, y arma
+la trampa con `target = 4`. A partir de ahí, cualquier swipe hacia atrás se come
+un tirón hacia la derecha. El borde izquierdo casi nunca se arma.
+
+### Medición
+
+`tasks/verify/swipe-check.mjs` (nuevo, 724 líneas) sintetiza un gesto de trackpad
+con fase activa e inercia decreciente, en los dos sentidos, en webkit y chromium,
+y envuelve `Element.prototype.scrollTo` con un contador **antes** de que cargue
+`script.js`. Con el código original, chromium: `scrollTo(5760, smooth)` a
+**+1092 ms** del primer evento de rueda — o sea el sitio moviendo al usuario
+mucho después de que su gesto acabó. Los controles sin tecla no lo hacían, lo que
+prueba que el gesto sí tenía fuerza para salir.
+
+### Los dos arreglos
+
+- `irA` no arma `programatico` cuando el `scrollTo` va a ser un no-op. Se compara contra `panels[].offsetLeft`, la misma fuente que usa `goToIndex`, para que la predicción no pueda discrepar de lo que hará el scroll.
+- La **REGLA 1** ahora suelta la reclamación previa: si el usuario toma el mando con el dedo, el sitio deja de defender su destino anterior. Antes, flecha izquierda + swipe a la derecha antes de que asentara devolvía al panel de partida 3 de 5 veces, **con un `scrollTo` dentro del gesto** — justo lo que esa regla promete que nunca pasa.
+
+### Dos falsas acusaciones que hubo que quitar del arnés
+
+El arnés, recién escrito, acusaba al sitio de cosas que no hacía:
+
+- **Umbral de ms degradado a informativo.** Medía "difiere 51 %" y daba rojo. Pero con gestos controlados de un panel, 5 repeticiones, los cuatro pares adyacentes: derecha 2348/1192/511/627 ms e izquierda 593/564/1491/1641. La dispersión **dentro de un mismo sentido** es de 4.6×, la lentitud sigue al par de paneles y no al sentido, y el signo se invierte entre corridas. Una compuerta que da rojo sobre ruido deja de significar algo.
+- **El predicado `devuelto` confundía dos cosas:** "el sitio lo devolvió" y "el gesto nunca salió". Ahora exige que el control equivalente sí haya salido **y** que el sitio haya emitido una orden de scroll. `container.scrollTo` (script.js:65) es la única escritura de scroll de todo el fichero, así que sin llamada no hay culpa posible.
+
+**Mutación:** con los dos arreglos revertidos, la compuerta sale con código 1 y
+marca 3 casos de borde. Con ellos, código 0 en webkit y chromium. Su verde
+discrimina.
+
+**Lo que NO se puede medir desde aquí:** no existe la noción de *fase* de macOS
+(`began`/`changed`/`ended`/`momentum`), ni el swipe-back de navegación del
+historial, ni el rubber-banding elástico. El arnés lo dice en su propia salida.

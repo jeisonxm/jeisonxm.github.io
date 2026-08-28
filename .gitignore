@@ -6,6 +6,7 @@ tasks/verify/node_modules
 # Salidas de cada corrida. La linea base congelada (baseline.json) SI se versiona.
 tasks/verify/probe-results.json
 tasks/verify/render-results.json
+tasks/verify/swipe-results.json
 # (hoy nada escribe PNG aqui: van a $VERIFY_OUT, por defecto ~/pw-harness/shots.
 #  la regla queda como defensa por si alguien apunta VERIFY_OUT al arbol)
 tasks/verify/*.png

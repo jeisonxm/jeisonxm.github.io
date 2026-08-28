@@ -157,6 +157,34 @@
 
   function irA(i) {
     target = Math.max(0, Math.min(panels.length - 1, i));
+
+    // `programatico` se ponia por INTENCION y solo se limpiaba por EFECTO:
+    // alDetenerse es el unico sitio que lo baja, y solo corre desde el
+    // setTimeout que arma el listener de scroll. Cuando la intencion no produce
+    // efecto, el flag no tenia camino de vuelta.
+    //
+    // Pasa al empujar contra un borde: en el ultimo panel, irA(target + 1)
+    // clampa a 4, y container.scrollTo a la posicion en la que YA estamos es un
+    // no-op que NO emite 'scroll'. Sin ese evento no se arma el temporizador,
+    // alDetenerse nunca corre y `programatico` se queda pegado con `target`
+    // congelado en el borde. El siguiente swipe de dos dedos entra por la REGLA
+    // 1 —cero intervencion— pero SI emite scroll, asi que 140 ms despues la
+    // guarda lo toma por scroll propio, ve cerca !== target y ejecuta
+    // goToIndex(target): devuelve al usuario al borde del que acababa de salir,
+    // y a los dos reintentos se rinde. Eso es "se medio traba", no "no va".
+    //
+    // Medido en chromium, 4 de 4 secuencias de borde: el sitio llamaba a
+    // scrollTo(5760) a +1092 ms del gesto, ya terminado. Los controles sin
+    // tecla no lo hacian, o sea que el gesto si tenia fuerza para salir.
+    //
+    // Se compara contra panels[].offsetLeft, la MISMA fuente que usa goToIndex,
+    // para que la prediccion no pueda discrepar de lo que hara scrollTo.
+    if (Math.abs(container.scrollLeft - panels[target].offsetLeft) < 1) {
+      programatico = false;
+      reintentos = 0;
+      return;
+    }
+
     programatico = true;
     goToIndex(target);
   }
@@ -172,7 +200,21 @@
     // No se hace swap manual por shiftKey: las plataformas que remapean
     // Shift+rueda a deltaX lo hacen antes de llegar a JS, y volver a invertirlo
     // aqui lo romperia.
-    if (Math.abs(d.x) > Math.abs(d.y)) return;
+    if (Math.abs(d.x) > Math.abs(d.y)) {
+      // No se toca el scroll, pero SI se suelta la reclamacion previa: el
+      // usuario acaba de tomar el mando con el dedo. Si habia un scroll
+      // programatico en vuelo, `programatico` seguia en true y 140 ms despues
+      // la guarda de convergencia arrastraba al usuario de vuelta al destino
+      // que el mismo estaba desmintiendo. Medido en chromium: flecha izquierda
+      // desde el panel 2 y swipe a la derecha antes de que asentara devolvia al
+      // panel de partida 3 de 5 veces, con un scrollTo DENTRO del gesto — justo
+      // lo que esta regla promete que nunca pasa.
+      // No se escribe `target` aqui: de eso se encarga alDetenerse cuando el
+      // scroll pare, que es cuando la posicion ya es real y definitiva.
+      programatico = false;
+      reintentos = 0;
+      return;
+    }
 
     var dy = d.y;
     if (dy === 0) return;
