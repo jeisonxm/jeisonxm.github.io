@@ -330,3 +330,71 @@ discrimina.
 **Lo que NO se puede medir desde aquí:** no existe la noción de *fase* de macOS
 (`began`/`changed`/`ended`/`momentum`), ni el swipe-back de navegación del
 historial, ni el rubber-banding elástico. El arnés lo dice en su propia salida.
+
+
+---
+
+## 7 — La transición que se perdía
+
+**Lo reportado:** *"la transición tan buena que tiene, solo se nota al hacer con
+dos dedos a la derecha, pero si uso la rueda o con dos dedos hago hacia abajo, lo
+hace tan rápido que pierdo toda la transición, lo mismo pasa en el celular que no
+se ve."*
+
+Son dos defectos distintos con la misma apariencia.
+
+### (A) La duración no era una decisión del diseño
+
+1. ¿Por qué se pierde con la rueda? Porque el desplazamiento acaba antes de que la profundidad se vea.
+2. ¿Por qué acaba antes? Porque dura entre 278 y 429 ms en WebKit, frente a los 500-900 ms de la inercia del trackpad. Es la misma animación a un tercio de tiempo.
+3. ¿Por qué dura eso? Porque la ponía `scrollTo({behavior: 'smooth'})`, y esa API **no acepta duración**.
+4. ¿Por qué se usaba? Porque `behavior()` solo sabe devolver `'auto'` o `'smooth'`: binaria.
+5. **Raíz:** la duración de la transición la decidía el navegador. El diseño no tenía ninguna palanca sobre su propia animación, y cada motor ponía la suya — de ahí que se viera bien en un camino y mal en otro.
+
+**Arreglo:** un deslizamiento propio de 700 ms con `easeInOutSine`, que suspende
+`scroll-snap` mientras dura y lo devuelve al aterrizar exactamente en
+`offsetLeft`. Se cancela en cuanto el usuario toca el trackpad. Con
+reduced-motion no hay deslizamiento: se salta entero.
+
+**Medido en Chromium, cobertura del muestreador 100 %:** antes 629-661 ms con el
+punto medio de `--p` en −0.21 (o sea, la transición se saltaba su propio centro).
+Ahora **752-760 ms** con el punto medio en **−0.50**, e idéntico en las cuatro
+vías: rueda, trackpad vertical, teclado y punto de navegación.
+
+Dos cosas se rompieron por el camino y se arreglaron:
+- El deslizamiento arrancó con un `requestAnimationFrame` propio, que escribía `scrollLeft` mientras el motor de profundidad lo **leía** en otro rAF del mismo frame. Eso es una lectura forzada de layout entre dos escrituras: el muestreador se cayó de 48 a **17 Hz**. Se fusionaron en un solo bucle.
+- La curva empezó siendo `easeInOutCubic`, cuya velocidad de pico es el **doble** de la media: concentraba el movimiento justo en el centro, que es donde se quiere ver. Con `easeInOutSine` (pico 1.57×) el mayor salto entre frames bajó del 30 % al 15-22 %.
+
+### (B) En el móvil no había nada que ver
+
+No era que se viera mal: **no existía**. Doble cerrojo, uno en JS
+(`depthOn = finePointer`) y otro en CSS (un `@media` de puntero grueso que
+anulaba los `transform` de las cuatro capas). Medido antes: `--p` no se escribía
+**ni una vez** en un arrastre táctil completo.
+
+La decisión original apagaba de más. Lo caro no es el motor —una lectura de
+`scrollLeft` y dos custom properties por panel— sino cuántas capas mueve el CSS.
+Ahora el motor corre en todas partes y es el CSS quien decide: en táctil se
+mueven **fondo, figura y velo**, que son `transform` y `opacity` puros en el
+compositor, y se deja **quieto el texto**, que obliga a resamplear glifos y
+además se lee peor en marcha. La promoción de capas sigue limitada al panel
+actual y su vecino.
+
+**Medido:** 45 cambios de `--p` en un arrastre táctil, y `lcp-check` sigue en
+verde, así que la profundidad en el teléfono no costó rendimiento.
+
+### Una compuerta que dejó de juzgar
+
+`transicion-check.mjs` daba rojo en WebKit por "menos de 12 frames" con un
+muestreador que sobre llvmpipe solo llega a tomar 12 muestras: no se puede medir
+"al menos 12" con una regla de 12 marcas. Se exige ahora un cuarto de regla de
+margen. El primer intento fue medio regla, y con ese margen ni Chromium
+—cobertura del 100 %— llegaba a ser juzgado: una compuerta que no juzga a nadie
+es tan inútil como una que juzga al azar.
+
+También se corrigió una línea del propio arnés que afirmaba
+`depthOn = finePointer -> depthOn=false` como si leyera el código, cuando lo
+único que sabía era el media query: seguía imprimiéndolo mientras el arnés medía
+`--p` variando.
+
+Las 14 compuertas y el probe en los tres motores, en verde.

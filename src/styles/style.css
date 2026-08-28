@@ -1698,10 +1698,14 @@ ul { list-style: none; }
    en su pose de "ya llegue". El BOTON A/B si se queda: la eleccion estetica se
    decide viendo el sitio, y el dueno lo mira tanto en el telefono como en el Mac. */
 @media not all and (hover: hover) and (pointer: fine) {
-  .d-far, .d-fig, .d-wash, .d-text { transform: none; opacity: 1; }
-  .panel.depth-live .d-far,
-  .panel.depth-live .d-fig,
-  .panel.depth-live .d-wash,
+  /* Ya NO se apagan las cuatro capas. Apagarlas todas dejaba el telefono sin
+     ninguna transicion que ver —medido: --p no se escribia ni una vez en todo
+     un arrastre tactil— y el dueno la echaba en falta. Se quedan las tres que
+     son transform y opacity puros en el compositor, o sea gratis una vez
+     promovida la capa, y se deja QUIETO el texto: moverlo obliga a resamplear
+     glifos, que es lo que de verdad costaba, y ademas se lee peor en marcha.
+     La promocion sigue limitada al panel actual y su vecino via .depth-live. */
+  .d-text { transform: none; }
   .panel.depth-live .d-text { will-change: auto; }
 }
 

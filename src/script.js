@@ -46,11 +46,18 @@
   // el guard del formulario.
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  // En puntero grueso el motor se apaga ENTERO (plan §2.5): con inercia táctil,
-  // escribir transform cada frame es jank y batería. La profundidad es un lujo
-  // de escritorio. reduced-motion NO lo apaga: ahí se apaga el movimiento en
-  // CSS, pero el motor sigue porque hace falta para calcular --a.
-  var depthOn = finePointer;
+  // Antes: en puntero grueso el motor se apagaba ENTERO (plan §2.5), por jank y
+  // batería. El coste era que en el teléfono NO HABÍA NADA que ver: medido, --p
+  // no se escribía ni una vez en todo un arrastre táctil. El dueño lo pidió, y
+  // la decisión original apagaba de más: lo caro no es el motor —una lectura de
+  // scrollLeft y dos custom properties por panel— sino CUÁNTAS capas mueve el
+  // CSS. Así que el motor se enciende en todas partes y es el CSS el que en
+  // táctil deja quietas las capas caras (ver el bloque de puntero grueso en
+  // style.css): se mueven fondo, figura y velo, que son transform y opacity
+  // puros en el compositor, y NO se mueve el texto, que además se leería peor.
+  // reduced-motion sigue sin apagarlo: ahí se apaga el movimiento en CSS, pero
+  // el motor hace falta para calcular --a.
+  var depthOn = true;
 
   function behavior() {
     return reduceMotion.matches ? 'auto' : 'smooth';
@@ -59,13 +66,81 @@
   // ---------- Navegación ----------
   var currentIndex = 0;
 
+  // La duración de la transición la decidía el NAVEGADOR, no el diseño:
+  // scrollTo({behavior:'smooth'}) no acepta duración y cada motor pone la suya.
+  // Medido sobre 1440 px de recorrido: webkit 278-429 ms, chromium 629-661 ms.
+  // El swipe horizontal, en cambio, lo mueve la inercia del trackpad: 500-900
+  // ms. Por eso la misma profundidad se ve con el dedo y se pierde con la
+  // rueda — no es otra animación, es la misma a un tercio de tiempo. Con un
+  // deslizamiento propio la duración pasa a ser una decisión, y es la MISMA en
+  // los tres motores y en las cinco vías de entrada.
+  //
+  // 700 ms: por debajo de ~500 la profundidad vuelve a pasar de largo; por
+  // encima de ~800 el que solo quiere llegar al contenido se impacienta. Con
+  // reduced-motion no hay deslizamiento: behavior() devuelve 'auto' y se salta
+  // entero, que es lo que esa preferencia pide.
+  var DUR_MS = 700;
+  var snapOriginal = null;
+  // Estado del deslizamiento. NO tiene rAF propio: lo hace avanzar `girar`, el
+  // mismo bucle que ya escribe la profundidad. Con dos rAF separados cada frame
+  // escribia scrollLeft en uno y lo LEIA en el otro, que es una lectura forzada
+  // de layout entre dos escrituras; medido, el muestreador se caia de 48 a 17
+  // Hz. Un solo bucle: se avanza la curva, se sabe la x sin releerla, y se
+  // escribe la profundidad con ella.
+  var slActivo = false, slDesde = 0, slDist = 0, slT0 = 0;
+
+  // easeInOutSine, no cubic. La cubica tiene una velocidad de pico DOBLE de la
+  // media, o sea que concentra el movimiento justo en el centro del recorrido,
+  // que es exactamente donde se quiere VER la profundidad: el centro pasaba
+  // volando y las puntas se arrastraban. La sinusoidal pica a 1.57x la media,
+  // reparte mucho mejor, y de paso baja el mayor salto entre frames de un 30 %
+  // del recorrido a por debajo del 25 %, que es el umbral del arnes.
+  function suavizar(t) {   // easeInOutSine
+    return 0.5 - 0.5 * Math.cos(Math.PI * t);
+  }
+
+  function devolverSnap() {
+    if (snapOriginal !== null) {
+      container.style.scrollSnapType = snapOriginal;
+      snapOriginal = null;
+    }
+  }
+
+  // Suelta el deslizamiento y devuelve el snap. Se llama cuando el usuario toma
+  // el mando: su gesto manda sobre cualquier animación nuestra en vuelo.
+  function pararDesliz() {
+    if (!slActivo) return;
+    slActivo = false;
+    devolverSnap();
+  }
+
+  function deslizarA(x) {
+    var desde = container.scrollLeft;
+    var dist = x - desde;
+    if (Math.abs(dist) < 1) { pararDesliz(); return; }
+    // `scroll-snap-type: x mandatory` reengancha en cuanto se escribe
+    // scrollLeft a mano: el snap ganaría a mitad de la curva y cortaría la
+    // transición justo en la parte que se quiere ver. Se suspende mientras dura
+    // y se devuelve al terminar; como se aterriza EXACTAMENTE en offsetLeft, al
+    // devolverlo no hay salto que corregir.
+    if (!slActivo) {
+      snapOriginal = container.style.scrollSnapType;
+      container.style.scrollSnapType = 'none';
+    }
+    slActivo = true; slDesde = desde; slDist = dist; slT0 = 0;
+    despertarProfundidad();
+  }
+
   function goToIndex(i, forced) {
     i = Math.max(0, Math.min(panels.length - 1, i));
     currentIndex = i;
-    container.scrollTo({
-      left: panels[i].offsetLeft,   // posición real, no i * innerWidth
-      behavior: forced || behavior()
-    });
+    var x = panels[i].offsetLeft;   // posición real, no i * innerWidth
+    if ((forced || behavior()) === 'auto') {
+      pararDesliz();
+      container.scrollTo({ left: x, behavior: 'auto' });
+      return;
+    }
+    deslizarA(x);
   }
 
   // ---------- Medidas cacheadas ----------
@@ -213,6 +288,7 @@
       // scroll pare, que es cuando la posicion ya es real y definitiva.
       programatico = false;
       reintentos = 0;
+      pararDesliz();   // su dedo manda sobre cualquier animacion nuestra en vuelo
       return;
     }
 
@@ -417,8 +493,20 @@
   // El rAF corre mientras el scroll se mueve y un rato después, no siempre:
   // dejarlo girando en reposo es batería a cambio de nada.
   var depthRAF = 0, quietos = 0, ultimoX = -1;
-  function girar() {
-    var x = container.scrollLeft;
+  function girar(ts) {
+    var x;
+    if (slActivo) {
+      // El deslizamiento vive AQUI, no en un rAF aparte: se escribe scrollLeft
+      // y se sigue con la misma x, sin volver a leerla del layout.
+      if (!slT0) slT0 = ts;
+      var t = (ts - slT0) / DUR_MS;
+      if (t > 1) t = 1;
+      x = slDesde + slDist * suavizar(t);
+      container.scrollLeft = x;
+      if (t >= 1) { slActivo = false; devolverSnap(); }
+    } else {
+      x = container.scrollLeft;
+    }
     escribirProfundidad(x);
     quietos = (x === ultimoX) ? quietos + 1 : 0;
     ultimoX = x;
@@ -427,7 +515,9 @@
   }
   function despertarProfundidad() {
     quietos = 0;
-    if (!depthRAF && depthOn) depthRAF = requestAnimationFrame(girar);
+    // `|| slActivo`: aunque la profundidad estuviese apagada, el deslizamiento
+    // tiene que seguir corriendo, porque ahora es este bucle quien lo mueve.
+    if (!depthRAF && (depthOn || slActivo)) depthRAF = requestAnimationFrame(girar);
   }
 
   container.addEventListener('scroll', function () {
@@ -446,18 +536,12 @@
   // recargar: alguien que active reduced-motion o conecte un raton no deberia
   // tener que refrescar.
   function alCambiarEntorno() {
+    // El motor ya no se apaga por tipo de puntero: quien decide qué se mueve en
+    // táctil es el CSS. Conectar un ratón o activar reduced-motion solo obliga a
+    // volver a medir, porque cambian los media queries y con ellos la geometría.
     finePointer = finePointerMQ.matches;
-    depthOn = finePointer;
-    if (!depthOn) {
-      panels.forEach(function (p) {
-        p.style.setProperty('--p', '0');
-        p.style.setProperty('--a', '0');
-        p.classList.remove('depth-live');
-      });
-    } else {
-      measure();
-      despertarProfundidad();
-    }
+    measure();
+    despertarProfundidad();
   }
   if (finePointerMQ.addEventListener) {
     finePointerMQ.addEventListener('change', alCambiarEntorno);
