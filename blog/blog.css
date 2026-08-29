@@ -200,6 +200,18 @@ a:hover { color: var(--white); }
   font-style: italic;
 }
 
+.blog-content p a {
+  color: var(--white);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgb(var(--gray-rgb) / 0.45);
+  transition: text-decoration-color 0.2s ease;
+}
+
+.blog-content p a:hover {
+  text-decoration-color: var(--white);
+}
+
 .blog-content blockquote {
   border-left: 3px solid var(--gray);
   padding: 16px 24px;

@@ -30,7 +30,21 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/"/>
   </url>
 
-  <!-- Blog posts (17 × 2 languages) -->
+  <!-- Blog posts (18 × 2 languages) -->
+
+  <url>
+    <loc>https://jeisonxm.github.io/blog/mi-punto-de-vista-sobre-la-educacion.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/mi-punto-de-vista-sobre-la-educacion.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/my-view-on-education.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/mi-punto-de-vista-sobre-la-educacion.html"/>
+  </url>
+  <url>
+    <loc>https://jeisonxm.github.io/en/blog/my-view-on-education.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://jeisonxm.github.io/blog/mi-punto-de-vista-sobre-la-educacion.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jeisonxm.github.io/en/blog/my-view-on-education.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jeisonxm.github.io/blog/mi-punto-de-vista-sobre-la-educacion.html"/>
+  </url>
+
 
   <url>
     <loc>https://jeisonxm.github.io/blog/cuando-escribir-se-siente-humano.html</loc>
