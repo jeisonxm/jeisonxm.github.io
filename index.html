@@ -40,6 +40,10 @@
 </head>
 <body>
 
+  <!-- WCAG 2.4.1 Bypass Blocks: antes no habia ninguno y quien navega con
+       teclado tenia que atravesar la cabecera entera en cada carga. -->
+  <a class="skip-link" href="#container">Saltar al contenido</a>
+
   <!-- Header -->
   <header class="header" id="header">
     <a href="#hero" class="header-logo">JW<span class="logo-dot">.</span></a>
@@ -328,7 +332,7 @@
                  PENDIENTE: reemplazar TU-ENDPOINT por el id de la cuenta. Mientras
                  siga el marcador, script.js intercepta el envío y abre un correo
                  ya redactado, así que el formulario nunca se queda en silencio. -->
-            <form class="contact-form" action="https://formspree.io/f/TU-ENDPOINT" method="post">
+            <form class="contact-form" action="https://formspree.io/f/TU-ENDPOINT" method="post" data-fallback-msg="Abriendo tu programa de correo… Si no se abre, escríbeme a jeisonwumitre@gmail.com">
               <h3>Envíame un mensaje</h3>
               <div class="form-row">
                 <label class="sr-only" for="cf-email">Email</label>

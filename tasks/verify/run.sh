@@ -130,9 +130,43 @@ case "${1:-all}" in
       console.log("baseline.json escrito");
     '
     ;;
-  all|*)
+  rapido)
+    # El antiguo "all": arranque, pintado y la sonda de los tres motores. Util
+    # para un ciclo corto, pero NO es la suite.
     node selftest-transform.mjs; echo
     node render-check.mjs; echo
     node probe.mjs --json
+    ;;
+  all|*)
+    # todo.md:8 dice "ninguna casilla se marca sin haber corrido run.sh". Durante
+    # todo el rediseno esto corria TRES scripts de catorce, o sea que la regla de
+    # oro sellaba un tercio de la suite. Los cuatro defectos que encontro el
+    # dueno los cazan compuertas que este comando no ejecutaba. Ahora corre todo
+    # y devuelve codigo != 0 si alguna falla.
+    fallos=0
+    for g in selftest-transform render-check depth-check panels-check \
+             gestures-check portal-check tokens-check a11y-check lcp-check \
+             layout-check mobile-contrast swipe-check transicion-check \
+             focus-check selfcheck; do
+      [[ -f "$g.mjs" ]] || continue
+      if node "$g.mjs" > "/tmp/verify-$g.log" 2>&1; then
+        printf '  OK    %s\n' "$g"
+      else
+        fallos=$((fallos + 1))
+        printf '  FALLA %s   (salida en /tmp/verify-%s.log)\n' "$g" "$g"
+        tail -6 "/tmp/verify-$g.log" | sed 's/^/          /'
+      fi
+    done
+    if node probe.mjs --json > /tmp/verify-probe.log 2>&1; then
+      printf '  OK    probe (3 motores)\n'
+    else
+      fallos=$((fallos + 1)); printf '  FALLA probe   (salida en /tmp/verify-probe.log)\n'
+    fi
+    echo
+    if ((fallos)); then
+      echo "$fallos compuerta(s) en rojo."
+      exit 1
+    fi
+    echo "TODAS LAS COMPUERTAS EN VERDE."
     ;;
 esac

@@ -6,6 +6,11 @@ Léelo **entero** antes de empezar. Este archivo es la lista; el plan es el cont
 Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[!]` bloqueado
 
 **Regla de oro:** ninguna casilla se marca sin haber corrido `tasks/verify/run.sh`.
+
+> Esta regla fue falsa durante todo el rediseño: `run.sh` sin argumento corría
+> **3 de 14** compuertas, ninguna de las once que cazaron las cuatro rondas del
+> dueño. Corregido: ahora corre la suite entera y devuelve código ≠ 0 si alguna
+> falla. Para el ciclo corto de antes, `run.sh rapido`.
 "Existe la regla CSS" no es verificación. "El transform cambió de X a Y" sí.
 
 Si el arnés no está montado (sesión nueva, `/tmp` vaciado): `tasks/verify/run.sh setup`.
@@ -571,9 +576,37 @@ sabe dar rojo, así que su verde significa algo.
 
 ---
 
-## Pendiente del dueño — no bloquea nada
+## Pendiente del dueño
 
-- [ ] **Versión exacta de su Safari** (Safari > Acerca de Safari). Decide si ve el portal
-      (necesita 18.2+).
-- [ ] Endpoint real de Formspree.
-- [ ] Si quiere regenerar `EN_AI_BUILDER` antes de publicarlo (§2.11 del plan).
+Ojo: el encabezado de estas tareas decía "no bloquea nada". Dos de ellas SÍ
+bloquean, y llevaban abiertas cuatro rondas. Ver `RETROSPECTIVA.md` §5.
+
+- [ ] **Endpoint real de Formspree.** BLOQUEA: hoy el formulario apunta a
+      `formspree.io/f/TU-ENDPOINT` y no entrega nada. El respaldo `mailto:` ya
+      avisa, pero quien escriba esperando un envío no llega.
+- [ ] **Versión exacta de su Safari** (Safari > Acerca de Safari). Decide si ve
+      el portal (necesita 18.2+). El plan la marcó como riesgo **Alto** y la
+      aparcó; las cuatro rondas de defectos llegaron desde ese Mac.
+- [ ] **Regenerar `EN_AI_BUILDER`.** Confirmado y peor de lo que decía este
+      punto: `EN_AI_BUILDER.docx`, `EN.docx` y `EN_AUDIT_LEADER.docx` son el
+      MISMO fichero (md5 idéntico). Un recruiter descarga "HEAD OF AUDIT
+      ANALYTICS" donde la página promete AI Builder.
+- [ ] **El icono X apunta a una cuenta que no existe**: `twitter.com/jeisonwu`
+      da 404 (verificado con control calibrado). Corregir el handle o retirarlo.
+
+## Deuda abierta — encontrada en la retrospectiva
+
+- [ ] Cero metadatos sociales en las 38 páginas: 0 `og:`, 0 `twitter:`,
+      0 `canonical`, 0 JSON-LD. Hace falta además una imagen social 1200×630.
+- [ ] No hay CI (`.github/` no existe): un push desde otra máquina no verifica nada.
+- [ ] No hay compuerta de enlaces ni de coherencia sitemap/hreflang/slug-map.
+- [ ] 2,6 MB de imágenes huérfanas (50 variantes de panel + 15 logos de stack).
+- [ ] `tasks/build.mjs` + `picks.json` regeneran esas variantes muertas, y
+      `picks.json` asigna a Skills una foto que el plan marca NO PUBLICABLE.
+- [ ] `tasks/DEFECTOS.md` publica un diagnóstico ya refutado y dice que el sitio
+      está roto en producción. A `tasks/archive/` con nota de cierre.
+- [ ] No hay `robots.txt` ni `404.html`.
+- [ ] `run_matting.sh` está versionado pero apunta a un `/tmp` de otra sesión:
+      no es reproducible como promete su cabecera.
+- [ ] Cobertura de comportamiento de `/en/` = 0: las siete compuertas de
+      comportamiento van todas a `/` con `locale: es-ES`.

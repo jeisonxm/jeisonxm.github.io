@@ -1966,3 +1966,31 @@ ul { list-style: none; }
   .hero-panel .hero-title { font-size: 2.6rem; line-height: 1.05; margin-bottom: 8px; }
   .hero-panel .hero-sub { margin-bottom: 16px; }
 }
+
+
+/* ===== SALTAR AL CONTENIDO (WCAG 2.4.1) =====
+   No existia: medido, habia 28 elementos enfocables y ninguna forma de saltarse
+   la cabecera. Fuera de pantalla hasta que recibe el foco, que es el patron que
+   lo mantiene invisible sin esconderlo del teclado (display:none o
+   visibility:hidden lo sacarian tambien del orden de tabulacion). */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -64px;
+  z-index: 1000;
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  background: rgb(var(--surface-rgb));
+  color: rgb(var(--white-rgb));
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: top 0.16s ease;
+}
+.skip-link:focus-visible,
+.skip-link:focus {
+  top: 12px;
+  outline: 2px solid rgb(var(--accent-rgb));
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) { .skip-link { transition: none; } }

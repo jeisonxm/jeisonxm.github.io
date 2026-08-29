@@ -381,6 +381,38 @@
     goToIndex(target);
   }
 
+  // ---------- Foco: la sexta via de entrada, y la unica que teletransportaba ----------
+  // El navegador hace scroll-into-view al enfocar, y lo hace de golpe. Medido en
+  // chromium: 14 tabulaciones llevaban de scrollLeft 0 a 4320 en DOS eventos de
+  // scroll. Es el MISMO defecto que el dueno reporto con la rueda —"lo hace tan
+  // rapido que pierdo toda la transicion"— pero en la unica via que quien navega
+  // con teclado o con lector de pantalla no puede evitar. Ninguna compuerta la
+  // miraba: transicion-check enumera cinco entradas y esta no estaba.
+  //
+  // Se guarda la posicion ANTES de que el foco la mueva, se deshace el salto del
+  // navegador y se desliza como cualquier otra via.
+  var xAntesDeFoco = -1;
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Tab') xAntesDeFoco = container.scrollLeft;
+  }, true);
+
+  container.addEventListener('focusin', function (e) {
+    if (xAntesDeFoco < 0) return;
+    var previo = xAntesDeFoco;
+    xAntesDeFoco = -1;
+    var nodo = e.target;
+    var panel = (nodo && nodo.closest) ? nodo.closest('.panel') : null;
+    if (!panel) return;
+    var idx = panels.indexOf(panel);
+    if (idx === -1) return;
+    var destino = panels[idx].offsetLeft;
+    if (Math.abs(previo - destino) < 1) return;   // el foco se quedo en el panel
+    container.scrollLeft = previo;                // deshacer el salto instantaneo
+    target = idx;
+    programatico = true;
+    goToIndex(idx);
+  });
+
   // ---------- Teclado ----------
   function isTyping(el) {
     if (!el) return false;
